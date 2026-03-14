@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tixup - Design System Guide (White Theme)</title>
+    <link rel="stylesheet" href="assets/css/tokens.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            /* Light background */
+            color: #212529;
+            /* Dark text */
+            font-family: 'Pretendard', sans-serif;
+            margin: 0;
+            display: flex;
+        }
+
+        /* Override for Tree Expander and Add Button visibility */
+        .tree-expander.empty {
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        .add-child-btn {
+            opacity: 0 !important;
+            transition: opacity 0.2s ease !important;
+        }
+
+        .data-grid-row:hover .add-child-btn {
+            opacity: 1 !important;
+        }
+
+
+        .guide-main {
+            padding: 60px 80px;
+            flex: 1;
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+
+        .section {
+            margin-bottom: 80px;
+        }
+
+        .section-header {
+            margin-bottom: 32px;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 16px;
+        }
+
+        .section-header h3 {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 40px;
+            margin-top: 24px;
+        }
+
+        /* Component item container - updated for white theme */
+        .component-item {
+            background: #ffffff;
+            padding: 32px;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .item-label {
+            font-size: 12px;
+            color: #adb5bd;
+            font-family: monospace;
+        }
+
+        /* 하위 항목 숨김 스타일 */
+        .grid-child-row.collapsed {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- New Navigation Sidebar (Figma Export & Tokens) -->
+    <nav class="nav-sidebar">
+        <!-- Header -->
+        <header class="nav-header">
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <span>Tixup</span>
+            </div>
+            <div class="nav-controls">
+            </div>
+        </header>
+
+        <!-- Space Section -->
+        <div class="nav-section">
+            <div class="nav-section-title-wrapper">
+                <div class="nav-section-title-inner">
+                    <div class="nav-section-title-label">Space</div>
+                </div>
+            </div>
+
+            <div class="nav-item">
+                <div class="nav-item-content">
+                    <div class="nav-icon icon-planet"></div>
+                    <div class="nav-item-label">프로젝트</div>
+                </div>
+            </div>
+
+            <div class="nav-item active">
+                <div class="nav-item-content">
+                    <div class="nav-icon icon-work"></div>
+                    <div class="nav-item-label">My Tasks</div>
+                    <div class="nav-badge-container">
+                        <span class="nav-badge-text">3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scrollable Box Section -->
+        <div class="nav-scrollable-container">
+            <div class="nav-scrollable-inner">
+                <div class="nav-section-group">
+                    <div class="nav-section-title-wrapper">
+                        <div class="nav-section-title-inner">
+                            <div class="nav-section-title-label">Box</div>
+                        </div>
+                    </div>
+
+                    <div class="nav-item">
+                        <div class="nav-item-content">
+                            <div class="nav-icon icon-deployed"></div>
+                            <div class="nav-item-label">Maru</div>
+                        </div>
+                    </div>
+
+                    <div class="nav-item">
+                        <div class="nav-item-content">
+                            <div class="nav-icon icon-deployed"></div>
+                            <div class="nav-item-label">proj-kori</div>
+                            <div class="nav-badge-container">
+                                <span class="nav-badge-text">3</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nav-item">
+                        <div class="nav-item-content">
+                            <div class="nav-icon icon-deployed"></div>
+                            <div class="nav-item-label">proj-autoload</div>
+                        </div>
+                    </div>
+
+                    <div class="nav-item">
+                        <div class="nav-item-content">
+                            <div class="nav-icon icon-deployed"></div>
+                            <div class="nav-item-label">proj-doczip-design</div>
+                        </div>
+                    </div>
+
+                    <div class="nav-item">
+                        <div class="nav-item-content">
+                            <div class="nav-icon icon-deployed"></div>
+                            <div class="nav-item-label">proj-doczip-app</div>
+                        </div>
+                    </div>
+
+                    <div class="nav-item">
+                        <div class="nav-item-content">
+                            <div class="nav-icon icon-deployed"></div>
+                            <div class="nav-item-label">proj-mobis-gai</div>
+                        </div>
+                    </div>
+
+                    <div class="nav-item">
+                        <div class="nav-item-content">
+                            <div class="nav-icon icon-deployed"></div>
+                            <div class="nav-item-label">proj-vrix</div>
+                            <div class="nav-badge-container">
+                                <span class="nav-badge-text">3</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nav-item">
+                        <div class="nav-item-content">
+                            <div class="nav-icon icon-deployed"></div>
+                            <div class="nav-item-label">신규사업 검토</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-footer">
+        </div>
+    </nav>
+    <main class="guide-main">
+        <!-- 1. Status Markers (Solid) -->
+        <section id="markers-status" class="section">
+            <div class="section-header">
+                <h3>Markers: Status (Solid)</h3>
+                <p>배경색이 채워진 기본 상태 마커입니다.</p>
+            </div>
+            <div class="component-grid">
+                <div class="component-item">
+                    <div class="marker marker-pending">Pending</div><span class="item-label">.marker-pending</span>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-inprogress">In Progress</div><span
+                        class="item-label">.marker-inprogress</span>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-pause">Pause</div><span class="item-label">.marker-pause</span>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-done">Done</div><span class="item-label">.marker-done</span>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-overdue">Overdue</div><span class="item-label">.marker-overdue</span>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-drop">Drop</div><span class="item-label">.marker-drop</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Department Markers (Subtle) -->
+        <section id="markers-depart" class="section">
+            <div class="section-header">
+                <h3>Markers: Department (Subtle)</h3>
+                <p>부서를 나타내는 연한 배경의 마커입니다.</p>
+            </div>
+            <div class="component-grid">
+                <div class="component-item">
+                    <div class="marker marker-it">IT</div><span class="item-label">.marker-it</span>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-design">Design</div><span class="item-label">.marker-design</span>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-dev">Dev</div><span class="item-label">.marker-dev</span>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-marketing">Marketing</div><span
+                        class="item-label">.marker-marketing</span>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-product">Product</div><span class="item-label">.marker-product</span>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-consulting">Consulting</div><span
+                        class="item-label">.marker-consulting</span>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-hr">HR</div><span class="item-label">.marker-hr</span>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-directing">Directing</div><span
+                        class="item-label">.marker-directing</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Icon Markers (Ghost Style - Figma Spec) -->
+        <section id="markers-icons" class="section">
+            <div class="section-header">
+                <h3>Markers: Ghost Style (Icon + Text)</h3>
+                <p>피그마 디자인의 두 번째 줄 명세인 배경 없는 스타일입니다.</p>
+            </div>
+            <div class="component-grid">
+                <div class="component-item">
+                    <div class="marker marker-has-icon marker-pending">Pending</div>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-has-icon marker-inprogress">In Progress</div>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-has-icon marker-pause">Pause</div>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-has-icon marker-done">Done</div>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-has-icon marker-overdue">Overdue</div>
+                </div>
+                <div class="component-item">
+                    <div class="marker marker-has-icon marker-drop">Drop</div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- 5. Checkbox Component -->
+        <section id="checkboxes" class="section">
+            <div class="section-header">
+                <h3>Checkbox</h3>
+                <p>피그마 디자인시스템 기반의 체크박스 컴포넌트 상태들입니다.</p>
+            </div>
+            <div class="component-grid" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));">
+                <div class="component-item" style="align-items: flex-start; justify-content: center;">
+                    <label class="checkbox-container">
+                        <input type="checkbox">
+                        <div class="checkbox-box"></div>
+                        <span class="checkbox-label">Default</span>
+                    </label>
+                    <span class="item-label" style="align-self: center">Default (Unchecked)</span>
+                </div>
+                <div class="component-item" style="align-items: flex-start; justify-content: center;">
+                    <label class="checkbox-container">
+                        <input type="checkbox" checked>
+                        <div class="checkbox-box"></div>
+                        <span class="checkbox-label">Checked</span>
+                    </label>
+                    <span class="item-label" style="align-self: center">Checked</span>
+                </div>
+                <div class="component-item" style="align-items: flex-start; justify-content: center;">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="indeterminate-demo">
+                        <div class="checkbox-box"></div>
+                        <span class="checkbox-label">Indeterminate</span>
+                    </label>
+                    <span class="item-label" style="align-self: center">Indeterminate</span>
+                    <script>document.getElementById('indeterminate-demo').indeterminate = true;</script>
+                </div>
+                <div class="component-item" style="align-items: flex-start; justify-content: center;">
+                    <label class="checkbox-container">
+                        <input type="checkbox" disabled>
+                        <div class="checkbox-box disabled"></div>
+                        <span class="checkbox-label">Disabled</span>
+                    </label>
+                    <span class="item-label" style="align-self: center">Disabled (Unchecked)</span>
+                </div>
+                <div class="component-item" style="align-items: flex-start; justify-content: center;">
+                    <label class="checkbox-container">
+                        <input type="checkbox" disabled checked>
+                        <div class="checkbox-box disabled"></div>
+                        <span class="checkbox-label">Disabled</span>
+                    </label>
+                    <span class="item-label" style="align-self: center">Disabled (Checked)</span>
+                </div>
+            </div>
+        </section>
+        <!-- 6. Data Grid -->
+        <section id="data-grid" class="section">
+            <div class="section-header">
+                <h3>Data Grid</h3>
+                <p>계층형 데이터 그리드 샘플입니다.</p>
+            </div>
+
+            <div class="data-grid-container">
+                <!-- Header Row -->
+                <div class="data-grid-row data-grid-header">
+                    <div class="data-grid-cell center">
+                        <!-- Unchecked -->
+                        <label class="checkbox-container">
+                            <input type="checkbox">
+                            <div class="checkbox-box"></div>
+                        </label>
+                    </div>
+                    <div class="data-grid-cell" style="padding: 10px;">
+                        <div class="grid-filter-tabs">
+                            <button class="grid-filter-tab active">All</button>
+                            <button class="grid-filter-tab">Done</button>
+                            <button class="grid-filter-tab">Overdue</button>
+                        </div>
+                    </div>
+                    <div class="data-grid-cell data-grid-header-cell">
+                        <span>Status</span>
+                    </div>
+                    <div class="data-grid-cell data-grid-header-cell">
+                        <span>Assignee</span>
+                    </div>
+                    <div class="data-grid-cell data-grid-header-cell">
+                        <span>Due Date</span>
+                    </div>
+                    <div class="data-grid-cell data-grid-header-cell">
+                        <span>Tags</span>
+                    </div>
+                </div>
+
+                <!-- Row 1: Level 0 (Expanded) -->
+                <div class="data-grid-row level-0" data-group="design-ref">
+                    <div class="data-grid-cell center">
+                        <label class="checkbox-container">
+                            <input type="checkbox">
+                            <div class="checkbox-box"></div>
+                        </label>
+                    </div>
+                    <div class="data-grid-cell" style="padding-left: 8px;">
+                        <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+                            <button class="tree-expander expanded" id="toggle-design-ref" style="flex-shrink: 0;">
+                                <div class="nav-icon icon-chevron-lg-bottom"></div>
+                            </button>
+                            <div class="nav-icon icon-tix"></div>
+                            <span class="data-grid-text">Design Reference</span>
+                            <button class="add-child-btn" style="opacity: 0; margin-left: auto;">
+                                <div class="nav-icon icon-add"></div>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="data-grid-cell">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <div class="marker marker-has-icon marker-pending"
+                                style="height: 22px; padding: 0 8px; font-size: 12px; gap: 4px;">
+                                Pending
+                            </div>
+                        </div>
+                    </div>
+                    <div class="data-grid-cell" style="gap: 8px;">
+                        <img src="https://ui-avatars.com/api/?name=이대수&background=random"
+                            style="width: 24px; height: 24px; border-radius: 50%;" />
+                        <span class="data-grid-text-sm">이대수</span>
+                        <div class="grid-tag grid-tag-blue" style="height: 24px;">Mine</div>
+                    </div>
+                    <div class="data-grid-cell" style="gap: 8px;">
+                        <span class="data-grid-text-sm">2025-08-09</span>
+                    </div>
+                    <div class="data-grid-cell">
+                        <div class="grid-tag grid-tag-green">Design</div>
+                    </div>
+                </div>
+
+                <!-- Row 2: Level 1 -->
+                <div class="data-grid-row grid-child-row" data-parent="design-ref">
+                    <div class="data-grid-cell center">
+                        <label class="checkbox-container">
+                            <input type="checkbox">
+                            <div class="checkbox-box"></div>
+                        </label>
+                    </div>
+                    <div class="data-grid-cell" style="padding-left: 8px;">
+                        <div style="display: flex; gap: 8px; align-items: center; width: 100%; padding-left: 26px;">
+                            <div class="nav-icon icon-stat"></div>
+                            <span class="data-grid-text">CI Design</span>
+                        </div>
+                    </div>
+                    <div class="data-grid-cell">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <div class="marker marker-has-icon marker-pending"
+                                style="height: 22px; padding: 0 8px; font-size: 12px; gap: 4px;">
+                                Pending
+                            </div>
+                        </div>
+                    </div>
+                    <div class="data-grid-cell" style="gap: 8px;">
+                        <img src="https://ui-avatars.com/api/?name=이대수&background=random"
+                            style="width: 24px; height: 24px; border-radius: 50%;" />
+                        <span class="data-grid-text-sm">이대수</span>
+                        <div class="grid-tag grid-tag-blue" style="height: 24px;">Mine</div>
+                    </div>
+                    <div class="data-grid-cell" style="gap: 8px;">
+                        <span class="data-grid-text-sm">2025-08-09</span>
+                    </div>
+                    <div class="data-grid-cell">
+                        <div class="grid-tag grid-tag-green">Design</div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Level 0 (Standalone) -->
+                <div class="data-grid-row level-0" data-group="dev-group">
+                    <div class="data-grid-cell center">
+                        <label class="checkbox-container">
+                            <input type="checkbox" checked>
+                            <div class="checkbox-box"></div>
+                        </label>
+                    </div>
+                    <div class="data-grid-cell" style="padding-left: 8px;">
+                        <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+                            <button class="tree-expander empty expanded" style="flex-shrink: 0; opacity: 0; pointer-events: none;">
+                                <div class="nav-icon icon-chevron-lg-bottom"></div>
+                            </button>
+                            <div class="nav-icon icon-tix"></div>
+                            <span class="data-grid-text">Dev</span>
+                            <button class="add-child-btn" style="opacity: 0; margin-left: auto;">
+                                <div class="nav-icon icon-add"></div>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="data-grid-cell">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <div class="marker marker-has-icon marker-inprogress"
+                                style="height: 22px; padding: 0 8px; font-size: 12px; gap: 4px;">
+                                In Progress
+                            </div>
+                        </div>
+                    </div>
+                    <div class="data-grid-cell" style="gap: 8px;">
+                        <img src="https://ui-avatars.com/api/?name=Jy.Choi&background=random"
+                            style="width: 24px; height: 24px; border-radius: 50%;" />
+                        <span class="data-grid-text-sm">Jy.Choi</span>
+                    </div>
+                    <div class="data-grid-cell" style="gap: 8px;">
+                        <span class="data-grid-text-sm">2025-08-09</span>
+                    </div>
+                    <div class="data-grid-cell">
+                        <div class="grid-tag grid-tag-green">Design</div>
+                    </div>
+                </div>
+
+                <!-- Footer Create Button -->
+                <div class="data-grid-row data-grid-footer" id="data-grid-footer-row">
+                    <div class="data-grid-cell" style="border: none;">
+                        <button id="grid-create-btn" class="grid-create-btn">
+                            <div class="nav-icon icon-add"></div>
+                            <span class="data-grid-text" style="color: var(--primitive-colors-gray-900)">Create
+                                Tix</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const indeterminateBox = document.getElementById('indeterminate-demo');
+            if (indeterminateBox) indeterminateBox.indeterminate = true;
+
+            // 2. 하위 카테고리 토글 함수
+            function setupToggle(expander, groupName) {
+                expander.addEventListener('click', () => {
+                    const isExpanded = expander.classList.contains('expanded');
+                    const children = document.querySelectorAll(`.grid-child-row[data-parent="${groupName}"]`);
+                    
+                    if (isExpanded) {
+                        expander.classList.remove('expanded');
+                        expander.classList.add('collapsed');
+                        children.forEach(child => child.classList.add('collapsed'));
+                    } else {
+                        expander.classList.remove('collapsed');
+                        expander.classList.add('expanded');
+                        children.forEach(child => child.classList.remove('collapsed'));
+                    }
+                });
+            }
+
+            // 초기 토글 설정
+            const designRefToggle = document.getElementById('toggle-design-ref');
+            if (designRefToggle) setupToggle(designRefToggle, 'design-ref');
+            
+            const devToggle = document.querySelector('[data-group="dev-group"] .tree-expander');
+            if (devToggle) setupToggle(devToggle, 'dev-group');
+
+            // 3. 하위 행 추가 함수
+            function addChildRow(parentRow, groupName) {
+                const newChild = document.createElement('div');
+                newChild.className = 'data-grid-row grid-child-row';
+                newChild.setAttribute('data-parent', groupName);
+                
+                newChild.innerHTML = `
+                    <div class="data-grid-cell center">
+                        <label class="checkbox-container">
+                            <input type="checkbox">
+                            <div class="checkbox-box"></div>
+                        </label>
+                    </div>
+                    <div class="data-grid-cell" style="padding-left: 8px;">
+                        <div style="display: flex; gap: 8px; align-items: center; width: 100%; padding-left: 26px;">
+                            <div class="nav-icon icon-stat"></div>
+                            <span class="data-grid-text">New Sub Category</span>
+                        </div>
+                    </div>
+                    <div class="data-grid-cell">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <div class="marker marker-has-icon marker-pending" style="height: 22px; padding: 0 8px; font-size: 12px; gap: 4px;">
+                                Pending
+                            </div>
+                        </div>
+                    </div>
+                    <div class="data-grid-cell" style="gap: 8px;">
+                        <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primitive-colors-gray-200);"></div>
+                        <span class="data-grid-text-sm">Unassigned</span>
+                    </div>
+                    <div class="data-grid-cell" style="gap: 8px;">
+                        <span class="data-grid-text-sm">-</span>
+                    </div>
+                    <div class="data-grid-cell"></div>
+                `;
+                
+                // 부모 행 뒤에 삽입 (혹은 마지막 자식 뒤에)
+                let lastChild = parentRow;
+                let next = parentRow.nextElementSibling;
+                while (next && next.classList.contains('grid-child-row') && next.getAttribute('data-parent') === groupName) {
+                    lastChild = next;
+                    next = next.nextElementSibling;
+                }
+                lastChild.parentNode.insertBefore(newChild, lastChild.nextSibling);
+
+                // 부모 행의 확장기 활성화
+                const expander = parentRow.querySelector('.tree-expander');
+                if (expander) {
+                    expander.classList.remove('empty');
+                    expander.style.opacity = '1';
+                    expander.style.pointerEvents = 'auto';
+                }
+
+                // 애니메이션
+                newChild.animate([
+                    { opacity: 0, transform: 'translateY(-10px)' },
+                    { opacity: 1, transform: 'translateY(0)' }
+                ], { duration: 300, easing: 'ease-out' });
+            }
+
+            // 이벤트 위임으로 Add 버튼 처리
+            document.querySelector('.data-grid-container').addEventListener('click', (e) => {
+                const addBtn = e.target.closest('.add-child-btn');
+                if (addBtn) {
+                    const row = addBtn.closest('.data-grid-row');
+                    const groupName = row.getAttribute('data-group');
+                    if (groupName) {
+                        addChildRow(row, groupName);
+                    }
+                }
+            });
+
+            // 4. 메인 데이터 그리드 행 추가 로직
+            const createBtn = document.getElementById('grid-create-btn');
+            const dataGridContainer = document.querySelector('.data-grid-container');
+            const footerRow = document.getElementById('data-grid-footer-row');
+
+            if (createBtn && dataGridContainer && footerRow) {
+                createBtn.addEventListener('click', () => {
+                    const groupId = 'new-group-' + Date.now();
+                    const newRow = document.createElement('div');
+                    newRow.className = 'data-grid-row level-0';
+                    newRow.setAttribute('data-group', groupId);
+                    const todayDate = new Date().toISOString().split("T")[0];
+
+                    newRow.innerHTML = `
+                        <div class="data-grid-cell center">
+                            <label class="checkbox-container">
+                                <input type="checkbox">
+                                <div class="checkbox-box"></div>
+                            </label>
+                        </div>
+                        <div class="data-grid-cell" style="padding-left: 8px;">
+                            <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+                                <button class="tree-expander empty expanded" style="flex-shrink: 0; opacity: 0; pointer-events: none;">
+                                    <div class="nav-icon icon-chevron-lg-bottom"></div>
+                                </button>
+                                <div class="nav-icon icon-tix"></div>
+                                <span class="data-grid-text">New Tix</span>
+                                <button class="add-child-btn" style="opacity: 0; margin-left: auto;">
+                                    <div class="nav-icon icon-add"></div>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="data-grid-cell">
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <div class="marker marker-has-icon marker-pending" style="height: 22px; padding: 0 8px; font-size: 12px; gap: 4px;">
+                                    Pending
+                                </div>
+                            </div>
+                        </div>
+                        <div class="data-grid-cell" style="gap: 8px;">
+                            <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primitive-colors-gray-200); display: flex; align-items: center; justify-content: center; color: var(--primitive-colors-gray-600);">
+                            </div>
+                            <span class="data-grid-text-sm">Unassigned</span>
+                        </div>
+                        <div class="data-grid-cell" style="gap: 8px;">
+                            <span class="data-grid-text-sm">${todayDate}</span>
+                        </div>
+                        <div class="data-grid-cell"></div>
+                    `;
+                    dataGridContainer.insertBefore(newRow, footerRow);
+                    
+                    // 새 행의 토글 설정
+                    const expander = newRow.querySelector('.tree-expander');
+                    setupToggle(expander, groupId);
+
+                    // 애니메이션
+                    newRow.animate([
+                        { opacity: 0, transform: 'translateY(-10px)' },
+                        { opacity: 1, transform: 'translateY(0)' }
+                    ], { duration: 300, easing: 'ease-out' });
+                });
+            }
+
+            // 호버 시 버튼 노출 로직 (JS 권장)
+            dataGridContainer.addEventListener('mouseover', (e) => {
+                const row = e.target.closest('.data-grid-row');
+                if (row) {
+                    const btn = row.querySelector('.add-child-btn');
+                    if (btn) btn.style.opacity = '1';
+                }
+            });
+            dataGridContainer.addEventListener('mouseout', (e) => {
+                const row = e.target.closest('.data-grid-row');
+                if (row) {
+                    const btn = row.querySelector('.add-child-btn');
+                    if (btn) btn.style.opacity = '0';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

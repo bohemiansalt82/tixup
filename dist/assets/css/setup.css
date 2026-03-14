@@ -1,0 +1,145 @@
+/* setup.css - Premium On-premise Setup Design */
+
+body {
+    background-color: #0F0F0F;
+    color: #E0E0E0;
+    font-family: 'Pretendard', sans-serif;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.setup-container {
+    padding: 20px;
+    width: 100%;
+    max-width: 600px;
+}
+
+.setup-card {
+    background: #1A1A1A;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 48px;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+}
+
+.setup-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.logo-box {
+    width: 48px;
+    height: 48px;
+    background: var(--semantic-color-colors-primary, #18675a);
+    border-radius: 12px;
+    margin: 0 auto 20px;
+}
+
+.setup-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    color: #fff;
+}
+
+.setup-header p {
+    color: #888;
+    font-size: 14px;
+}
+
+.form-section {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.form-section h3 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--semantic-color-colors-primary, #18675a);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.field label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+}
+
+.field input {
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: #fff;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.field input:focus {
+    border-color: var(--semantic-color-colors-primary, #18675a);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(24, 103, 90, 0.2);
+}
+
+.checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #aaa;
+    margin-top: 8px;
+}
+
+.checkbox-field input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--semantic-color-colors-primary, #18675a);
+}
+
+.setup-footer {
+    margin-top: 40px;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 16px;
+    background: var(--semantic-color-colors-primary, #18675a);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.btn-primary:hover {
+    background: #1c7a6a;
+    transform: translateY(-2px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}

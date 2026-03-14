@@ -1,0 +1,60 @@
+/* icons.css - SVG Icon Path Variables and Mappings */
+
+:root {
+    /* Icon Path Definitions */
+    --icon-url-deployed: url('../images/icons/deployed_code.svg');
+    --icon-url-planet: url('../images/icons/planet.svg');
+    --icon-url-work: url('../images/icons/work_filled.svg');
+    --icon-url-add: url('../images/icons/add.svg');
+    --icon-url-check: url('../images/icons/check.svg');
+    --icon-url-minus: url('../images/icons/minus.svg');
+    --icon-url-chevron-lg-bottom: url('../images/icons/chevron_lg_bottom.svg');
+    --icon-url-tix: url('../images/icons/tix.svg');
+    --icon-url-stat: url('../images/icons/stat.svg');
+}
+
+/* Class Mappings */
+.icon-deployed {
+    -webkit-mask-image: var(--icon-url-deployed);
+    mask-image: var(--icon-url-deployed);
+}
+
+.icon-planet {
+    -webkit-mask-image: var(--icon-url-planet);
+    mask-image: var(--icon-url-planet);
+}
+
+.icon-work {
+    -webkit-mask-image: var(--icon-url-work);
+    mask-image: var(--icon-url-work);
+}
+
+.icon-add {
+    -webkit-mask-image: var(--icon-url-add);
+    mask-image: var(--icon-url-add);
+}
+
+.icon-check {
+    -webkit-mask-image: var(--icon-url-check);
+    mask-image: var(--icon-url-check);
+}
+
+.icon-minus {
+    -webkit-mask-image: var(--icon-url-minus);
+    mask-image: var(--icon-url-minus);
+}
+
+.icon-chevron-lg-bottom {
+    -webkit-mask-image: var(--icon-url-chevron-lg-bottom);
+    mask-image: var(--icon-url-chevron-lg-bottom);
+}
+
+.icon-tix {
+    -webkit-mask-image: var(--icon-url-tix);
+    mask-image: var(--icon-url-tix);
+}
+
+.icon-stat {
+    -webkit-mask-image: var(--icon-url-stat);
+    mask-image: var(--icon-url-stat);
+}

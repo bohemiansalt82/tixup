@@ -1,0 +1,629 @@
+/* components.css - Tixup Reusable Component Library */
+
+/* 1. Marker Component (Figma Marker V3 Spec) */
+.marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    padding: 0 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    gap: 8px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    cursor: default;
+}
+
+
+
+/* 1.1 Status Colors (Solid) */
+.marker-pending {
+    background-color: #F5F5F5;
+    color: #757575;
+}
+
+.marker-inprogress {
+    background-color: #E3F2FD;
+    color: #1976D2;
+}
+
+.marker-pause {
+    background-color: #FFF3E0;
+    color: #EF6C00;
+}
+
+.marker-done {
+    background-color: #E8F5E9;
+    color: #2E7D32;
+}
+
+.marker-overdue {
+    background-color: #FFEBEE;
+    color: #C62828;
+}
+
+.marker-drop {
+    background-color: #F3E5F5;
+    color: #7B1FA2;
+}
+
+/* 1.2 Department Colors (Subtle) */
+.marker-it {
+    background-color: #EDE7F6;
+    color: #512DA8;
+}
+
+.marker-design {
+    background-color: #FCE4EC;
+    color: #C2185B;
+}
+
+.marker-dev {
+    background-color: #E0F2F1;
+    color: #00796B;
+}
+
+.marker-marketing {
+    background-color: #FFFDE7;
+    color: #FBC02D;
+}
+
+.marker-product {
+    background-color: #EFEBE9;
+    color: #5D4037;
+}
+
+.marker-consulting {
+    background-color: #F1F8E9;
+    color: #558B2F;
+}
+
+.marker-hr {
+    background-color: #E8EAF6;
+    color: #3F51B5;
+}
+
+.marker-directing {
+    background-color: #E0F7FA;
+    color: #0097A7;
+}
+
+
+/* 1.4 Outline Style */
+.marker-outline {
+    background-color: transparent !important;
+    border: 1.5px solid currentColor;
+}
+
+
+/* Marker Hover Effect */
+.marker:hover {
+    filter: brightness(0.9);
+    transform: scale(1.02);
+}
+
+/* Navigation Layout (from Figma) */
+.nav-sidebar {
+    height: 100vh;
+    overflow: hidden;
+    backdrop-filter: blur(40px);
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    border-right: 1px solid var(--primitive-colors-gray-200);
+}
+
+.nav-header {
+    align-self: stretch;
+    padding: 24px 8px 24px 16px;
+    display: inline-flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-controls {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+}
+
+
+.nav-section {
+    align-self: stretch;
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.nav-section-title-wrapper {
+    align-self: stretch;
+    padding: 0 0 8px 5px;
+    display: inline-flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 16px;
+}
+
+.nav-section-title-inner {
+    flex: 1 1 0;
+    padding: 0 16px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 4px;
+}
+
+.nav-section-title-label {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: var(--primitive-colors-gray-600);
+    font-size: var(--semantic-font-font-size-font-size-md);
+    font-family: var(--semantic-font-font-family-default);
+    font-weight: 500;
+    word-wrap: break-word;
+}
+
+.nav-item {
+    align-self: stretch;
+    height: 46px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    display: inline-flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    box-sizing: border-box;
+    /* 패딩을 전체 높이에 포함 */
+}
+
+.nav-item-content {
+    width: 100%;
+    align-self: stretch;
+    height: 100%;
+    padding: 0 12px;
+    position: relative;
+    border-radius: 6px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.2s;
+}
+
+.nav-icon {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-color: var(--primitive-colors-gray-500);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    flex-shrink: 0;
+}
+
+.nav-item.active .nav-icon {
+    background-color: var(--semantic-color-colors-primary);
+}
+
+.nav-item-content:hover .nav-icon {
+    background-color: var(--semantic-color-colors-primary);
+}
+
+.nav-item-content:hover {
+    background-color: var(--primitive-colors-gray-200);
+}
+
+.nav-item.active .nav-item-content {
+    background-color: var(--primitive-colors-gray-200);
+}
+
+.nav-item-label {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: var(--primitive-colors-base-black);
+    font-size: var(--semantic-font-font-size-font-size-lg);
+    font-family: var(--semantic-font-font-family-default);
+    font-weight: 500;
+    line-height: 25.60px;
+    word-wrap: break-word;
+}
+
+.nav-badge-container {
+    height: 20px;
+    padding: 0 8px;
+    background: var(--primitive-colors-base-white);
+    border-radius: 11px;
+    outline: 1px var(--primitive-colors-gray-300) solid;
+    outline-offset: -1px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+.nav-badge-text {
+    color: var(--primitive-colors-base-black);
+    font-size: var(--semantic-font-font-size-font-size-sm);
+    font-family: var(--semantic-font-font-family-default);
+    font-weight: 500;
+    line-height: 19.20px;
+    word-wrap: break-word;
+}
+
+.nav-scrollable-container {
+    align-self: stretch;
+    flex: 1 1 0;
+    display: inline-flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.nav-scrollable-inner {
+    width: 240px;
+    align-self: stretch;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    overflow-y: auto;
+}
+
+.nav-section-group {
+    align-self: stretch;
+    flex: 1 1 0;
+    padding-top: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
+.nav-footer {
+    align-self: stretch;
+    padding: 24px 0;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+}
+
+
+
+/* -------------------------------------
+   Data Grid Component
+---------------------------------------- */
+.data-grid-container {
+    width: 100%;
+    background-color: var(--primitive-colors-base-white);
+    border-radius: var(--semantic-size-radius-md);
+    overflow: hidden;
+    border: 1px solid var(--primitive-colors-gray-300);
+}
+
+.data-grid-row {
+    display: grid;
+    grid-template-columns: 56px 300px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+    min-height: 48px;
+    border-bottom: 1px solid var(--primitive-colors-gray-200);
+}
+
+.data-grid-row:last-child {
+    border-bottom: auto;
+}
+
+.data-grid-header {
+    /* height: 56px; */
+    background-color: var(--primitive-colors-base-white);
+}
+
+.data-grid-cell {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-right: 1px solid var(--primitive-colors-gray-200);
+}
+
+.data-grid-cell:last-child {
+    border-right: none;
+}
+
+.data-grid-cell.center {
+    justify-content: center;
+    padding: 0;
+}
+
+.data-grid-header-cell {
+    height: 56px;
+    font-size: var(--semantic-font-font-size-font-size-md);
+    font-weight: var(--semantic-font-font-weight-emphasis-low);
+    color: var(--primitive-colors-gray-900);
+    justify-content: space-between;
+}
+
+.data-grid-text {
+    font-size: var(--semantic-font-font-size-font-size-lg);
+    font-weight: var(--semantic-font-font-weight-default);
+    color: var(--primitive-colors-gray-800);
+    font-family: var(--semantic-font-font-family-default);
+}
+
+.data-grid-cell .nav-icon {
+    background-color: var(--primitive-colors-gray-900);
+}
+
+.data-grid-cell .nav-icon.icon-tix,
+.data-grid-cell .nav-icon.icon-stat {
+    background-color: #00C27B !important;
+    width: 20px !important;
+    height: 20px !important;
+}
+
+.data-grid-cell .nav-icon.icon-chevron-lg-bottom {
+    width: 16px !important;
+    height: 16px !important;
+    background-color: var(--primitive-colors-gray-700) !important;
+}
+
+.data-grid-text-sm {
+    font-size: var(--semantic-font-font-size-font-size-md);
+    font-weight: var(--semantic-font-font-weight-default);
+    color: var(--primitive-colors-gray-800);
+    font-family: var(--semantic-font-font-family-default);
+}
+
+.data-grid-row.level-0 {
+    background-color: var(--primitive-colors-base-white);
+}
+
+.data-grid-row:not(.data-grid-header):hover {
+    background-color: var(--primitive-colors-gray-50);
+    cursor: pointer;
+}
+
+/* Checkbox Component (SVG Mask Method) */
+.checkbox-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 24px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-container input {
+    display: none;
+}
+
+.checkbox-box {
+    width: 19px;
+    height: 19px;
+    box-sizing: border-box;
+    border: 2px solid var(--primitive-colors-gray-400);
+    border-radius: 7.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background-color: transparent;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+/* Hover State */
+.checkbox-container:hover .checkbox-box {
+    border-color: var(--semantic-color-colors-primary);
+}
+
+/* Checked State */
+.checkbox-container input:checked+.checkbox-box {
+    background-color: var(--semantic-color-colors-primary);
+    border-color: var(--semantic-color-colors-primary);
+}
+
+.checkbox-container input:checked+.checkbox-box::before {
+    content: "";
+    position: absolute;
+    width: 19px;
+    height: 19px;
+    background-color: var(--primitive-colors-base-white);
+    -webkit-mask-image: var(--icon-url-check);
+    mask-image: var(--icon-url-check);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+}
+
+/* Indeterminate State */
+.checkbox-container input:indeterminate+.checkbox-box {
+    background-color: var(--semantic-color-colors-primary);
+    border-color: var(--semantic-color-colors-primary);
+}
+
+.checkbox-container input:indeterminate+.checkbox-box::before {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 2px;
+    background-color: var(--primitive-colors-base-white);
+    border-radius: 1px;
+}
+
+/* Disabled States */
+.checkbox-container input:disabled+.checkbox-box {
+    background-color: var(--primitive-colors-gray-300);
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.checkbox-container input:disabled:checked+.checkbox-box {
+    background-color: var(--primitive-colors-gray-300);
+    border-color: var(--primitive-colors-gray-300);
+}
+
+.checkbox-label {
+    font-size: var(--semantic-font-font-size-font-size-md);
+    line-height: 20px;
+    color: var(--primitive-colors-gray-800);
+}
+
+.checkbox-container input:disabled~.checkbox-label {
+    color: var(--primitive-colors-gray-400);
+}
+
+/* Filter Tabs inside header */
+.grid-filter-tabs {
+    background-color: var(--primitive-colors-gray-100);
+    flex: 1;
+    border-radius: 8px;
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+}
+
+.grid-filter-tab {
+    flex: 1;
+    height: 28px;
+    border-radius: 6px;
+    font-family: var(--semantic-font-font-family-default);
+    font-weight: var(--semantic-font-font-weight-default);
+    font-size: var(--semantic-font-font-size-font-size-md);
+    color: var(--primitive-colors-gray-800);
+    transition: all 0.2s;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.grid-filter-tab.active {
+    background-color: var(--primitive-colors-base-white);
+    color: var(--primitive-colors-base-black);
+    box-shadow: 0px 1px 2px rgba(0);
+}
+
+/* Tree expander */
+.tree-expander {
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    color: var(--primitive-colors-gray-700);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    padding: 0;
+    transition: transform 0.2s ease;
+}
+
+.tree-expander.collapsed .nav-icon {
+    transform: rotate(-90deg);
+}
+
+.tree-expander .nav-icon {
+    transition: transform 0.2s ease;
+}
+
+.tree-expander.empty {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Add Child Button */
+.add-child-btn {
+    opacity: 0 !important;
+    transition: opacity 0.2s ease !important;
+    cursor: pointer;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    box-shadow: none !important;
+    pointer-events: auto;
+}
+
+.data-grid-row:hover .add-child-btn {
+    opacity: 1;
+}
+
+.add-child-btn .nav-icon {
+    width: 24px;
+    height: 24px;
+    background-color: #00C27B !important;
+}
+
+
+/* Tags */
+.grid-tag {
+    height: 28px;
+    padding: 0 12px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--semantic-font-font-family-default);
+    font-weight: var(--semantic-font-font-weight-default);
+    font-size: var(--semantic-font-font-size-font-size-md);
+}
+
+.grid-tag-green {
+    background-color: var(--primitive-colors-green-50);
+    color: var(--primitive-colors-green-900);
+}
+
+.grid-tag-blue {
+    background-color: var(--primitive-colors-blue-50);
+    color: var(--primitive-colors-blue-900);
+}
+
+/* Footer / Create Tix */
+.data-grid-footer {
+    height: 56px;
+    display: grid;
+    grid-template-columns: 312px;
+}
+
+.grid-create-btn {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: opacity 0.2s;
+}
+
+.grid-create-btn .nav-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.grid-create-btn:hover {
+    opacity: 0.7;
+}
+
+.icon-add {
+    background-color: var(--semantic-color-colors-primary);
+}
+
+/* (Moved to icons.css) */
