@@ -637,7 +637,7 @@
     border: none !important;
     box-shadow: none !important;
     color: var(--colors-text-body) !important;
-    font-size: 14px !important;
+    font-size: var(--semantic-font-font-size-font-size-md) !important;
 }
 
 .marker-has-icon::before {
