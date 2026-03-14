@@ -25,6 +25,7 @@
   --semantic-color-colors-step-4: var(--primitive-sizes-colors-yellow-800);
   --semantic-color-colors-step-5: var(--primitive-sizes-colors-red-a400);
   --semantic-color-colors-text-body: var(--primitive-colors-gray-800);
+  --colors-text-body: var(--primitive-colors-gray-700);
   --semantic-color-colors-text-heading: var(--primitive-colors-gray-900);
   --semantic-color-colors-text-caption: var(--primitive-colors-gray-600);
   --semantic-color-colors-text-button-dark: var(--primitive-colors-base-white);

@@ -85,9 +85,21 @@
             font-family: monospace;
         }
 
-        /* 하위 항목 숨김 스타일 */
-        .grid-child-row.collapsed {
-            display: none;
+        /* Ghost Style 섹션 프레임 완벽 제거 */
+        #markers-icons .component-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px !important;
+            background: transparent !important;
+        }
+
+        #markers-icons .component-item {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            width: auto !important;
+            min-width: 0 !important;
         }
     </style>
 </head>
