@@ -487,7 +487,8 @@
                     </div>
                     <div class="data-grid-cell" style="padding-left: 8px;">
                         <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
-                            <button class="tree-expander empty expanded" style="flex-shrink: 0; opacity: 0; pointer-events: none;">
+                            <button class="tree-expander empty expanded"
+                                style="flex-shrink: 0; opacity: 0; pointer-events: none;">
                                 <div class="nav-icon icon-chevron-lg-bottom"></div>
                             </button>
                             <div class="nav-icon icon-tix"></div>
@@ -528,6 +529,103 @@
             </div>
         </section>
 
+        <!-- 7. Avatar Component -->
+        <section id="avatars" class="section">
+            <div class="section-header">
+                <h3>Avatar</h3>
+                <p>사용자 프로필 이미지 컴포넌트입니다. 4가지 사이즈와 다양한 뱃지 상태(Online, Count, Crown)를 지원합니다.</p>
+            </div>
+
+            <!-- Large size (56px) -->
+            <div style="margin-bottom: 48px;">
+                <h4 style="margin-bottom: 16px; color: var(--primitive-colors-gray-700);">Large (56px)</h4>
+                <div style="display: flex; align-items: center; gap: 24px;">
+                    <div class="avatar-container avatar-lg">
+                        <img src="assets/images/user-avatar.png" class="avatar-img" alt="Avatar">
+                    </div>
+                    <div class="avatar-container avatar-lg">
+                        <img src="assets/images/user-avatar.png" class="avatar-img" alt="Avatar">
+                        <div class="avatar-badge avatar-badge-count">9</div>
+                    </div>
+                    <div class="avatar-container avatar-lg">
+                        <img src="assets/images/user-avatar.png" class="avatar-img" alt="Avatar">
+                        <div class="avatar-badge avatar-badge-online"></div>
+                    </div>
+                    <div class="avatar-container avatar-lg">
+                        <img src="assets/images/user-avatar.png" class="avatar-img" alt="Avatar">
+                        <div class="avatar-badge avatar-badge-star"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Medium size (32px) -->
+            <div style="margin-bottom: 48px;">
+                <h4 style="margin-bottom: 16px; color: var(--primitive-colors-gray-700);">Medium (32px)</h4>
+                <div style="display: flex; align-items: center; gap: 24px;">
+                    <div class="avatar-container avatar-md">
+                        <img src="assets/images/user-avatar.png" class="avatar-img" alt="Avatar">
+                    </div>
+                    <div class="avatar-container avatar-md">
+                        <img src="assets/images/user-avatar.png" class="avatar-img" alt="Avatar">
+                        <div class="avatar-badge avatar-badge-count">9</div>
+                    </div>
+                    <div class="avatar-container avatar-md">
+                        <img src="assets/images/user-avatar.png" class="avatar-img" alt="Avatar">
+                        <div class="avatar-badge avatar-badge-online"></div>
+                    </div>
+                    <div class="avatar-container avatar-md">
+                        <img src="assets/images/user-avatar.png" class="avatar-img" alt="Avatar">
+                        <div class="avatar-badge avatar-badge-star"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Small size (24px) -->
+            <div style="margin-bottom: 48px;">
+                <h4 style="margin-bottom: 16px; color: var(--primitive-colors-gray-700);">Small (24px)</h4>
+                <div style="display: flex; align-items: center; gap: 24px;">
+                    <div class="avatar-container avatar-sm">
+                        <img src="assets/images/user-avatar.png" class="avatar-img" alt="Avatar">
+                    </div>
+                    <div class="avatar-container avatar-sm">
+                        <img src="assets/images/user-avatar.png" class="avatar-img" alt="Avatar">
+                        <div class="avatar-badge avatar-badge-count">50+</div>
+                    </div>
+                    <div class="avatar-container avatar-sm">
+                        <img src="assets/images/user-avatar.png" class="avatar-img" alt="Avatar">
+                        <div class="avatar-badge avatar-badge-online"></div>
+                    </div>
+                    <div class="avatar-container avatar-sm">
+                        <img src="assets/images/user-avatar.png" class="avatar-img" alt="Avatar">
+                        <div class="avatar-badge avatar-badge-star"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Extra small size (16px) -->
+            <div>
+                <h4 style="margin-bottom: 16px; color: var(--primitive-colors-gray-700);">Extra Small (16px)</h4>
+                <div style="display: flex; align-items: center; gap: 24px;">
+                    <div class="avatar-container avatar-xs">
+                        <img src="assets/images/user-avatar.png" class="avatar-img" alt="Avatar">
+                    </div>
+                    <div class="avatar-container avatar-xs">
+                        <img src="assets/images/user-avatar.png" class="avatar-img" alt="Avatar">
+                        <div class="avatar-badge avatar-badge-count">9</div>
+                    </div>
+                    <div class="avatar-container avatar-xs">
+                        <img src="assets/images/user-avatar.png" class="avatar-img" alt="Avatar">
+                        <div class="avatar-badge avatar-badge-online"></div>
+                    </div>
+                    <div class="avatar-container avatar-xs">
+                        <img src="assets/images/user-avatar.png" class="avatar-img" alt="Avatar">
+                        <div class="avatar-badge avatar-badge-star"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
     </main>
 
     <script>
@@ -538,12 +636,12 @@
             // 2. 하위 카테고리 토글 함수
             function setupToggle(expander, groupName) {
                 if (!expander) return;
-                
+
                 expander.addEventListener('click', (e) => {
                     e.stopPropagation(); // 이벤트 버블링 방지
                     const isExpanded = expander.classList.contains('expanded');
                     const children = document.querySelectorAll(`.grid-child-row[data-parent="${groupName}"]`);
-                    
+
                     if (isExpanded) {
                         expander.classList.remove('expanded');
                         expander.classList.add('collapsed');
@@ -571,14 +669,14 @@
                 const newChild = document.createElement('div');
                 newChild.className = 'data-grid-row grid-child-row';
                 newChild.setAttribute('data-parent', groupName);
-                
+
                 // 부모의 현재 상태 확인 (접혀있으면 숨김)
                 const expander = parentRow.querySelector('.tree-expander');
                 if (expander && expander.classList.contains('collapsed')) {
                     newChild.classList.add('collapsed');
                     newChild.style.display = 'none';
                 }
-                
+
                 newChild.innerHTML = `
                     <div class="data-grid-cell center">
                         <label class="checkbox-container">
@@ -606,7 +704,7 @@
                     </div>
                     <div class="data-grid-cell"></div>
                 `;
-                
+
                 // 부모 행 뒤에 삽입 (혹은 마지막 자식 뒤에)
                 let lastChild = parentRow;
                 let next = parentRow.nextElementSibling;
@@ -690,7 +788,7 @@
                         <div class="data-grid-cell"></div>
                     `;
                     dataGridContainer.insertBefore(newRow, footerRow);
-                    
+
                     // 새 행의 토글 설정
                     const expander = newRow.querySelector('.tree-expander');
                     setupToggle(expander, groupId);

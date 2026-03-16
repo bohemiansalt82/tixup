@@ -90,6 +90,7 @@
     background-color: #E0F7FA;
     color: #0097A7;
 }
+
 /* 1.4 Outline Style */
 .marker-outline {
     background-color: transparent !important;
@@ -683,4 +684,121 @@
     background-image: url('../images/icons/marker_drop.png');
 }
 
-/* (Moved to icons.css) */
+/* Avatar Component */
+.avatar-container {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    line-height: 0;
+}
+
+.avatar-img {
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: var(--primitive-colors-gray-100);
+}
+
+/* Sizes */
+.avatar-lg .avatar-img {
+    width: 56px;
+    height: 56px;
+}
+
+.avatar-md .avatar-img {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-sm .avatar-img {
+    width: 24px;
+    height: 24px;
+}
+
+.avatar-xs .avatar-img {
+    width: 16px;
+    height: 16px;
+}
+
+/* Badges Base */
+.avatar-badge {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+/* Online Badge (Bottom Right) */
+.avatar-badge-online {
+    bottom: -1px;
+    right: -1px;
+    width: 12px;
+    height: 12px;
+    background-color: #00CF7F;
+}
+
+/* Count Badge (Top Right) */
+.avatar-badge-count {
+    top: -2px;
+    right: -4px;
+    min-width: 12px;
+    height: 16px;
+    background-color: #1781F4;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    padding: 0 4px;
+}
+
+/* Crown Badge (Top Right, No BG/Border) */
+.avatar-badge-star {
+    top: -2px;
+    right: -4px;
+    width: 12px;
+    height: 12px;
+    background-color: transparent;
+    border: none;
+    background-image: url('../images/icons/crown.svg');
+    background-size: 12px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Small sizes adjustment */
+.avatar-md .avatar-badge-online {
+
+    border-width: 1.5px;
+}
+
+.avatar-sm .avatar-badge-online {
+
+    border-width: 1.5px;
+}
+
+.avatar-xs .avatar-badge-online {
+
+    border-width: 1px;
+}
+
+.avatar-md .avatar-badge-count {}
+
+.avatar-sm .avatar-badge-count {
+
+
+    border-width: 1.5px;
+}
+
+.avatar-xs .avatar-badge-count {
+
+
+    border-width: 1px;
+}
+
+.avatar-lg .avatar-badge-star {
+
+    right: -10px;
+}
