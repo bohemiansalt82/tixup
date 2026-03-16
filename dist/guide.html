@@ -434,7 +434,7 @@
                         <img src="https://ui-avatars.com/api/?name=이대수&background=random"
                             style="width: 24px; height: 24px; border-radius: 50%;" />
                         <span class="data-grid-text-sm">이대수</span>
-                        <div class="grid-tag grid-tag-blue" style="height: 24px;">Mine</div>
+                        <div class="grid-tag grid-tag-blue">Mine</div>
                     </div>
                     <div class="data-grid-cell" style="gap: 8px;">
                         <span class="data-grid-text-sm">2025-08-09</span>
@@ -467,7 +467,7 @@
                         <img src="https://ui-avatars.com/api/?name=이대수&background=random"
                             style="width: 24px; height: 24px; border-radius: 50%;" />
                         <span class="data-grid-text-sm">이대수</span>
-                        <div class="grid-tag grid-tag-blue" style="height: 24px;">Mine</div>
+                        <div class="grid-tag grid-tag-blue">Mine</div>
                     </div>
                     <div class="data-grid-cell" style="gap: 8px;">
                         <span class="data-grid-text-sm">2025-08-09</span>
@@ -537,34 +537,47 @@
 
             // 2. 하위 카테고리 토글 함수
             function setupToggle(expander, groupName) {
-                expander.addEventListener('click', () => {
+                if (!expander) return;
+                
+                expander.addEventListener('click', (e) => {
+                    e.stopPropagation(); // 이벤트 버블링 방지
                     const isExpanded = expander.classList.contains('expanded');
                     const children = document.querySelectorAll(`.grid-child-row[data-parent="${groupName}"]`);
                     
                     if (isExpanded) {
                         expander.classList.remove('expanded');
                         expander.classList.add('collapsed');
-                        children.forEach(child => child.classList.add('collapsed'));
+                        children.forEach(child => {
+                            child.classList.add('collapsed');
+                            child.style.display = 'none'; // CSS 미적용 대비 직접 제어
+                        });
                     } else {
                         expander.classList.remove('collapsed');
                         expander.classList.add('expanded');
-                        children.forEach(child => child.classList.remove('collapsed'));
+                        children.forEach(child => {
+                            child.classList.remove('collapsed');
+                            child.style.display = 'grid'; // grid-row 기본값 복구
+                        });
                     }
                 });
             }
 
             // 초기 토글 설정
-            const designRefToggle = document.getElementById('toggle-design-ref');
-            if (designRefToggle) setupToggle(designRefToggle, 'design-ref');
-            
-            const devToggle = document.querySelector('[data-group="dev-group"] .tree-expander');
-            if (devToggle) setupToggle(devToggle, 'dev-group');
+            setupToggle(document.getElementById('toggle-design-ref'), 'design-ref');
+            setupToggle(document.querySelector('[data-group="dev-group"] .tree-expander'), 'dev-group');
 
             // 3. 하위 행 추가 함수
             function addChildRow(parentRow, groupName) {
                 const newChild = document.createElement('div');
                 newChild.className = 'data-grid-row grid-child-row';
                 newChild.setAttribute('data-parent', groupName);
+                
+                // 부모의 현재 상태 확인 (접혀있으면 숨김)
+                const expander = parentRow.querySelector('.tree-expander');
+                if (expander && expander.classList.contains('collapsed')) {
+                    newChild.classList.add('collapsed');
+                    newChild.style.display = 'none';
+                }
                 
                 newChild.innerHTML = `
                     <div class="data-grid-cell center">
@@ -604,7 +617,6 @@
                 lastChild.parentNode.insertBefore(newChild, lastChild.nextSibling);
 
                 // 부모 행의 확장기 활성화
-                const expander = parentRow.querySelector('.tree-expander');
                 if (expander) {
                     expander.classList.remove('empty');
                     expander.style.opacity = '1';

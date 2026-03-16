@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tixup - Dashboard</title>
+    <link rel="stylesheet" href="assets/css/tokens.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="assets/js/app.js" defer></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Main Sidebar -->
+        <aside class="sub-sidebar">
+            <div class="sidebar-header">
+                <div class="logo-box"></div>
+                <h2>Space</h2>
+                <button class="icon-btn"><span class="material-icons-outlined">add</span></button>
+            </div>
+            <div class="sidebar-content">
+                <div class="nav-group">
+                    <div class="group-header">
+                        <span class="material-icons-outlined">expand_more</span>
+                        <span class="group-title">Box</span>
+                    </div>
+                    <ul class="nav-list">
+                        <li class="active">proj-kori</li>
+                        <li>internal-tools</li>
+                        <li>design-system</li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <div class="group-header">
+                        <span class="material-icons-outlined">chevron_right</span>
+                        <span class="group-title">Private</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <div class="breadcrumb">
+                        <span class="proj-name">Proj-doc-design</span>
+                        <span class="material-icons-outlined">search</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="view-tools">
+                        <button class="tool-btn"><span class="material-icons-outlined">filter_list</span>
+                            Filter</button>
+                        <button class="tool-btn"><span class="material-icons-outlined">sort</span> Sort</button>
+                    </div>
+                    <div class="user-avatars">
+                        <img src="assets/images/avatar_male_1.png" alt="User 1" class="avatar-img">
+                        <img src="assets/images/avatar_female_1.png" alt="User 2" class="avatar-img">
+                        <div class="avatar-more">+4</div>
+                    </div>
+                    <button class="btn-primary"><span class="material-icons-outlined">add_circle</span> Tix</button>
+                </div>
+            </header>
+
+            <!-- Content Body -->
+            <div class="content-body">
+                <div class="status-tabs">
+                    <button class="tab active">All <span class="count">24</span></button>
+                    <button class="tab">Done <span class="count">12</span></button>
+                    <button class="tab">Overdue <span class="count">3</span></button>
+                </div>
+
+                <table class="tix-table">
+                    <thead>
+                        <tr>
+                            <th class="col-check"><input type="checkbox"></th>
+                            <th class="col-title">Title</th>
+                            <th class="col-status">Status</th>
+                            <th class="col-assignee">Assignee</th>
+                            <th class="col-due">Due Date</th>
+                            <th class="col-tags">Tags</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Row 1 -->
+                        <tr class="tix-row">
+                            <td><input type="checkbox"></td>
+                            <td><span class="tix-title">Proj-doc-design: Initial layout concepts</span></td>
+                            <td><span class="badge status-pending">In Progress</span></td>
+                            <td>
+                                <img src="assets/images/avatar_male_1.png" alt="Assignee" class="avatar-sm">
+                            </td>
+                            <td><span class="date">Mar 12, 2026</span></td>
+                            <td>
+                                <div class="tags"><span class="tag tag-design">Design</span><span
+                                        class="tag tag-high">High</span></div>
+                            </td>
+                        </tr>
+                        <!-- Row 2: IT/Dev (TIX-1024) -->
+                        <tr class="tix-row">
+                            <td><input type="checkbox"></td>
+                            <td><span class="tix-title">API Integration: Figma MCP Server setup</span></td>
+                            <td>
+                                <div class="marker marker-has-icon">
+                                    <div class="marker-icon icon-check"></div>
+                                    Done
+                                </div>
+                            </td>
+                            <td>
+                                <img src="assets/images/avatar_female_1.png" alt="Assignee" class="avatar-sm">
+                            </td>
+                            <td><span class="date">Mar 05, 2026</span></td>
+                            <td>
+                                <div class="marker marker-dev">Dev</div>
+                            </td>
+                        </tr>
+                        <!-- Row 3: UX (TIX-1025) -->
+                        <tr class="tix-row">
+                            <td><input type="checkbox"></td>
+                            <td><span class="tix-title">User feedback: Dashboard navigation flow</span></td>
+                            <td>
+                                <div class="marker marker-has-icon">
+                                    <div class="marker-icon icon-play"></div>
+                                    In Progress
+                                </div>
+                            </td>
+                            <td>
+                                <div class="avatar-sm-placeholder">JD</div>
+                            </td>
+                            <td><span class="date">Mar 20, 2026</span></td>
+                            <td>
+                                <div class="marker marker-design">Design</div>
+                            </td>
+                        </tr>
+                        <!-- Row 4: Marketing (TIX-1026) -->
+                        <tr class="tix-row">
+                            <td><input type="checkbox"></td>
+                            <td><span class="tix-title">Marketing: New landing page copy review</span></td>
+                            <td>
+                                <div class="marker marker-has-icon">
+                                    <div class="marker-icon icon-skull"></div>
+                                    Overdue
+                                </div>
+                            </td>
+                            <td>
+                                <img src="assets/images/avatar_male_1.png" alt="Assignee" class="avatar-sm">
+                            </td>
+                            <td><span class="date">Feb 28, 2026</span></td>
+                            <td>
+                                <div class="marker marker-marketing">Marketing</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Floating Action Bar -->
+            <div class="floating-bar">
+                <span class="selection-info"><span>2</span> items selected</span>
+                <div class="divider"></div>
+                <button class="action-btn"><span class="material-icons-outlined">edit</span> Edit</button>
+                <button class="action-btn"><span class="material-icons-outlined">swap_horiz</span> Change
+                    Status</button>
+                <button class="action-btn delete"><span class="material-icons-outlined">delete</span> Delete</button>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>
