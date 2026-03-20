@@ -9,97 +9,29 @@
     <link rel="stylesheet" href="assets/css/components.css">
     <link rel="stylesheet" href="assets/css/icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <style>
+        /* Base page layout only. Component styles are in components.css */
+        html,
         body {
-            background-color: #f8f9fa;
-            /* Light background */
-            color: #212529;
-            /* Dark text */
-            font-family: 'Pretendard', sans-serif;
+            height: 100%;
+            width: 100%;
             margin: 0;
+            overflow: hidden;
+            background-color: var(--primitive-colors-gray-50);
+            color: var(--semantic-color-colors-text-body);
+            font-family: var(--semantic-font-font-family-default);
             display: flex;
         }
 
-        /* Override for Tree Expander and Add Button visibility */
-        .tree-expander.empty {
-            opacity: 0 !important;
-            pointer-events: none !important;
-        }
-
-        .add-child-btn {
-            opacity: 0 !important;
-            transition: opacity 0.2s ease !important;
-        }
-
-        .data-grid-row:hover .add-child-btn {
-            opacity: 1 !important;
-        }
-
-
         .guide-main {
-            padding: 60px 80px;
+            padding: 0 var(--primitive-sizes-80) var(--primitive-sizes-60) var(--primitive-sizes-80);
             flex: 1;
             width: 100%;
             min-width: 0;
             box-sizing: border-box;
-        }
-
-        .section {
-            margin-bottom: 80px;
-        }
-
-        .section-header {
-            margin-bottom: 32px;
-            border-bottom: 2px solid #dee2e6;
-            padding-bottom: 16px;
-        }
-
-        .section-header h3 {
-            font-size: 24px;
-            margin: 0;
-        }
-
-        .component-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 40px;
-            margin-top: 24px;
-        }
-
-        /* Component item container - updated for white theme */
-        .component-item {
-            background: #ffffff;
-            padding: 32px;
-            border-radius: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
-        }
-
-        .item-label {
-            font-size: 12px;
-            color: #adb5bd;
-            font-family: monospace;
-        }
-
-        /* Ghost Style 섹션 프레임 완벽 제거 */
-        #markers-icons .component-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 32px !important;
-            background: transparent !important;
-        }
-
-        #markers-icons .component-item {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            padding: 0 !important;
-            width: auto !important;
-            min-width: 0 !important;
+            height: 100vh;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -110,10 +42,16 @@
     <nav class="nav-sidebar">
         <!-- Header -->
         <header class="nav-header">
-            <div style="display: flex; align-items: center; gap: 4px;">
-                <span>Tixup</span>
+            <div class="nav-logo-container">
+                <img src="assets/images/icons/tixup_logo.svg" alt="Tixup" class="nav-logo">
             </div>
             <div class="nav-controls">
+                <button class="nav-icon-btn">
+                    <img src="assets/images/icons/search_short.svg" alt="Search">
+                </button>
+                <button class="nav-icon-btn">
+                    <img src="assets/images/icons/sidebar_close.svg" alt="Close Sidebar">
+                </button>
             </div>
         </header>
 
@@ -222,6 +160,71 @@
         </div>
     </nav>
     <main class="guide-main">
+        <!-- New Sticky Header -->
+        <header class="tix-sticky-header">
+            <div class="header-left">
+                <div class="location-title">Proj-doc-design</div>
+                <div class="header-action-group">
+                    <button class="icon-tool-btn selected">
+                        <i class="icon icon-list"></i>
+                    </button>
+                    <button class="icon-tool-btn">
+                        <i class="icon icon-clock"></i>
+                    </button>
+                    <button class="icon-tool-btn">
+                        <i class="icon icon-calendar"></i>
+                    </button>
+
+                </div>
+                <div class="text-tool-group">
+                    <button class="text-tool-btn">
+                        <i class="icon icon-filter"></i>
+                        Filter
+                    </button>
+                    <button class="text-tool-btn">
+                        <i class="icon icon-sort"></i>
+                        Sort
+                    </button>
+                    <button class="text-tool-btn">
+                        <i class="icon icon-visibility-off"></i>
+                        Hide
+                    </button>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="avatar-group">
+                    <div class="avatar-container avatar-md">
+                        <img src="assets/images/avatar_female_1.png" class="avatar-img" alt="Avatar">
+                        <div class="avatar-badge avatar-badge-star"></div>
+                    </div>
+                    <div class="avatar-container avatar-md">
+                        <img src="assets/images/avatar_male_1.png" class="avatar-img" alt="Avatar">
+                        <div class="avatar-badge avatar-badge-online"></div>
+                    </div>
+                    <div class="avatar-container avatar-md">
+                        <img src="assets/images/avatar_female_1.png" class="avatar-img" alt="Avatar">
+                    </div>
+                    <div class="avatar-container avatar-md">
+                        <img src="assets/images/avatar_male_1.png" class="avatar-img" alt="Avatar">
+                    </div>
+                    <button class="avatar-add-btn">
+                        <i class="icon icon-add" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+                <div class="file-count">
+                    <span class="count-num">23</span>
+                    <span>Files</span>
+                </div>
+                <button class="btn-primary-tix">
+                    <i class="icon icon-tix" style="background-color: white;"></i>
+                    Tix
+                </button>
+                <button class="header-more-btn">
+                    <i class="icon icon-more"></i>
+                </button>
+            </div>
+        </header>
+
         <!-- 1. Status Markers (Solid) -->
         <section id="markers-status" class="section">
             <div class="section-header">
@@ -420,7 +423,7 @@
                             </button>
                             <div class="nav-icon icon-tix"></div>
                             <span class="data-grid-text">Design Reference</span>
-                            <button class="add-child-btn" style="opacity: 0; margin-left: auto;">
+                            <button class="add-child-btn">
                                 <div class="nav-icon icon-add"></div>
                             </button>
                         </div>
@@ -493,7 +496,7 @@
                             </button>
                             <div class="nav-icon icon-tix"></div>
                             <span class="data-grid-text">Dev</span>
-                            <button class="add-child-btn" style="opacity: 0; margin-left: auto;">
+                            <button class="add-child-btn">
                                 <div class="nav-icon icon-add"></div>
                             </button>
                         </div>
@@ -518,12 +521,246 @@
 
                 <!-- Footer Create Button -->
                 <div class="data-grid-row data-grid-footer" id="data-grid-footer-row">
-                    <div class="data-grid-cell" style="border: none;">
+                    <div class="data-grid-cell" style="border: none; grid-column: 1 / -1;">
                         <button id="grid-create-btn" class="grid-create-btn">
                             <div class="nav-icon icon-add"></div>
                             <span class="data-grid-text" style="color: var(--primitive-colors-gray-900)">Create
                                 Tix</span>
                         </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9. Data Grid with Timeline (Based on existing Data Grid) -->
+        <section id="data-grid-timeline" class="section">
+            <div class="section-header">
+                <h3>Data Grid: Timeline</h3>
+                <p>업무 리스트와 기간(Timeline)을 한눈에 확인할 수 있는 데이터 그리드입니다.</p>
+            </div>
+
+            <div class="timeline-grid-container">
+                <!-- Sidebar (Left side - Content from Data Grid) -->
+                <div class="timeline-sidebar">
+                    <div class="data-grid-row data-grid-header"
+                        style="position: sticky; top: 0; z-index: 40; background-color: var(--primitive-colors-base-white);">
+                        <div class="data-grid-cell center">
+                            <label class="checkbox-container"><input type="checkbox">
+                                <div class="checkbox-box"></div>
+                            </label>
+                        </div>
+                        <div class="data-grid-cell" style="padding: 10px;">
+                            <div class="grid-filter-tabs">
+                                <button class="grid-filter-tab active">All</button>
+                                <button class="grid-filter-tab">Done</button>
+                                <button class="grid-filter-tab">Overdue</button>
+                            </div>
+                        </div>
+                        <div class="data-grid-cell" style="padding: 10px; font-weight: 600;">Status</div>
+                    </div>
+
+
+                    <!-- Sidebar Footer -->
+                    <div class="data-grid-row timeline-footer-sticky"
+                        style="border-top: none; height: 48px; position: sticky; bottom: 0; z-index: 40; background-color: var(--primitive-colors-base-white);">
+                        <div class="data-grid-cell" style="border: none; grid-column: 1 / -1; padding-left: 16px;">
+                            <button class="grid-create-btn" id="timeline-grid-create-btn">
+                                <div class="nav-icon icon-add"></div>
+                                <span class="data-grid-text" style="color: var(--primitive-colors-gray-900)">Create
+                                    Tix</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline View (Viewport) -->
+                <div class="timeline-view-viewport">
+                    <div class="timeline-grid-content">
+                        <!-- Header -->
+                        <div class="timeline-header">
+                            <div class="timeline-month-nav">
+                                <span style="font-weight: 600; font-size: 14px;">August 2024</span>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div class="timeline-filter-dropdown"
+                                        style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border: 1px solid var(--primitive-colors-gray-200); border-radius: 6px; cursor: pointer;">
+                                        <span style="font-size: 13px;">Month</span>
+                                        <div class="nav-icon icon-chevron-lg-bottom"></div>
+                                    </div>
+                                    <div style="display: flex; gap: 4px; margin-left: 8px;">
+                                        <div class="nav-icon icon-chevron-lg-left"></div>
+                                        <span style="font-size: 13px; font-weight: 500; padding: 0 4px;">Today</span>
+                                        <div class="nav-icon icon-chevron-lg-right"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="timeline-days-row">
+                                <div class="timeline-day-cell">31</div>
+                                <div class="timeline-day-cell">1</div>
+                                <div class="timeline-day-cell">2</div>
+                                <div class="timeline-day-cell">3</div>
+                                <div class="timeline-day-cell">4</div>
+                                <div class="timeline-day-cell">5</div>
+                                <div class="timeline-day-cell today-marker">6</div>
+                                <div class="timeline-day-cell">7</div>
+                                <div class="timeline-day-cell">8</div>
+                                <div class="timeline-day-cell">9</div>
+                                <div class="timeline-day-cell">10</div>
+                                <div class="timeline-day-cell">11</div>
+                                <div class="timeline-day-cell">12</div>
+                                <div class="timeline-day-cell">13</div>
+                                <div class="timeline-day-cell weekend"
+                                    style="background: var(--primitive-colors-gray-100); color: var(--primitive-colors-red-500);">
+                                    14</div>
+                                <div class="timeline-day-cell weekend"
+                                    style="background: var(--primitive-colors-gray-100); color: var(--primitive-colors-red-500);">
+                                    15</div>
+                                <div class="timeline-day-cell">16</div>
+                                <div class="timeline-day-cell">17</div>
+                                <div class="timeline-day-cell">18</div>
+                                <div class="timeline-day-cell">19</div>
+                            </div>
+                        </div>
+
+                        <!-- Body -->
+                        <div class="timeline-body">
+                            <div class="timeline-grid-lines">
+                                <div class="timeline-grid-line"></div>
+                                <div class="timeline-grid-line"></div>
+                                <div class="timeline-grid-line"></div>
+                                <div class="timeline-grid-line"></div>
+                                <div class="timeline-grid-line"></div>
+                                <div class="timeline-grid-line"></div>
+                                <div class="timeline-grid-line" style="background-color: rgba(244, 67, 54, 0.05);">
+                                </div>
+                                <div class="timeline-grid-line"></div>
+                                <div class="timeline-grid-line"></div>
+                                <div class="timeline-grid-line"></div>
+                                <div class="timeline-grid-line"></div>
+                                <div class="timeline-grid-line"></div>
+                                <div class="timeline-grid-line"></div>
+                                <div class="timeline-grid-line"></div>
+                                <div class="timeline-grid-line" style="background: var(--primitive-colors-gray-50);">
+                                </div>
+                                <div class="timeline-grid-line" style="background: var(--primitive-colors-gray-50);">
+                                </div>
+                                <div class="timeline-grid-line"></div>
+                                <div class="timeline-grid-line"></div>
+                                <div class="timeline-grid-line"></div>
+                                <div class="timeline-grid-line"></div>
+                            </div>
+                            <div class="timeline-today-line" style="left: 312px;"></div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. Button Component -->
+        <section id="buttons" class="section">
+            <div class="section-header">
+                <h3>Button</h3>
+                <p>디자인 시스템의 기본 버튼 컴포넌트입니다. XL, LG 두 가지 사이즈와 다양한 상태를 지원합니다.</p>
+            </div>
+
+            <!-- XL Buttons -->
+            <div style="margin-bottom: 48px;">
+                <h4 style="margin-bottom: 16px; color: var(--primitive-colors-gray-700);">XL Buttons</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+                    <div class="component-item" style="width: auto; padding: 20px;">
+                        <button class="btn btn-xl">XL Font</button>
+                        <span class="item-label">.btn-xl</span>
+                    </div>
+                    <div class="component-item" style="width: auto; padding: 20px;">
+                        <button class="btn btn-xl btn-hover">XL Font</button>
+                        <span class="item-label">:hover</span>
+                    </div>
+                    <div class="component-item" style="width: auto; padding: 20px;">
+                        <button class="btn btn-xl btn-focused-dark">XL Font</button>
+                        <span class="item-label">Focus Dark</span>
+                    </div>
+                    <div class="component-item" style="width: auto; padding: 20px;">
+                        <button class="btn btn-xl btn-focused-light">XL Font</button>
+                        <span class="item-label">Focus Light</span>
+                    </div>
+                    <div class="component-item" style="width: auto; padding: 20px;">
+                        <button class="btn btn-xl btn-disabled">XL Font</button>
+                        <span class="item-label">Disabled</span>
+                    </div>
+                </div>
+
+                <h5 style="margin: 24px 0 16px; color: var(--primitive-colors-gray-600);">XL with Icons</h5>
+                <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+                    <div class="component-item" style="width: auto; padding: 20px;">
+                        <button class="btn btn-xl">
+                            <i class="icon icon-work"></i>
+                            XL Font
+                        </button>
+                        <span class="item-label">Left Icon</span>
+                    </div>
+                    <div class="component-item" style="width: auto; padding: 20px;">
+                        <button class="btn btn-xl">
+                            XL Font
+                            <i class="icon icon-check"></i>
+                        </button>
+                        <span class="item-label">Right Icon</span>
+                    </div>
+                    <div class="component-item" style="width: auto; padding: 20px;">
+                        <button class="btn btn-xl btn-icon-only">
+                            <i class="icon icon-add"></i>
+                        </button>
+                        <span class="item-label">Icon Only</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LG Buttons -->
+            <div style="margin-bottom: 48px;">
+                <h4 style="margin-bottom: 16px; color: var(--primitive-colors-gray-700);">LG Buttons</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+                    <div class="component-item" style="width: auto; padding: 20px;">
+                        <button class="btn btn-lg">LG Font</button>
+                        <span class="item-label">.btn-lg</span>
+                    </div>
+                    <div class="component-item" style="width: auto; padding: 20px;">
+                        <button class="btn btn-lg btn-hover">LG Font</button>
+                        <span class="item-label">:hover</span>
+                    </div>
+                    <div class="component-item" style="width: auto; padding: 20px;">
+                        <button class="btn btn-lg btn-focused-dark">LG Font</button>
+                        <span class="item-label">Focus Dark</span>
+                    </div>
+                    <div class="component-item" style="width: auto; padding: 20px;">
+                        <button class="btn btn-lg btn-focused-light">LG Font</button>
+                        <span class="item-label">Focus Light</span>
+                    </div>
+                    <div class="component-item" style="width: auto; padding: 20px;">
+                        <button class="btn btn-lg btn-disabled">LG Font</button>
+                        <span class="item-label">Disabled</span>
+                    </div>
+                </div>
+
+                <h5 style="margin: 24px 0 16px; color: var(--primitive-colors-gray-600);">LG with Icons</h5>
+                <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+                    <div class="component-item" style="width: auto; padding: 20px;">
+                        <button class="btn btn-lg">
+                            <i class="icon icon-work"></i>
+                            LG Font
+                        </button>
+                        <span class="item-label">Left Icon</span>
+                    </div>
+                    <div class="component-item" style="width: auto; padding: 20px;">
+                        <button class="btn btn-lg">
+                            LG Font
+                            <i class="icon icon-check"></i>
+                        </button>
+                        <span class="item-label">Right Icon</span>
+                    </div>
+                    <div class="component-item" style="width: auto; padding: 20px;">
+                        <button class="btn btn-lg btn-icon-only">
+                            <i class="icon icon-add"></i>
+                        </button>
+                        <span class="item-label">Icon Only</span>
                     </div>
                 </div>
             </div>
@@ -633,189 +870,368 @@
             const indeterminateBox = document.getElementById('indeterminate-demo');
             if (indeterminateBox) indeterminateBox.indeterminate = true;
 
-            // 2. 하위 카테고리 토글 함수
-            function setupToggle(expander, groupName) {
-                if (!expander) return;
+            // --- 1. 유틸리티 함수 ---
 
-                expander.addEventListener('click', (e) => {
-                    e.stopPropagation(); // 이벤트 버블링 방지
-                    const isExpanded = expander.classList.contains('expanded');
-                    const children = document.querySelectorAll(`.grid-child-row[data-parent="${groupName}"]`);
+            // 토글 처리 (단일 요소)
+            function handleToggle(expander, container) {
+                const row = expander.closest('.data-grid-row');
+                const groupName = row.getAttribute('data-group');
+                if (!groupName) return;
 
-                    if (isExpanded) {
-                        expander.classList.remove('expanded');
-                        expander.classList.add('collapsed');
-                        children.forEach(child => {
-                            child.classList.add('collapsed');
-                            child.style.display = 'none'; // CSS 미적용 대비 직접 제어
-                        });
-                    } else {
-                        expander.classList.remove('collapsed');
-                        expander.classList.add('expanded');
-                        children.forEach(child => {
-                            child.classList.remove('collapsed');
-                            child.style.display = 'grid'; // grid-row 기본값 복구
-                        });
-                    }
-                });
+                const isExpanded = expander.classList.contains('expanded');
+
+                // 타임라인이면 전체 영역(사이드바+바디)에서 자식을 찾음
+                const gridContainer = expander.closest('.timeline-grid-container') || container;
+                const children = gridContainer.querySelectorAll(`.grid-child-row[data-parent="${groupName}"]`);
+
+                if (isExpanded) {
+                    expander.classList.remove('expanded');
+                    expander.classList.add('collapsed');
+                    children.forEach(child => child.classList.add('collapsed'));
+                } else {
+                    expander.classList.remove('collapsed');
+                    expander.classList.add('expanded');
+                    children.forEach(child => child.classList.remove('collapsed'));
+                }
             }
 
-            // 초기 토글 설정
-            setupToggle(document.getElementById('toggle-design-ref'), 'design-ref');
-            setupToggle(document.querySelector('[data-group="dev-group"] .tree-expander'), 'dev-group');
+            // 하위 업무 추가
+            function handleAddChild(addBtn, container) {
+                const row = addBtn.closest('.data-grid-row');
+                const groupName = row.getAttribute('data-group') || row.getAttribute('data-parent');
+                if (!groupName) return;
 
-            // 3. 하위 행 추가 함수
-            function addChildRow(parentRow, groupName) {
+                const isTimeline = container.classList.contains('timeline-sidebar');
                 const newChild = document.createElement('div');
                 newChild.className = 'data-grid-row grid-child-row';
                 newChild.setAttribute('data-parent', groupName);
 
-                // 부모의 현재 상태 확인 (접혀있으면 숨김)
-                const expander = parentRow.querySelector('.tree-expander');
-                if (expander && expander.classList.contains('collapsed')) {
-                    newChild.classList.add('collapsed');
-                    newChild.style.display = 'none';
+                if (isTimeline) {
+                    newChild.innerHTML = `
+                        <div class="data-grid-cell center">
+                            <label class="checkbox-container"><input type="checkbox"><div class="checkbox-box"></div></label>
+                        </div>
+                        <div class="data-grid-cell">
+                            <div class="row-title-container depth-2">
+                                <div class="nav-icon icon-stat"></div>
+                                <span class="data-grid-text">New Sub Task</span>
+                                <button class="add-child-btn"><div class="nav-icon icon-add"></div></button>
+                            </div>
+                        </div>
+                        <div class="data-grid-cell">
+                            <div class="marker marker-has-icon marker-pending">Pending</div>
+                        </div>
+                    `;
+                } else {
+                    newChild.innerHTML = `
+                        <div class="data-grid-cell center">
+                            <label class="checkbox-container"><input type="checkbox"><div class="checkbox-box"></div></label>
+                        </div>
+                        <div class="data-grid-cell" style="padding-left: 8px;">
+                            <div style="display: flex; gap: 8px; align-items: center; width: 100%; padding-left: 26px;">
+                                <div class="nav-icon icon-stat"></div>
+                                <span class="data-grid-text">New Sub Category</span>
+                            </div>
+                        </div>
+                        <div class="data-grid-cell">
+                            <div class="marker marker-has-icon marker-pending">Pending</div>
+                        </div>
+                        <div class="data-grid-cell" style="gap: 8px;">
+                            <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primitive-colors-gray-200);"></div>
+                            <span class="data-grid-text-sm">Unassigned</span>
+                        </div>
+                        <div class="data-grid-cell" style="gap: 8px;"><span class="data-grid-text-sm">-</span></div>
+                        <div class="data-grid-cell"></div>
+                    `;
                 }
 
-                newChild.innerHTML = `
-                    <div class="data-grid-cell center">
-                        <label class="checkbox-container">
-                            <input type="checkbox">
-                            <div class="checkbox-box"></div>
-                        </label>
-                    </div>
-                    <div class="data-grid-cell" style="padding-left: 8px;">
-                        <div style="display: flex; gap: 8px; align-items: center; width: 100%; padding-left: 26px;">
-                            <div class="nav-icon icon-stat"></div>
-                            <span class="data-grid-text">New Sub Category</span>
-                        </div>
-                    </div>
-                    <div class="data-grid-cell">
-                        <div class="marker marker-has-icon marker-pending">
-                            Pending
-                        </div>
-                    </div>
-                    <div class="data-grid-cell" style="gap: 8px;">
-                        <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primitive-colors-gray-200);"></div>
-                        <span class="data-grid-text-sm">Unassigned</span>
-                    </div>
-                    <div class="data-grid-cell" style="gap: 8px;">
-                        <span class="data-grid-text-sm">-</span>
-                    </div>
-                    <div class="data-grid-cell"></div>
-                `;
-
-                // 부모 행 뒤에 삽입 (혹은 마지막 자식 뒤에)
-                let lastChild = parentRow;
-                let next = parentRow.nextElementSibling;
+                // 삽입 위치 계산 (동일 그룹 자식들 중 마지막 뒤)
+                let lastInsertPoint = row;
+                let next = row.nextElementSibling;
                 while (next && next.classList.contains('grid-child-row') && next.getAttribute('data-parent') === groupName) {
-                    lastChild = next;
+                    lastInsertPoint = next;
                     next = next.nextElementSibling;
                 }
-                lastChild.parentNode.insertBefore(newChild, lastChild.nextSibling);
 
-                // 부모 행의 확장기 활성화
-                if (expander) {
+                // 인덱스 찾기 (본문 싱크용)
+                const childrenArray = Array.from(container.children).filter(c => c.classList.contains('data-grid-row'));
+                const insertIdx = childrenArray.indexOf(lastInsertPoint);
+
+                container.insertBefore(newChild, lastInsertPoint.nextSibling);
+
+                // 부모 토글 버튼 활성화
+                const expander = row.querySelector('.tree-expander');
+                if (expander && expander.classList.contains('empty')) {
                     expander.classList.remove('empty');
                     expander.style.opacity = '1';
                     expander.style.pointerEvents = 'auto';
                 }
 
-                // 애니메이션
-                newChild.animate([
-                    { opacity: 0, transform: 'translateY(-10px)' },
-                    { opacity: 1, transform: 'translateY(0)' }
-                ], { duration: 300, easing: 'ease-out' });
-            }
+                // 타임라인이면 본문 영역에도 빈 행 추가 (동일한 인덱스에 삽입)
+                if (isTimeline) {
+                    const timelineBody = document.querySelector('.timeline-body');
+                    if (timelineBody) {
+                        const newTimeRow = document.createElement('div');
+                        newTimeRow.className = 'timeline-row grid-child-row';
+                        newTimeRow.setAttribute('data-parent', groupName);
 
-            // 이벤트 위임으로 Add 버튼 처리
-            document.querySelector('.data-grid-container').addEventListener('click', (e) => {
-                const addBtn = e.target.closest('.add-child-btn');
-                if (addBtn) {
-                    const row = addBtn.closest('.data-grid-row');
-                    const groupName = row.getAttribute('data-group');
-                    if (groupName) {
-                        addChildRow(row, groupName);
+                        // 현재 날짜 위치에 바 추가
+                        const todayLine = document.querySelector('.timeline-today-line');
+                        const leftPos = todayLine ? todayLine.offsetLeft : 312;
+                        newTimeRow.innerHTML = `<div class="timeline-bar timeline-bar-pending" style="left: ${leftPos}px; width: 48px;">New Sub Task</div>`;
+
+                        const bodyRows = timelineBody.querySelectorAll('.timeline-row');
+                        if (bodyRows.length > insertIdx) {
+                            timelineBody.insertBefore(newTimeRow, bodyRows[insertIdx].nextSibling);
+                        } else {
+                            timelineBody.appendChild(newTimeRow);
+                        }
                     }
                 }
-            });
 
-            // 4. 메인 데이터 그리드 행 추가 로직
-            const createBtn = document.getElementById('grid-create-btn');
-            const dataGridContainer = document.querySelector('.data-grid-container');
-            const footerRow = document.getElementById('data-grid-footer-row');
+                newChild.animate([{ opacity: 0, transform: 'translateY(-10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 200 });
+            }
 
-            if (createBtn && dataGridContainer && footerRow) {
-                createBtn.addEventListener('click', () => {
-                    const groupId = 'new-group-' + Date.now();
-                    const newRow = document.createElement('div');
-                    newRow.className = 'data-grid-row level-0';
-                    newRow.setAttribute('data-group', groupId);
-                    const todayDate = new Date().toISOString().split("T")[0];
+            // 메인 업무 추가
+            function handleCreateTix(isTimeline) {
+                const container = isTimeline ? document.querySelector('.timeline-sidebar') : document.querySelector('.data-grid-container');
+                const footerRow = isTimeline ? container.querySelector('.data-grid-row:last-child') : document.getElementById('data-grid-footer-row');
 
+                if (!container || !footerRow) return;
+
+                const groupId = 'group-' + Date.now();
+                const newRow = document.createElement('div');
+                newRow.className = 'data-grid-row level-0';
+                newRow.setAttribute('data-group', groupId);
+
+                if (isTimeline) {
                     newRow.innerHTML = `
                         <div class="data-grid-cell center">
-                            <label class="checkbox-container">
-                                <input type="checkbox">
-                                <div class="checkbox-box"></div>
-                            </label>
+                            <label class="checkbox-container"><input type="checkbox"><div class="checkbox-box"></div></label>
                         </div>
-                        <div class="data-grid-cell" style="padding-left: 8px;">
-                            <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
-                                <button class="tree-expander empty expanded" style="flex-shrink: 0; opacity: 0; pointer-events: none;">
-                                    <div class="nav-icon icon-chevron-lg-bottom"></div>
-                                </button>
+                        <div class="data-grid-cell">
+                            <div class="row-title-container">
+                                <button class="tree-expander empty expanded" style="opacity: 0;"><div class="nav-icon icon-chevron-lg-bottom"></div></button>
                                 <div class="nav-icon icon-tix"></div>
                                 <span class="data-grid-text">New Tix</span>
-                                <button class="add-child-btn" style="opacity: 0; margin-left: auto;">
-                                    <div class="nav-icon icon-add"></div>
-                                </button>
+                                <button class="add-child-btn"><div class="nav-icon icon-add"></div></button>
                             </div>
                         </div>
                         <div class="data-grid-cell">
-                            <div class="marker marker-has-icon marker-pending">
-                                Pending
+                            <div class="marker marker-has-icon marker-pending">Pending</div>
+                        </div>
+                    `;
+                } else {
+                    newRow.innerHTML = `
+                        <div class="data-grid-cell center">
+                            <label class="checkbox-container"><input type="checkbox"><div class="checkbox-box"></div></label>
+                        </div>
+                        <div class="data-grid-cell" style="padding-left: 8px;">
+                            <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+                                <button class="tree-expander empty expanded" style="opacity: 0;"><div class="nav-icon icon-chevron-lg-bottom"></div></button>
+                                <div class="nav-icon icon-tix"></div>
+                                <span class="data-grid-text">New Tix</span>
+                                <button class="add-child-btn"><div class="nav-icon icon-add"></div></button>
                             </div>
                         </div>
+                        <div class="data-grid-cell"><div class="marker marker-has-icon marker-pending">Pending</div></div>
                         <div class="data-grid-cell" style="gap: 8px;">
-                            <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primitive-colors-gray-200); display: flex; align-items: center; justify-content: center; color: var(--primitive-colors-gray-600);">
-                            </div>
+                            <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primitive-colors-gray-200);"></div>
                             <span class="data-grid-text-sm">Unassigned</span>
                         </div>
-                        <div class="data-grid-cell" style="gap: 8px;">
-                            <span class="data-grid-text-sm">${todayDate}</span>
-                        </div>
+                        <div class="data-grid-cell" style="gap: 8px;"><span class="data-grid-text-sm">${new Date().toISOString().split('T')[0]}</span></div>
                         <div class="data-grid-cell"></div>
                     `;
-                    dataGridContainer.insertBefore(newRow, footerRow);
+                }
 
-                    // 새 행의 토글 설정
-                    const expander = newRow.querySelector('.tree-expander');
-                    setupToggle(expander, groupId);
+                container.insertBefore(newRow, footerRow);
 
-                    // 애니메이션
-                    newRow.animate([
-                        { opacity: 0, transform: 'translateY(-10px)' },
-                        { opacity: 1, transform: 'translateY(0)' }
-                    ], { duration: 300, easing: 'ease-out' });
-                });
+                if (isTimeline) {
+                    const timelineBody = document.querySelector('.timeline-body');
+                    if (timelineBody) {
+                        const newTimeRow = document.createElement('div');
+                        newTimeRow.className = 'timeline-row';
+
+                        // 현재 날짜 위치에 바 추가
+                        const todayLine = document.querySelector('.timeline-today-line');
+                        const leftPos = todayLine ? todayLine.offsetLeft : 312;
+                        newTimeRow.innerHTML = `<div class="timeline-bar timeline-bar-pending" style="left: ${leftPos}px; width: 48px;">New Tix</div>`;
+
+                        timelineBody.appendChild(newTimeRow);
+                    }
+                }
+
+                newRow.animate([{ opacity: 0, transform: 'translateY(-10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 200 });
             }
 
-            // 호버 시 버튼 노출 로직 (JS 권장)
-            dataGridContainer.addEventListener('mouseover', (e) => {
+            // --- 2. 통합 이벤트 리스너 (위임) ---
+
+            document.addEventListener('click', (e) => {
+                // 1. 토글 버튼 (Expander)
+                const expander = e.target.closest('.tree-expander');
+                if (expander && !expander.classList.contains('empty')) {
+                    const container = expander.closest('.timeline-sidebar') || expander.closest('.data-grid-container');
+                    if (container) handleToggle(expander, container);
+                    return;
+                }
+
+                // 2. 하위 업무 추가 버튼
+                const addBtn = e.target.closest('.add-child-btn');
+                if (addBtn) {
+                    const container = addBtn.closest('.timeline-sidebar') || addBtn.closest('.data-grid-container');
+                    if (container) handleAddChild(addBtn, container);
+                    return;
+                }
+
+                // 3. 메인 업무 추가 버튼 (Create Tix)
+                const gridCreateBtn = e.target.closest('#grid-create-btn');
+                const timelineCreateBtn = e.target.closest('#timeline-grid-create-btn');
+
+                if (gridCreateBtn) {
+                    handleCreateTix(false);
+                    return;
+                }
+
+                if (timelineCreateBtn) {
+                    handleCreateTix(true);
+                    return;
+                }
+            });
+
+            // --- 3. 호버 애니메이션 보강 ---
+            document.addEventListener('mouseover', (e) => {
                 const row = e.target.closest('.data-grid-row');
                 if (row) {
                     const btn = row.querySelector('.add-child-btn');
                     if (btn) btn.style.opacity = '1';
                 }
             });
-            dataGridContainer.addEventListener('mouseout', (e) => {
+            document.addEventListener('mouseout', (e) => {
                 const row = e.target.closest('.data-grid-row');
                 if (row) {
                     const btn = row.querySelector('.add-child-btn');
                     if (btn) btn.style.opacity = '0';
                 }
             });
+
+            // --- 4. 타임라인 수직 스크롤 동기화 ---
+            const sidebar = document.querySelector('.timeline-sidebar');
+            const viewport = document.querySelector('.timeline-view-viewport');
+
+            if (sidebar && viewport) {
+                let isScrollingSidebar = false;
+                let isScrollingViewport = false;
+
+                sidebar.addEventListener('scroll', () => {
+                    if (isScrollingViewport) {
+                        isScrollingViewport = false;
+                        return;
+                    }
+                    isScrollingSidebar = true;
+                    viewport.scrollTop = sidebar.scrollTop;
+                }, { passive: true });
+
+                viewport.addEventListener('scroll', () => {
+                    if (isScrollingSidebar) {
+                        isScrollingSidebar = false;
+                        return;
+                    }
+                    isScrollingViewport = true;
+                    sidebar.scrollTop = viewport.scrollTop;
+                }, { passive: true });
+            }
+
+            // --- 5. 타임라인 바 드래그 및 리사이즈 ---
+            function initTimelineBarInteraction() {
+                const bars = document.querySelectorAll('.timeline-bar');
+                const gridSize = 48; // 1일 너비 (CSS .timeline-day-cell width와 일치)
+
+                bars.forEach(bar => {
+                    // 이미 초기화된 경우 건너뜀
+                    if (bar.classList.contains('is-initialized')) return;
+                    bar.classList.add('is-initialized');
+
+                    // 리사이즈 핸들 추가 (좌/우)
+                    if (!bar.querySelector('.timeline-bar-resizer-left')) {
+                        const leftResizer = document.createElement('div');
+                        leftResizer.className = 'timeline-bar-resizer timeline-bar-resizer-left';
+                        bar.appendChild(leftResizer);
+                    }
+                    if (!bar.querySelector('.timeline-bar-resizer-right')) {
+                        const rightResizer = document.createElement('div');
+                        rightResizer.className = 'timeline-bar-resizer timeline-bar-resizer-right';
+                        bar.appendChild(rightResizer);
+                    }
+
+                    let activeHandle = null;
+                    let startX, startLeft, startWidth;
+
+                    const onMouseDown = (e) => {
+                        // 핸들이나 바 본체 클릭 시에만 작동
+                        startX = e.clientX;
+                        startLeft = parseInt(bar.style.left) || 0;
+                        startWidth = parseInt(bar.style.width) || bar.offsetWidth;
+
+                        if (e.target.classList.contains('timeline-bar-resizer-left')) {
+                            activeHandle = 'left';
+                        } else if (e.target.classList.contains('timeline-bar-resizer-right')) {
+                            activeHandle = 'right';
+                        } else {
+                            activeHandle = 'drag';
+                        }
+
+                        bar.classList.add(activeHandle === 'drag' ? 'is-dragging' : 'is-resizing');
+                        document.addEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mouseup', onMouseUp);
+                    };
+
+                    const onMouseMove = (e) => {
+                        if (!activeHandle) return;
+                        const dx = e.clientX - startX;
+
+                        if (activeHandle === 'left') {
+                            let rawLeft = startLeft + dx;
+                            let newLeft = Math.round(rawLeft / gridSize) * gridSize;
+                            let newWidth = Math.round((startWidth - (newLeft - startLeft)) / gridSize) * gridSize;
+
+                            // 최소 1일(48px) 너비 보장
+                            if (newWidth >= gridSize) {
+                                bar.style.left = newLeft + 'px';
+                                bar.style.width = newWidth + 'px';
+                            }
+                        } else if (activeHandle === 'right') {
+                            let rawWidth = startWidth + dx;
+                            let newWidth = Math.round(rawWidth / gridSize) * gridSize;
+                            if (newWidth >= gridSize) {
+                                bar.style.width = newWidth + 'px';
+                            }
+                        } else if (activeHandle === 'drag') {
+                            let rawLeft = startLeft + dx;
+                            let newLeft = Math.round(rawLeft / gridSize) * gridSize;
+                            bar.style.left = newLeft + 'px';
+                        }
+                    };
+
+                    const onMouseUp = () => {
+                        bar.classList.remove('is-dragging', 'is-resizing');
+                        activeHandle = null;
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.removeEventListener('mouseup', onMouseUp);
+                    };
+
+                    bar.addEventListener('mousedown', onMouseDown);
+                });
+            }
+
+            // 초기 실행
+            initTimelineBarInteraction();
+
+            // 상위 업무 추가 버튼 클릭 후에도 초기화가 필요하므로 observer 등을 쓰거나 직접 호출
+            const observer = new MutationObserver(() => initTimelineBarInteraction());
+            const timelineBody = document.querySelector('.timeline-body');
+            if (timelineBody) {
+                observer.observe(timelineBody, { childList: true, subtree: true });
+            }
         });
     </script>
 </body>
