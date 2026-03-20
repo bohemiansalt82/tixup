@@ -898,13 +898,16 @@
             // 하위 업무 추가
             function handleAddChild(addBtn, container) {
                 const row = addBtn.closest('.data-grid-row');
-                const groupName = row.getAttribute('data-group') || row.getAttribute('data-parent');
-                if (!groupName) return;
+                const rowId = row.getAttribute('data-group'); // 부모의 고유 ID
+                if (!rowId) return;
 
+                const childId = 'row-' + Date.now() + '-' + Math.floor(Math.random() * 1000); // 자신의 고유 ID
                 const isTimeline = container.classList.contains('timeline-sidebar');
+
                 const newChild = document.createElement('div');
                 newChild.className = 'data-grid-row grid-child-row';
-                newChild.setAttribute('data-parent', groupName);
+                newChild.setAttribute('data-parent', rowId);
+                newChild.setAttribute('data-group', childId); // 자신에게도 고유 ID 부여
 
                 if (isTimeline) {
                     newChild.innerHTML = `
@@ -930,7 +933,8 @@
                         <div class="data-grid-cell" style="padding-left: 8px;">
                             <div style="display: flex; gap: 8px; align-items: center; width: 100%; padding-left: 26px;">
                                 <div class="nav-icon icon-stat"></div>
-                                <span class="data-grid-text">New Sub Category</span>
+                                <span class="data-grid-text">New Sub Task</span>
+                                <button class="add-child-btn"><div class="nav-icon icon-add"></div></button>
                             </div>
                         </div>
                         <div class="data-grid-cell">
@@ -948,14 +952,10 @@
                 // 삽입 위치 계산 (동일 그룹 자식들 중 마지막 뒤)
                 let lastInsertPoint = row;
                 let next = row.nextElementSibling;
-                while (next && next.classList.contains('grid-child-row') && next.getAttribute('data-parent') === groupName) {
+                while (next && next.classList.contains('grid-child-row') && next.getAttribute('data-parent') === rowId) {
                     lastInsertPoint = next;
                     next = next.nextElementSibling;
                 }
-
-                // 인덱스 찾기 (본문 싱크용)
-                const childrenArray = Array.from(container.children).filter(c => c.classList.contains('data-grid-row'));
-                const insertIdx = childrenArray.indexOf(lastInsertPoint);
 
                 container.insertBefore(newChild, lastInsertPoint.nextSibling);
 
@@ -967,22 +967,26 @@
                     expander.style.pointerEvents = 'auto';
                 }
 
-                // 타임라인이면 본문 영역에도 빈 행 추가 (동일한 인덱스에 삽입)
+                // 타임라인이면 본문 영역에도 빈 행 추가 (사이드바의 lastInsertPoint 대응행 다음 위치에 삽입)
                 if (isTimeline) {
                     const timelineBody = document.querySelector('.timeline-body');
                     if (timelineBody) {
                         const newTimeRow = document.createElement('div');
                         newTimeRow.className = 'timeline-row grid-child-row';
-                        newTimeRow.setAttribute('data-parent', groupName);
+                        newTimeRow.setAttribute('data-parent', rowId);
+                        newTimeRow.setAttribute('data-group', childId); // 뷰포트 행에도 고유 ID 부여
 
                         // 현재 날짜 위치에 바 추가
                         const todayLine = document.querySelector('.timeline-today-line');
                         const leftPos = todayLine ? todayLine.offsetLeft : 312;
                         newTimeRow.innerHTML = `<div class="timeline-bar timeline-bar-pending" style="left: ${leftPos}px; width: 48px;">New Sub Task</div>`;
 
-                        const bodyRows = timelineBody.querySelectorAll('.timeline-row');
-                        if (bodyRows.length > insertIdx) {
-                            timelineBody.insertBefore(newTimeRow, bodyRows[insertIdx].nextSibling);
+                        // 뷰포트에서 lastInsertPoint(사이드바 기준 부모 또는 이전 자식)와 매칭되는 행 찾기
+                        const lastInsertId = lastInsertPoint.getAttribute('data-group');
+                        const targetViewportRow = timelineBody.querySelector(`[data-group="${lastInsertId}"]`);
+                        
+                        if (targetViewportRow) {
+                            targetViewportRow.insertAdjacentElement('afterend', newTimeRow);
                         } else {
                             timelineBody.appendChild(newTimeRow);
                         }
@@ -1051,6 +1055,7 @@
                     if (timelineBody) {
                         const newTimeRow = document.createElement('div');
                         newTimeRow.className = 'timeline-row';
+                        newTimeRow.setAttribute('data-group', groupId);
 
                         // 현재 날짜 위치에 바 추가
                         const todayLine = document.querySelector('.timeline-today-line');
