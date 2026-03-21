@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="assets/css/icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         /* Base page layout only. Component styles are in components.css */
         html,
@@ -1237,6 +1238,132 @@
             if (timelineBody) {
                 observer.observe(timelineBody, { childList: true, subtree: true });
             }
+
+            // --- 6. 드래그 앤 드롭 (SortableJS) ---
+            function initSortable() {
+                const containers = document.querySelectorAll('.data-grid-container, .timeline-sidebar');
+                containers.forEach(container => {
+                    if (container._sortable) container._sortable.destroy();
+                    
+                    container._sortable = new Sortable(container, {
+                        animation: 150,
+                        handle: '.data-grid-row:not(.data-grid-header)',
+                        draggable: '.data-grid-row:not(.data-grid-header)',
+                        ghostClass: 'sortable-ghost',
+                        dragClass: 'sortable-drag',
+                        chosenClass: 'sortable-chosen',
+                        fallbackOnBody: true,
+                        swapThreshold: 0.65,
+
+                        onEnd: function (evt) {
+                            const item = evt.item;
+                            const prevItem = item.previousElementSibling;
+
+                            // 1. 계층 및 아이콘 처리
+                            if (!prevItem || prevItem.classList.contains('data-grid-header')) {
+                                promoteToRoot(item);
+                            } else {
+                                updateRowHierarchy(item);
+                            }
+
+                            // 2. 타임라인 동기화 (타임라인 사이드바일 경우만)
+                            if (container.classList.contains('timeline-sidebar')) {
+                                syncTimelineOrder(container);
+                            }
+                        }
+                    });
+                });
+            }
+
+            // 행을 루트(최상위)로 승격
+            function promoteToRoot(row) {
+                row.classList.remove('grid-child-row');
+                row.classList.add('level-0');
+                row.removeAttribute('data-parent');
+                
+                // 아이콘을 Tix 아이콘으로 변경
+                const icon = row.querySelector('.nav-icon.icon-stat, .nav-icon.icon-tix');
+                if (icon) {
+                    icon.classList.remove('icon-stat');
+                    icon.classList.add('icon-tix');
+                    icon.style.backgroundColor = '#00C27B';
+                }
+
+                // 들여쓰기 제거
+                const titleContainer = row.querySelector('.row-title-container');
+                if (titleContainer) {
+                    titleContainer.classList.remove('depth-2');
+                    titleContainer.style.paddingLeft = '';
+                }
+                
+                // 일반 그리드 셀 패딩 복원
+                const cellSecond = row.children[1];
+                if (cellSecond && !row.querySelector('.row-title-container')) {
+                    cellSecond.style.paddingLeft = '8px';
+                    const innerDiv = cellSecond.querySelector('div');
+                    if (innerDiv) innerDiv.style.paddingLeft = '0';
+                }
+            }
+
+            // 행의 계층에 따른 아이콘 및 스타일 업데이트
+            function updateRowHierarchy(row) {
+                const prev = row.previousElementSibling;
+                if (!prev || prev.classList.contains('data-grid-header')) {
+                    promoteToRoot(row);
+                    return;
+                }
+
+                const isPrevChild = prev.classList.contains('grid-child-row');
+                
+                // 이전 행이 자식이거나, 이전 행 아래로 드랍되었을 때 자식으로 간주 (데모용 단순 로직)
+                // 만약 이전 행이 Level 0라면 그 아래는 자식으로 변신하도록 설정
+                if (prev.classList.contains('level-0') || isPrevChild) {
+                    row.classList.remove('level-0');
+                    row.classList.add('grid-child-row');
+                    
+                    const parentId = prev.classList.contains('level-0') ? prev.getAttribute('data-group') : prev.getAttribute('data-parent');
+                    if (parentId) row.setAttribute('data-parent', parentId);
+
+                    // 아이콘을 Sub Tix 아이콘(마름모)으로 변경
+                    const icon = row.querySelector('.nav-icon.icon-tix, .nav-icon.icon-stat');
+                    if (icon) {
+                        icon.classList.remove('icon-tix');
+                        icon.classList.add('icon-stat');
+                    }
+
+                    // 들여쓰기 추가
+                    const titleContainer = row.querySelector('.row-title-container');
+                    if (titleContainer) {
+                        titleContainer.classList.add('depth-2');
+                    } else {
+                        // 타임라인 그리드가 아닌 일반 그리드일 경우 인라인 스타일 처리
+                        const innerDiv = row.querySelector('.data-grid-cell:nth-child(2) > div');
+                        if (innerDiv) innerDiv.style.paddingLeft = '26px';
+                    }
+                }
+            }
+
+            // 타임라인 본문 영역 순서를 사이드바와 동기화
+            function syncTimelineOrder(sidebarContainer) {
+                if (!sidebarContainer.classList.contains('timeline-sidebar')) return;
+                
+                const timelineBody = document.querySelector('.timeline-body');
+                if (!timelineBody) return;
+
+                // 사이드바의 행 순서대로 ID 리스트 추출
+                const rows = sidebarContainer.querySelectorAll('.data-grid-row:not(.data-grid-header)');
+                rows.forEach(sidebarRow => {
+                    const groupId = sidebarRow.getAttribute('data-group');
+                    if (!groupId) return;
+                    
+                    const viewportRow = timelineBody.querySelector(`[data-group="${groupId}"]`);
+                    if (viewportRow) {
+                        timelineBody.appendChild(viewportRow); // 순서대로 다시 append하여 정렬
+                    }
+                });
+            }
+
+            initSortable();
         });
     </script>
 </body>
