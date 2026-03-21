@@ -410,7 +410,7 @@
                 </div>
 
                 <!-- Row 1: Level 0 (Expanded) -->
-                <div class="data-grid-row level-0" data-group="design-ref">
+                <div class="data-grid-row level-0" data-group="design-ref" data-type="parent">
                     <div class="data-grid-cell center">
                         <label class="checkbox-container">
                             <input type="checkbox">
@@ -449,7 +449,7 @@
                 </div>
 
                 <!-- Row 2: Level 1 -->
-                <div class="data-grid-row grid-child-row" data-parent="design-ref">
+                <div class="data-grid-row grid-child-row" data-parent="design-ref" data-type="child">
                     <div class="data-grid-cell center">
                         <label class="checkbox-container">
                             <input type="checkbox">
@@ -482,7 +482,7 @@
                 </div>
 
                 <!-- Row 3: Level 0 (Standalone) -->
-                <div class="data-grid-row level-0" data-group="dev-group">
+                <div class="data-grid-row level-0" data-group="dev-group" data-type="parent">
                     <div class="data-grid-cell center">
                         <label class="checkbox-container">
                             <input type="checkbox" checked>
@@ -909,6 +909,7 @@
                 newChild.className = 'data-grid-row grid-child-row';
                 newChild.setAttribute('data-parent', rowId);
                 newChild.setAttribute('data-group', childId); // 자신에게도 고유 ID 부여
+                newChild.setAttribute('data-type', 'child'); // 타입 고정
 
                 if (isTimeline) {
                     newChild.innerHTML = `
@@ -1008,6 +1009,7 @@
                 const newRow = document.createElement('div');
                 newRow.className = 'data-grid-row level-0';
                 newRow.setAttribute('data-group', groupId);
+                newRow.setAttribute('data-type', 'parent'); // 타입 고정
 
                 if (isTimeline) {
                     newRow.innerHTML = `
@@ -1257,16 +1259,18 @@
 
                         onEnd: function (evt) {
                             const item = evt.item;
-                            const prevItem = item.previousElementSibling;
+                            const type = item.getAttribute('data-type');
 
-                            // 1. 계층 및 아이콘 처리
-                            if (!prevItem || prevItem.classList.contains('data-grid-header')) {
+                            // 1. 계층 및 아이콘 고정 처리 (등급 변경 불가 규칙 적용)
+                            if (type === 'parent') {
+                                // 상위 Tix는 어디로 이동하든 항상 상급 등급 유지
                                 promoteToRoot(item);
-                            } else {
-                                updateRowHierarchy(item);
+                            } else if (type === 'child') {
+                                // 하위 Tix는 어디로 이동하든 항상 하급 등급 유지
+                                demoteToChild(item);
                             }
 
-                            // 2. 타임라인 동기화 (타임라인 사이드바일 경우만)
+                            // 2. 타임라인 동기화
                             if (container.classList.contains('timeline-sidebar')) {
                                 syncTimelineOrder(container);
                             }
@@ -1275,7 +1279,7 @@
                 });
             }
 
-            // 행을 루트(최상위)로 승격
+            // 행을 루트(최상위)로 고정 (등급 상승 불가 원칙 상 부모 전용)
             window.promoteToRoot = function(row) {
                 row.classList.remove('grid-child-row');
                 row.classList.add('level-0');
@@ -1289,14 +1293,18 @@
                     icon.style.backgroundColor = '#00C27B';
                 }
 
-                // 들여쓰기 제거 (항상 제거)
+                // 익스팬더(v) 복원 (원래 부모였던 것들만)
+                const expander = row.querySelector('.tree-expander');
+                if (expander) {
+                    expander.style.display = 'flex';
+                }
+
+                // 들여쓰기 제거
                 const titleContainer = row.querySelector('.row-title-container');
                 if (titleContainer) {
                     titleContainer.classList.remove('depth-2');
                     titleContainer.style.paddingLeft = '';
                 }
-                
-                // 일반 그리드 셀 패딩 제거
                 const cellSecond = row.children[1];
                 if (cellSecond) {
                     const innerDiv = cellSecond.querySelector('div');
@@ -1304,41 +1312,40 @@
                 }
             }
 
-            // 행의 계층에 따른 아이콘 및 스타일 업데이트
-            window.updateRowHierarchy = function(row) {
-                const prev = row.previousElementSibling;
-                if (!prev || prev.classList.contains('data-grid-header')) {
-                    promoteToRoot(row);
-                    return;
-                }
-
-                const isPrevChild = prev.classList.contains('grid-child-row');
+            // 행을 하위 카테고리로 고정 (등급 하락 불가 원칙 상 자식 전용)
+            window.demoteToChild = function(row) {
+                row.classList.remove('level-0');
+                row.classList.add('grid-child-row');
                 
-                // 이전 행이 자식이거나, 이전 행 아래로 드랍되었을 때 자식으로 간주
-                if (prev.classList.contains('level-0') || isPrevChild) {
-                    row.classList.remove('level-0');
-                    row.classList.add('grid-child-row');
-                    
+                // 새로운 부모 ID 찾기 (이전 행 기준)
+                const prev = row.previousElementSibling;
+                if (prev && !prev.classList.contains('data-grid-header')) {
                     const parentId = prev.classList.contains('level-0') ? prev.getAttribute('data-group') : prev.getAttribute('data-parent');
                     if (parentId) row.setAttribute('data-parent', parentId);
+                }
 
-                    // 아이콘을 Sub Tix 아이콘(마름모)으로 변경
-                    const icon = row.querySelector('.nav-icon.icon-tix, .nav-icon.icon-stat');
-                    if (icon) {
-                        icon.classList.remove('icon-tix');
-                        icon.classList.add('icon-stat');
-                    }
+                // 아이콘을 Sub Tix 아이콘(마름모)으로 변경
+                const icon = row.querySelector('.nav-icon.icon-tix, .nav-icon.icon-stat');
+                if (icon) {
+                    icon.classList.remove('icon-tix');
+                    icon.classList.add('icon-stat');
+                }
 
-                    // 들여쓰기 제거 (요청에 따라 삭제)
-                    const titleContainer = row.querySelector('.row-title-container');
-                    if (titleContainer) {
-                        titleContainer.classList.remove('depth-2');
-                    }
-                    const cellSecond = row.children[1];
-                    if (cellSecond) {
-                        const innerDiv = cellSecond.querySelector('div');
-                        if (innerDiv) innerDiv.style.paddingLeft = '0';
-                    }
+                // 익스팬더(v) 숨기기 (하위 카테고리는 익스팬더를 갖지 않음)
+                const expander = row.querySelector('.tree-expander');
+                if (expander) {
+                    expander.style.display = 'none';
+                }
+
+                // 들여쓰기 제거 (항상 제거 유지)
+                const titleContainer = row.querySelector('.row-title-container');
+                if (titleContainer) {
+                    titleContainer.classList.remove('depth-2');
+                }
+                const cellSecond = row.children[1];
+                if (cellSecond) {
+                    const innerDiv = cellSecond.querySelector('div');
+                    if (innerDiv) innerDiv.style.paddingLeft = '0';
                 }
             }
 
