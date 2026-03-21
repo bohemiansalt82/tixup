@@ -457,7 +457,7 @@
                         </label>
                     </div>
                     <div class="data-grid-cell" style="padding-left: 8px;">
-                        <div style="display: flex; gap: 8px; align-items: center; width: 100%; padding-left: 26px;">
+                        <div style="display: flex; gap: 8px; align-items: center; width: 100%; padding-left: 0;">
                             <div class="nav-icon icon-stat"></div>
                             <span class="data-grid-text">CI Design</span>
                         </div>
@@ -1276,7 +1276,7 @@
             }
 
             // 행을 루트(최상위)로 승격
-            function promoteToRoot(row) {
+            window.promoteToRoot = function(row) {
                 row.classList.remove('grid-child-row');
                 row.classList.add('level-0');
                 row.removeAttribute('data-parent');
@@ -1289,24 +1289,23 @@
                     icon.style.backgroundColor = '#00C27B';
                 }
 
-                // 들여쓰기 제거
+                // 들여쓰기 제거 (항상 제거)
                 const titleContainer = row.querySelector('.row-title-container');
                 if (titleContainer) {
                     titleContainer.classList.remove('depth-2');
                     titleContainer.style.paddingLeft = '';
                 }
                 
-                // 일반 그리드 셀 패딩 복원
+                // 일반 그리드 셀 패딩 제거
                 const cellSecond = row.children[1];
-                if (cellSecond && !row.querySelector('.row-title-container')) {
-                    cellSecond.style.paddingLeft = '8px';
+                if (cellSecond) {
                     const innerDiv = cellSecond.querySelector('div');
                     if (innerDiv) innerDiv.style.paddingLeft = '0';
                 }
             }
 
             // 행의 계층에 따른 아이콘 및 스타일 업데이트
-            function updateRowHierarchy(row) {
+            window.updateRowHierarchy = function(row) {
                 const prev = row.previousElementSibling;
                 if (!prev || prev.classList.contains('data-grid-header')) {
                     promoteToRoot(row);
@@ -1315,8 +1314,7 @@
 
                 const isPrevChild = prev.classList.contains('grid-child-row');
                 
-                // 이전 행이 자식이거나, 이전 행 아래로 드랍되었을 때 자식으로 간주 (데모용 단순 로직)
-                // 만약 이전 행이 Level 0라면 그 아래는 자식으로 변신하도록 설정
+                // 이전 행이 자식이거나, 이전 행 아래로 드랍되었을 때 자식으로 간주
                 if (prev.classList.contains('level-0') || isPrevChild) {
                     row.classList.remove('level-0');
                     row.classList.add('grid-child-row');
@@ -1331,14 +1329,15 @@
                         icon.classList.add('icon-stat');
                     }
 
-                    // 들여쓰기 추가
+                    // 들여쓰기 제거 (요청에 따라 삭제)
                     const titleContainer = row.querySelector('.row-title-container');
                     if (titleContainer) {
-                        titleContainer.classList.add('depth-2');
-                    } else {
-                        // 타임라인 그리드가 아닌 일반 그리드일 경우 인라인 스타일 처리
-                        const innerDiv = row.querySelector('.data-grid-cell:nth-child(2) > div');
-                        if (innerDiv) innerDiv.style.paddingLeft = '26px';
+                        titleContainer.classList.remove('depth-2');
+                    }
+                    const cellSecond = row.children[1];
+                    if (cellSecond) {
+                        const innerDiv = cellSecond.querySelector('div');
+                        if (innerDiv) innerDiv.style.paddingLeft = '0';
                     }
                 }
             }
