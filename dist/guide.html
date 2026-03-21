@@ -448,77 +448,6 @@
                     </div>
                 </div>
 
-                <!-- Row 2: Level 1 -->
-                <div class="data-grid-row grid-child-row" data-parent="design-ref" data-type="child">
-                    <div class="data-grid-cell center">
-                        <label class="checkbox-container">
-                            <input type="checkbox">
-                            <div class="checkbox-box"></div>
-                        </label>
-                    </div>
-                    <div class="data-grid-cell" style="padding-left: 8px;">
-                        <div style="display: flex; gap: 8px; align-items: center; width: 100%; padding-left: 0;">
-                            <div class="nav-icon icon-stat"></div>
-                            <span class="data-grid-text">CI Design</span>
-                        </div>
-                    </div>
-                    <div class="data-grid-cell">
-                        <div class="marker marker-has-icon marker-pending">
-                            Pending
-                        </div>
-                    </div>
-                    <div class="data-grid-cell" style="gap: 8px;">
-                        <img src="https://ui-avatars.com/api/?name=이대수&background=random"
-                            style="width: 24px; height: 24px; border-radius: 50%;" />
-                        <span class="data-grid-text-sm">이대수</span>
-                        <div class="grid-tag grid-tag-blue">Mine</div>
-                    </div>
-                    <div class="data-grid-cell" style="gap: 8px;">
-                        <span class="data-grid-text-sm">2025-08-09</span>
-                    </div>
-                    <div class="data-grid-cell">
-                        <div class="grid-tag grid-tag-green">Design</div>
-                    </div>
-                </div>
-
-                <!-- Row 3: Level 0 (Standalone) -->
-                <div class="data-grid-row level-0" data-group="dev-group" data-type="parent">
-                    <div class="data-grid-cell center">
-                        <label class="checkbox-container">
-                            <input type="checkbox" checked>
-                            <div class="checkbox-box"></div>
-                        </label>
-                    </div>
-                    <div class="data-grid-cell" style="padding-left: 8px;">
-                        <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
-                            <button class="tree-expander empty expanded"
-                                style="flex-shrink: 0; opacity: 0; pointer-events: none;">
-                                <div class="nav-icon icon-chevron-lg-bottom"></div>
-                            </button>
-                            <div class="nav-icon icon-tix"></div>
-                            <span class="data-grid-text">Dev</span>
-                            <button class="add-child-btn">
-                                <div class="nav-icon icon-add"></div>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="data-grid-cell">
-                        <div class="marker marker-has-icon marker-inprogress">
-                            In Progress
-                        </div>
-                    </div>
-                    <div class="data-grid-cell" style="gap: 8px;">
-                        <img src="https://ui-avatars.com/api/?name=Jy.Choi&background=random"
-                            style="width: 24px; height: 24px; border-radius: 50%;" />
-                        <span class="data-grid-text-sm">Jy.Choi</span>
-                    </div>
-                    <div class="data-grid-cell" style="gap: 8px;">
-                        <span class="data-grid-text-sm">2025-08-09</span>
-                    </div>
-                    <div class="data-grid-cell">
-                        <div class="grid-tag grid-tag-green">Design</div>
-                    </div>
-                </div>
 
                 <!-- Footer Create Button -->
                 <div class="data-grid-row data-grid-footer" id="data-grid-footer-row">
@@ -961,12 +890,20 @@
 
                 container.insertBefore(newChild, lastInsertPoint.nextSibling);
 
-                // 부모 토글 버튼 활성화
+                // 부모 토글 버튼 상태 확인 및 강제 펼치기
                 const expander = row.querySelector('.tree-expander');
-                if (expander && expander.classList.contains('empty')) {
-                    expander.classList.remove('empty');
-                    expander.style.opacity = '1';
-                    expander.style.pointerEvents = 'auto';
+                if (expander) {
+                    if (expander.classList.contains('empty')) {
+                        // 처음 자식이 생기는 경우: 아이콘 노출 및 활성화
+                        expander.classList.remove('empty');
+                        expander.classList.remove('collapsed');
+                        expander.classList.add('expanded');
+                        expander.style.opacity = '1';
+                        expander.style.pointerEvents = 'auto';
+                    } else if (expander.classList.contains('collapsed')) {
+                        // 접혀 있는 경우: 펼침 상태로 강제 전환
+                        handleToggle(expander, container);
+                    }
                 }
 
                 // 타임라인이면 본문 영역에도 빈 행 추가 (사이드바의 lastInsertPoint 대응행 다음 위치에 삽입)
@@ -1242,25 +1179,125 @@
             }
 
             // --- 6. 드래그 앤 드롭 (SortableJS) ---
+            // --- 6. 드래그 앤 드롭 (SortableJS + Absolute Guide) ---
+            let _indicatorLine = null;
+
             function initSortable() {
                 const containers = document.querySelectorAll('.data-grid-container, .timeline-sidebar');
+                
+                // 가이드 라인 요소가 없으면 생성
+                if (!_indicatorLine) {
+                    _indicatorLine = document.createElement('div');
+                    _indicatorLine.className = 'drop-indicator-line';
+                    document.body.appendChild(_indicatorLine);
+                }
+
                 containers.forEach(container => {
                     if (container._sortable) container._sortable.destroy();
                     
                     container._sortable = new Sortable(container, {
-                        animation: 150,
+                        sort: true,
+                        animation: 0,
                         handle: '.data-grid-row:not(.data-grid-header)',
-                        draggable: '.data-grid-row:not(.data-grid-header)',
+                        draggable: '.data-grid-row:not(.data-grid-header):not(.data-grid-footer):not(.timeline-footer-sticky)',
+                        filter: '.tree-expander, .add-child-btn, .checkbox-container, button', // 특정 버튼 영역은 드래그에서 제외
+                        preventOnFilter: false, // 필터링된 요소의 기본 클릭 이벤트 허용
                         ghostClass: 'sortable-ghost',
                         dragClass: 'sortable-drag',
                         chosenClass: 'sortable-chosen',
                         fallbackOnBody: true,
-                        swapThreshold: 0.65,
+                        forceFallback: true,
+
+                        onStart: function(evt) {
+                            window.lastDropTarget = null;
+                            _indicatorLine.style.display = 'none';
+                        },
+
+                        onMove: function (evt) {
+                            const dragEl = evt.dragged;    
+                            const targetEl = evt.related;  
+
+                            // 이전 네스팅 효과 제거
+                            document.querySelectorAll('.drop-indicator-nest-active').forEach(el => {
+                                el.classList.remove('drop-indicator-nest-active');
+                            });
+
+                            if (targetEl && targetEl !== dragEl && !targetEl.classList.contains('data-grid-header')) {
+                                const isDragChild = dragEl.getAttribute('data-type') === 'child';
+                                const targetType = targetEl.getAttribute('data-type'); // 'parent' or 'child'
+
+                                if (isDragChild) {
+                                    // 하위 업무 드래그 중
+                                    if (targetType === 'parent') {
+                                        // 1. 상위 업무 위로 (Nesting)
+                                        targetEl.classList.add('drop-indicator-nest-active');
+                                        _indicatorLine.style.display = 'none';
+                                        window.lastDropTarget = { element: targetEl, type: 'nest' };
+                                    } else if (targetType === 'child') {
+                                        // 2. 다른 하위 업무 사이로 (파란 선 가이드 추가)
+                                        const rect = targetEl.getBoundingClientRect();
+                                        _indicatorLine.style.display = 'block';
+                                        _indicatorLine.style.top = `${window.scrollY + rect.top}px`;
+                                        _indicatorLine.style.left = `${rect.left}px`;
+                                        _indicatorLine.style.width = `${rect.width}px`;
+                                        window.lastDropTarget = { element: targetEl, type: 'before' };
+                                    } else {
+                                        _indicatorLine.style.display = 'none';
+                                        window.lastDropTarget = null;
+                                        return false;
+                                    }
+                                } else {
+                                    // 상위 업무 드래그 중 -> 모든 행 '사이'로만 이동 가능
+                                    const rect = targetEl.getBoundingClientRect();
+                                    _indicatorLine.style.display = 'block';
+                                    _indicatorLine.style.top = `${window.scrollY + rect.top}px`;
+                                    _indicatorLine.style.left = `${rect.left}px`;
+                                    _indicatorLine.style.width = `${rect.width}px`;
+                                    window.lastDropTarget = { element: targetEl, type: 'before' };
+                                }
+                            } else {
+                                _indicatorLine.style.display = 'none';
+                                window.lastDropTarget = null;
+                            }
+
+                            return false; // Shuffling 방지
+                        },
 
                         onEnd: function (evt) {
-                            // 등급 변경이나 스타일 변환 없이 위치만 이동 (본래 스타일 유지)
-                            
-                            // 타임라인 동기화
+                            const item = evt.item;
+                            const drop = window.lastDropTarget;
+
+                            _indicatorLine.style.display = 'none';
+                            document.querySelectorAll('.drop-indicator-nest-active').forEach(el => {
+                                el.classList.remove('drop-indicator-nest-active');
+                            });
+
+                            if (drop && drop.element !== item) {
+                                const parentGroup = item.getAttribute('data-group');
+                                const isParent = item.getAttribute('data-type') === 'parent';
+                                
+                                // 이동 기준점 설정
+                                let insertionPoint = drop.type === 'before' ? drop.element : drop.element.nextSibling;
+
+                                if (isParent) {
+                                    // 1. 부모 행 이동
+                                    item.parentNode.insertBefore(item, insertionPoint);
+                                    
+                                    // 2. 부모에 속한 자식 행들 모두 찾아 같이 이동 (이동한 부모 바로 뒤로)
+                                    const container = item.parentNode;
+                                    const children = Array.from(container.querySelectorAll(`.grid-child-row[data-parent="${parentGroup}"]`));
+                                    
+                                    let currentAfter = item.nextSibling;
+                                    children.forEach(child => {
+                                        container.insertBefore(child, currentAfter);
+                                        currentAfter = child.nextSibling;
+                                    });
+                                } else {
+                                    // 자식 행 이동 (단일 이동)
+                                    item.parentNode.insertBefore(item, insertionPoint);
+                                }
+                            }
+
                             if (container.classList.contains('timeline-sidebar')) {
                                 syncTimelineOrder(container);
                             }
@@ -1268,6 +1305,13 @@
                     });
                 });
             }
+
+            // Tix 생성 로직 보완 (initSortable 호출 추가)
+            const _originalHandleCreateTix = handleCreateTix;
+            handleCreateTix = function(isTimeline) {
+                _originalHandleCreateTix(isTimeline);
+                initSortable(); // 새로 생성된 요소 드래그 가능하게 초기화
+            };
 
 
             // 타임라인 본문 영역 순서를 사이드바와 동기화

@@ -1644,35 +1644,42 @@
 /* -------------------------------------
    Drag and Drop Styles
 ---------------------------------------- */
-/* 드래그 중인 요소의 원래 위치(고스트) 스타일 */
+/* 드래그 중인 요소의 원래 위치(고스트) - 반투명하게 유지하여 빈 공간 효과와 내용 확인을 동시에 제공 */
 .sortable-ghost {
-    opacity: 0.2 !important;
-    background-color: var(--primitive-colors-gray-200) !important;
+    opacity: 0.5 !important;
+    background-color: var(--primitive-colors-gray-50) !important;
 }
 
 .sortable-drag {
     opacity: 1 !important;
     background-color: var(--primitive-colors-base-white) !important;
-    /* 이미지와 유사한 깊은 그림자 */
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
     border: 1px solid var(--primitive-colors-gray-400) !important;
     border-radius: 8px !important;
     z-index: 9999;
-    cursor: grabbing !important;
-    transform: scale(1.01);
-    transition: transform 0.1s ease;
 }
 
-.sortable-chosen {
-    background-color: var(--primitive-colors-gray-50) !important;
+/* 절대 위치로 표시되는 파란색 구분선 가이드 */
+.drop-indicator-line {
+    position: absolute;
+    height: 4px;
+    background-color: #3B82F6;
+    z-index: 10000;
+    pointer-events: none; /* 드래그 타겟 감지 방해 금지 */
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+    transition: all 0.1s ease;
+    display: none; /* 기본적으로 숨김 */
+}
+
+/* 하위 카테고리가 상위 카테고리 위로 올라갔을 때 (Nesting Overlay) */
+.drop-indicator-nest-active {
+    background-color: rgba(226, 232, 240, 0.6) !important;
+    outline: 2px solid #3B82F6 !important;
+    outline-offset: -2px;
 }
 
 .sortable-drag .data-grid-cell {
     border-right: none !important;
-}
-
-.data-grid-row.dragging-over {
-    border-top: 2px solid var(--semantic-color-colors-primary) !important;
 }
 
 /* 행 전체 드래그 가능함을 암시하는 커서 */
