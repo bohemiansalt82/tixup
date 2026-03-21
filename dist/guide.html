@@ -918,7 +918,7 @@
                             <div class="row-title-container depth-2">
                                 <div class="nav-icon icon-stat"></div>
                                 <span class="data-grid-text">New Sub Tix</span>
-                                <button class="add-child-btn"><div class="nav-icon icon-add"></div></button>
+                                <button class="add-child-btn" style="display: none;"><div class="nav-icon icon-add"></div></button>
                             </div>
                         </div>
                         <div class="data-grid-cell">
@@ -934,7 +934,7 @@
                             <div style="display: flex; gap: 8px; align-items: center; width: 100%; padding-left: 26px;">
                                 <div class="nav-icon icon-stat"></div>
                                 <span class="data-grid-text">New Sub Tix</span>
-                                <button class="add-child-btn"><div class="nav-icon icon-add"></div></button>
+                                <button class="add-child-btn" style="display: none;"><div class="nav-icon icon-add"></div></button>
                             </div>
                         </div>
                         <div class="data-grid-cell">
@@ -1106,14 +1106,14 @@
             // --- 3. 호버 애니메이션 보강 ---
             document.addEventListener('mouseover', (e) => {
                 const row = e.target.closest('.data-grid-row');
-                if (row) {
+                if (row && !row.classList.contains('grid-child-row')) {
                     const btn = row.querySelector('.add-child-btn');
                     if (btn) btn.style.opacity = '1';
                 }
             });
             document.addEventListener('mouseout', (e) => {
                 const row = e.target.closest('.data-grid-row');
-                if (row) {
+                if (row && !row.classList.contains('grid-child-row')) {
                     const btn = row.querySelector('.add-child-btn');
                     if (btn) btn.style.opacity = '0';
                 }
