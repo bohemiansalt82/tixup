@@ -10,12 +10,18 @@
   --primitive-sizes-14: 14px;
   --primitive-sizes-16: 16px;
   --primitive-sizes-18: 18px;
+  --primitive-sizes-20: 20px;
+  --primitive-sizes-22: 22px;
   --primitive-sizes-24: 24px;
+  --primitive-sizes-28: 28px;
   --primitive-sizes-32: 32px;
   --primitive-sizes-40: 40px;
   --primitive-sizes-48: 48px;
   --primitive-sizes-56: 56px;
   --primitive-sizes-64: 64px;
+  --primitive-sizes-80: 80px;
+  --primitive-sizes-100: 100px;
+  --primitive-sizes-200: 200px;
 
   /* Primitive Colors Palette */
   --primitive-colors-red-50: #ffebeeff;

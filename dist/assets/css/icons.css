@@ -11,6 +11,13 @@
     --icon-url-chevron-lg-bottom: url('../images/icons/chevron_lg_bottom.svg');
     --icon-url-tix: url('../images/icons/tix.svg');
     --icon-url-stat: url('../images/icons/stat.svg');
+    --icon-url-filter: url('../images/icons/filter.svg');
+    --icon-url-sort: url('../images/icons/sort.svg');
+    --icon-url-visibility-off: url('../images/icons/visibility_off.svg');
+    --icon-url-calendar: url('../images/icons/calendar.svg');
+    --icon-url-clock: url('../images/icons/clock.svg');
+    --icon-url-list: url('../images/icons/list_left.svg');
+    --icon-url-visibility: url('../images/icons/visibility.svg');
 }
 
 /* Class Mappings */
@@ -57,4 +64,39 @@
 .icon-stat {
     -webkit-mask-image: var(--icon-url-stat);
     mask-image: var(--icon-url-stat);
+}
+
+.icon-filter {
+    -webkit-mask-image: var(--icon-url-filter);
+    mask-image: var(--icon-url-filter);
+}
+
+.icon-sort {
+    -webkit-mask-image: var(--icon-url-sort);
+    mask-image: var(--icon-url-sort);
+}
+
+.icon-visibility-off {
+    -webkit-mask-image: var(--icon-url-visibility-off);
+    mask-image: var(--icon-url-visibility-off);
+}
+
+.icon-calendar {
+    -webkit-mask-image: var(--icon-url-calendar);
+    mask-image: var(--icon-url-calendar);
+}
+
+.icon-clock {
+    -webkit-mask-image: var(--icon-url-clock);
+    mask-image: var(--icon-url-clock);
+}
+
+.icon-list {
+    -webkit-mask-image: var(--icon-url-list);
+    mask-image: var(--icon-url-list);
+}
+
+.icon-visibility {
+    -webkit-mask-image: var(--icon-url-visibility);
+    mask-image: var(--icon-url-visibility);
 }
