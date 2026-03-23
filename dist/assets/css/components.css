@@ -1046,7 +1046,7 @@
 }
 
 .tix-sticky-header .text-tool-btn .material-icons-outlined {
-    font-size: 20px;
+    font-size: var(--primitive-sizes-20);
 }
 
 .tix-sticky-header .avatar-group {
@@ -1424,7 +1424,7 @@
     cursor: pointer !important;
     padding: 0 !important;
     color: var(--primitive-colors-gray-900) !important;
-    font-size: 14px !important;
+    font-size: var(--semantic-font-font-size-font-size-md) !important;
     font-weight: 500 !important;
 }
 
@@ -1525,7 +1525,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: var(--primitive-sizes-12);
     color: var(--primitive-colors-gray-600);
 }
 
@@ -1592,7 +1592,7 @@
     display: flex;
     align-items: center;
     padding: 0 12px;
-    font-size: 13px;
+    font-size: var(--primitive-sizes-12);
     color: var(--primitive-colors-gray-800);
     border: 2px solid rgba(0, 0, 0, 0.05);
     white-space: nowrap;
@@ -1720,4 +1720,32 @@
 
 .data-grid-row:not(.data-grid-header):active {
     cursor: grabbing;
+}
+
+/* Create Tix Input Form */
+.grid-create-input-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 100%;
+}
+
+.grid-create-input-form .nav-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.grid-create-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: var(--semantic-font-font-size-font-size-lg);
+    color: var(--primitive-colors-gray-900);
+    outline: none;
+    padding: 0;
+}
+
+.grid-create-input::placeholder {
+    color: var(--primitive-colors-gray-400);
 }

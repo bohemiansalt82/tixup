@@ -829,6 +829,7 @@
             }
 
             // 하위 업무 추가
+            // 하위 업무 추가
             function handleAddChild(addBtn, container) {
                 const row = addBtn.closest('.data-grid-row');
                 const rowId = row.getAttribute('data-group'); // 부모의 고유 ID
@@ -836,6 +837,7 @@
 
                 const childId = 'row-' + Date.now() + '-' + Math.floor(Math.random() * 1000); // 자신의 고유 ID
                 const isTimeline = container.classList.contains('timeline-sidebar');
+                const tixName = "New Sub Tix";
 
                 const newChild = document.createElement('div');
                 newChild.className = 'data-grid-row grid-child-row';
@@ -851,7 +853,7 @@
                         <div class="data-grid-cell">
                             <div class="row-title-container depth-2">
                                 <div class="nav-icon icon-stat"></div>
-                                <span class="data-grid-text">New Sub Tix</span>
+                                <span class="data-grid-text">${tixName}</span>
                                 <button class="add-child-btn" style="display: none;"><div class="nav-icon icon-add"></div></button>
                             </div>
                         </div>
@@ -867,7 +869,7 @@
                         <div class="data-grid-cell" style="padding-left: 8px;">
                             <div style="display: flex; gap: 8px; align-items: center; width: 100%; padding-left: 26px;">
                                 <div class="nav-icon icon-stat"></div>
-                                <span class="data-grid-text">New Sub Tix</span>
+                                <span class="data-grid-text">${tixName}</span>
                                 <button class="add-child-btn" style="display: none;"><div class="nav-icon icon-add"></div></button>
                             </div>
                         </div>
@@ -909,21 +911,19 @@
                     }
                 }
 
-                // 타임라인이면 본문 영역에도 빈 행 추가 (사이드바의 lastInsertPoint 대응행 다음 위치에 삽입)
+                // 타임라인이면 본문 영역에도 빈 행 추가
                 if (isTimeline) {
                     const timelineBody = document.querySelector('.timeline-body');
                     if (timelineBody) {
                         const newTimeRow = document.createElement('div');
                         newTimeRow.className = 'timeline-row grid-child-row';
                         newTimeRow.setAttribute('data-parent', rowId);
-                        newTimeRow.setAttribute('data-group', childId); // 뷰포트 행에도 고유 ID 부여
+                        newTimeRow.setAttribute('data-group', childId);
 
-                        // 현재 날짜 위치에 바 추가
                         const todayLine = document.querySelector('.timeline-today-line');
                         const leftPos = todayLine ? todayLine.offsetLeft : 312;
-                        newTimeRow.innerHTML = `<div class="timeline-bar timeline-bar-pending" style="left: ${leftPos}px; width: 48px;">New Sub Tix</div>`;
+                        newTimeRow.innerHTML = `<div class="timeline-bar timeline-bar-pending" style="left: ${leftPos}px; width: 48px;">${tixName}</div>`;
 
-                        // 뷰포트에서 lastInsertPoint(사이드바 기준 부모 또는 이전 자식)와 매칭되는 행 찾기
                         const lastInsertId = lastInsertPoint.getAttribute('data-group');
                         const targetViewportRow = timelineBody.querySelector(`[data-group="${lastInsertId}"]`);
                         
@@ -935,11 +935,77 @@
                     }
                 }
 
+                // 즉시 인라인 편집 모드로 전환
+                inlineEditRow(newChild, true);
+
                 newChild.animate([{ opacity: 0, transform: 'translateY(-10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 200 });
             }
 
+            // 행 내 제목 인라인 편집 기능
+            function inlineEditRow(row, isSub = false) {
+                const textSpan = row.querySelector('.data-grid-text');
+                if (!textSpan) return;
+
+                const originalText = textSpan.innerText;
+                textSpan.style.display = 'none';
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'grid-create-input';
+                input.value = ''; // 생성 직후이므로 빈 값으로 시작
+                input.placeholder = isSub ? 'Sub Tix name...' : 'Tix name...';
+                input.style.flex = '1';
+                input.style.fontSize = 'inherit';
+                input.style.border = 'none';
+                input.style.outline = 'none';
+                input.style.background = 'transparent';
+                input.style.padding = '0';
+                
+                textSpan.parentNode.insertBefore(input, textSpan.nextSibling);
+                input.focus();
+
+                let isFinished = false;
+                const finish = (cancelled = false) => {
+                    if (isFinished) return;
+                    isFinished = true;
+
+                    const newName = input.value.trim();
+                    input.remove();
+                    textSpan.style.display = 'inline';
+
+                    // 취소했거나 이름이 없으면 생성된 행 제거
+                    if (cancelled || !newName) {
+                        const id = row.getAttribute('data-group');
+                        row.remove();
+                        const viewportRow = document.querySelector(`.timeline-body [data-group="${id}"]`);
+                        if (viewportRow) viewportRow.remove();
+                        
+                        // 부모가 다시 비었는지 체크하여 empty 처리 (로직 생략 가능하지만 UI 위해 권장)
+                    } else {
+                        textSpan.innerText = newName;
+                        const id = row.getAttribute('data-group');
+                        const timelineBar = document.querySelector(`.timeline-body [data-group="${id}"] .timeline-bar`);
+                        if (timelineBar) timelineBar.innerText = newName;
+                    }
+                };
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') finish();
+                    if (e.key === 'Escape') finish(true);
+                });
+
+                // 외부 클릭 시 확정 혹은 취소 (사용자 선호에 따라 다름, 여기선 외부 클릭 시 입력값 있으면 확정)
+                const outsideClick = (e) => {
+                    if (!input.contains(e.target)) {
+                        finish(false);
+                        document.removeEventListener('mousedown', outsideClick);
+                    }
+                };
+                setTimeout(() => document.addEventListener('mousedown', outsideClick), 10);
+            }
+
             // 메인 업무 추가
-            function handleCreateTix(isTimeline) {
+            function handleCreateTix(isTimeline, tixName = "New Tix") {
                 const container = isTimeline ? document.querySelector('.timeline-sidebar') : document.querySelector('.data-grid-container');
                 
                 // 타겟 용 푸터 행 찾기 (타임라인은 푸터가 외부에 있으므로 null, 데이터 그리드는 내부 푸터 행을 찾음)
@@ -962,7 +1028,7 @@
                             <div class="row-title-container">
                                 <button class="tree-expander empty expanded" style="opacity: 0;"><div class="nav-icon icon-chevron-lg-bottom"></div></button>
                                 <div class="nav-icon icon-tix"></div>
-                                <span class="data-grid-text">New Tix</span>
+                                <span class="data-grid-text">${tixName}</span>
                                 <button class="add-child-btn"><div class="nav-icon icon-add"></div></button>
                             </div>
                         </div>
@@ -979,7 +1045,7 @@
                             <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
                                 <button class="tree-expander empty expanded" style="opacity: 0;"><div class="nav-icon icon-chevron-lg-bottom"></div></button>
                                 <div class="nav-icon icon-tix"></div>
-                                <span class="data-grid-text">New Tix</span>
+                                <span class="data-grid-text">${tixName}</span>
                                 <button class="add-child-btn"><div class="nav-icon icon-add"></div></button>
                             </div>
                         </div>
@@ -1010,13 +1076,75 @@
                         // 현재 날짜 위치에 바 추가
                         const todayLine = document.querySelector('.timeline-today-line');
                         const leftPos = todayLine ? todayLine.offsetLeft : 312;
-                        newTimeRow.innerHTML = `<div class="timeline-bar timeline-bar-pending" style="left: ${leftPos}px; width: 48px;">New Tix</div>`;
+                        newTimeRow.innerHTML = `<div class="timeline-bar timeline-bar-pending" style="left: ${leftPos}px; width: 48px;">${tixName}</div>`;
 
                         timelineBody.appendChild(newTimeRow);
                     }
                 }
 
                 newRow.animate([{ opacity: 0, transform: 'translateY(-10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 200 });
+            }
+
+            // 입력 모드로 전환
+            function switchToInput(btn, isTimeline, isSub = false) {
+                const parent = btn.parentElement;
+                if (!parent) return;
+
+                const originalDisplay = btn.style.display || 'flex';
+                // !important 대응을 위해 setProperty 사용
+                btn.style.setProperty('display', 'none', 'important');
+
+                const form = document.createElement('div');
+                form.className = 'grid-create-input-form';
+                if (isSub) {
+                    form.style.marginLeft = '8px';
+                    form.style.flex = '1';
+                }
+                
+                form.innerHTML = `
+                    <div class="nav-icon icon-add"></div>
+                    <input type="text" class="grid-create-input" placeholder="${isSub ? 'Sub Tix name...' : 'Tix name...'}" spellcheck="false">
+                `;
+
+                parent.appendChild(form);
+                const input = form.querySelector('input');
+                input.focus();
+
+                let isFinished = false;
+                const finish = (cancelled = false) => {
+                    if (isFinished) return;
+                    isFinished = true;
+
+                    const name = input.value.trim();
+                    form.remove();
+                    btn.style.display = originalDisplay;
+                    document.removeEventListener('mousedown', outsideClickListener);
+
+                    if (!cancelled && name) {
+                        if (isSub) {
+                            const container = btn.closest('.timeline-sidebar') || btn.closest('.data-grid-container');
+                            handleAddChild(btn, container, name);
+                        } else {
+                            handleCreateTix(isTimeline, name);
+                        }
+                    }
+                };
+
+                const outsideClickListener = (e) => {
+                    if (!form.contains(e.target) && e.target !== btn) {
+                        finish(true);
+                    }
+                };
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') finish();
+                    if (e.key === 'Escape') finish(true);
+                });
+
+                // 약간의 지연 후 이벤트 등록 (버튼 클릭 이벤트와 충돌 방지)
+                setTimeout(() => {
+                    document.addEventListener('mousedown', outsideClickListener);
+                }, 10);
             }
 
             // --- 2. 통합 이벤트 리스너 (위임) ---
@@ -1030,25 +1158,27 @@
                     return;
                 }
 
-                // 2. 하위 업무 추가 버튼
+                // 2. 하위 업무 추가 버튼 -> 즉시 생성 후 인라인 편집
                 const addBtn = e.target.closest('.add-child-btn');
                 if (addBtn) {
                     const container = addBtn.closest('.timeline-sidebar') || addBtn.closest('.data-grid-container');
-                    if (container) handleAddChild(addBtn, container);
+                    if (container) {
+                        handleAddChild(addBtn, container);
+                    }
                     return;
                 }
 
-                // 3. 메인 업무 추가 버튼 (Create Tix)
+                // 3. 메인 업무 추가 버튼 (Create Tix) -> 입력 모드로 전환
                 const gridCreateBtn = e.target.closest('#grid-create-btn');
                 const timelineCreateBtn = e.target.closest('#timeline-grid-create-btn');
 
                 if (gridCreateBtn) {
-                    handleCreateTix(false);
+                    switchToInput(gridCreateBtn, false, false);
                     return;
                 }
 
                 if (timelineCreateBtn) {
-                    handleCreateTix(true);
+                    switchToInput(timelineCreateBtn, true, false);
                     return;
                 }
             });
@@ -1371,8 +1501,8 @@
 
             // Tix 생성 로직 보완 (initSortable 호출 추가)
             const _originalHandleCreateTix = handleCreateTix;
-            handleCreateTix = function(isTimeline) {
-                _originalHandleCreateTix(isTimeline);
+            handleCreateTix = function(isTimeline, tixName) {
+                _originalHandleCreateTix(isTimeline, tixName);
                 initSortable(); // 새로 생성된 요소 드래그 가능하게 초기화
             };
 
