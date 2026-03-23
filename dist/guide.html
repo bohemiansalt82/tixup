@@ -470,119 +470,122 @@
             </div>
 
             <div class="timeline-grid-container">
-                <!-- Sidebar (Left side - Content from Data Grid) -->
-                <div class="timeline-sidebar">
-                    <div class="data-grid-row data-grid-header"
-                        style="position: sticky; top: 0; z-index: 40; background-color: var(--primitive-colors-base-white);">
-                        <div class="data-grid-cell center">
-                            <label class="checkbox-container"><input type="checkbox">
-                                <div class="checkbox-box"></div>
-                            </label>
-                        </div>
-                        <div class="data-grid-cell" style="padding: 10px;">
-                            <div class="grid-filter-tabs">
-                                <button class="grid-filter-tab active">All</button>
-                                <button class="grid-filter-tab">Done</button>
-                                <button class="grid-filter-tab">Overdue</button>
+                <!-- Main Content (Sidebar + Viewport) -->
+                <div class="timeline-grid-main" style="display: flex; flex: 1; min-height: 0; width: 100%; position: relative;">
+                    <!-- Sidebar (Left side) -->
+                    <div class="timeline-sidebar">
+                        <div class="data-grid-row data-grid-header"
+                            style="position: sticky; top: 0; z-index: 40; background-color: var(--primitive-colors-base-white);">
+                            <div class="data-grid-cell center">
+                                <label class="checkbox-container"><input type="checkbox">
+                                    <div class="checkbox-box"></div>
+                                </label>
                             </div>
+                            <div class="data-grid-cell" style="padding: 10px;">
+                                <div class="grid-filter-tabs">
+                                    <button class="grid-filter-tab active">All</button>
+                                    <button class="grid-filter-tab">Done</button>
+                                    <button class="grid-filter-tab">Overdue</button>
+                                </div>
+                            </div>
+                            <div class="data-grid-cell" style="padding: 10px; font-weight: 600;">Status</div>
                         </div>
-                        <div class="data-grid-cell" style="padding: 10px; font-weight: 600;">Status</div>
+                        <!-- ... Other sidebar content should go here and is unaffected ... -->
                     </div>
 
+                    <!-- Timeline View (Viewport) -->
+                    <div class="timeline-view-viewport">
+                        <div class="timeline-grid-content">
+                            <!-- Header -->
+                            <div class="timeline-header">
+                                <div class="timeline-month-nav">
+                                    <span style="font-weight: 600; font-size: 14px;">August 2024</span>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div class="timeline-filter-dropdown"
+                                            style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border: 1px solid var(--primitive-colors-gray-200); border-radius: 6px; cursor: pointer;">
+                                            <span style="font-size: 13px;">Month</span>
+                                            <div class="nav-icon icon-chevron-lg-bottom"></div>
+                                        </div>
+                                        <div style="display: flex; gap: 4px; margin-left: 8px;">
+                                            <div class="nav-icon icon-chevron-lg-left"></div>
+                                            <span style="font-size: 13px; font-weight: 500; padding: 0 4px;">Today</span>
+                                            <div class="nav-icon icon-chevron-lg-right"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="timeline-days-row">
+                                    <div class="timeline-day-cell">31</div>
+                                    <div class="timeline-day-cell">1</div>
+                                    <div class="timeline-day-cell">2</div>
+                                    <div class="timeline-day-cell">3</div>
+                                    <div class="timeline-day-cell">4</div>
+                                    <div class="timeline-day-cell">5</div>
+                                    <div class="timeline-day-cell today-marker">6</div>
+                                    <div class="timeline-day-cell">7</div>
+                                    <div class="timeline-day-cell">8</div>
+                                    <div class="timeline-day-cell">9</div>
+                                    <div class="timeline-day-cell">10</div>
+                                    <div class="timeline-day-cell">11</div>
+                                    <div class="timeline-day-cell">12</div>
+                                    <div class="timeline-day-cell">13</div>
+                                    <div class="timeline-day-cell weekend"
+                                        style="background: var(--primitive-colors-gray-100); color: var(--primitive-colors-red-500);">
+                                        14</div>
+                                    <div class="timeline-day-cell weekend"
+                                        style="background: var(--primitive-colors-gray-100); color: var(--primitive-colors-red-500);">
+                                        15</div>
+                                    <div class="timeline-day-cell">16</div>
+                                    <div class="timeline-day-cell">17</div>
+                                    <div class="timeline-day-cell">18</div>
+                                    <div class="timeline-day-cell">19</div>
+                                </div>
+                            </div>
 
-                    <!-- Sidebar Footer -->
-                    <div class="data-grid-row timeline-footer-sticky"
-                        style="border-top: none; height: 48px; position: sticky; bottom: 0; z-index: 40; background-color: var(--primitive-colors-base-white);">
-                        <div class="data-grid-cell" style="border: none; grid-column: 1 / -1; padding-left: 16px;">
-                            <button class="grid-create-btn" id="timeline-grid-create-btn">
-                                <div class="nav-icon icon-add"></div>
-                                <span class="data-grid-text" style="color: var(--primitive-colors-gray-900)">Create
-                                    Tix</span>
-                            </button>
+                            <!-- Body -->
+                            <div class="timeline-body">
+                                <div class="timeline-grid-lines">
+                                    <div class="timeline-grid-line"></div>
+                                    <div class="timeline-grid-line"></div>
+                                    <div class="timeline-grid-line"></div>
+                                    <div class="timeline-grid-line"></div>
+                                    <div class="timeline-grid-line"></div>
+                                    <div class="timeline-grid-line"></div>
+                                    <div class="timeline-grid-line" style="background-color: rgba(244, 67, 54, 0.05);">
+                                    </div>
+                                    <div class="timeline-grid-line"></div>
+                                    <div class="timeline-grid-line"></div>
+                                    <div class="timeline-grid-line"></div>
+                                    <div class="timeline-grid-line"></div>
+                                    <div class="timeline-grid-line"></div>
+                                    <div class="timeline-grid-line"></div>
+                                    <div class="timeline-grid-line"></div>
+                                    <div class="timeline-grid-line" style="background: var(--primitive-colors-gray-50);">
+                                    </div>
+                                    <div class="timeline-grid-line" style="background: var(--primitive-colors-gray-50);">
+                                    </div>
+                                    <div class="timeline-grid-line"></div>
+                                    <div class="timeline-grid-line"></div>
+                                    <div class="timeline-grid-line"></div>
+                                    <div class="timeline-grid-line"></div>
+                                </div>
+                                <div class="timeline-today-line" style="left: 312px;"></div>
+
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Timeline View (Viewport) -->
-                <div class="timeline-view-viewport">
-                    <div class="timeline-grid-content">
-                        <!-- Header -->
-                        <div class="timeline-header">
-                            <div class="timeline-month-nav">
-                                <span style="font-weight: 600; font-size: 14px;">August 2024</span>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <div class="timeline-filter-dropdown"
-                                        style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border: 1px solid var(--primitive-colors-gray-200); border-radius: 6px; cursor: pointer;">
-                                        <span style="font-size: 13px;">Month</span>
-                                        <div class="nav-icon icon-chevron-lg-bottom"></div>
-                                    </div>
-                                    <div style="display: flex; gap: 4px; margin-left: 8px;">
-                                        <div class="nav-icon icon-chevron-lg-left"></div>
-                                        <span style="font-size: 13px; font-weight: 500; padding: 0 4px;">Today</span>
-                                        <div class="nav-icon icon-chevron-lg-right"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="timeline-days-row">
-                                <div class="timeline-day-cell">31</div>
-                                <div class="timeline-day-cell">1</div>
-                                <div class="timeline-day-cell">2</div>
-                                <div class="timeline-day-cell">3</div>
-                                <div class="timeline-day-cell">4</div>
-                                <div class="timeline-day-cell">5</div>
-                                <div class="timeline-day-cell today-marker">6</div>
-                                <div class="timeline-day-cell">7</div>
-                                <div class="timeline-day-cell">8</div>
-                                <div class="timeline-day-cell">9</div>
-                                <div class="timeline-day-cell">10</div>
-                                <div class="timeline-day-cell">11</div>
-                                <div class="timeline-day-cell">12</div>
-                                <div class="timeline-day-cell">13</div>
-                                <div class="timeline-day-cell weekend"
-                                    style="background: var(--primitive-colors-gray-100); color: var(--primitive-colors-red-500);">
-                                    14</div>
-                                <div class="timeline-day-cell weekend"
-                                    style="background: var(--primitive-colors-gray-100); color: var(--primitive-colors-red-500);">
-                                    15</div>
-                                <div class="timeline-day-cell">16</div>
-                                <div class="timeline-day-cell">17</div>
-                                <div class="timeline-day-cell">18</div>
-                                <div class="timeline-day-cell">19</div>
-                            </div>
-                        </div>
-
-                        <!-- Body -->
-                        <div class="timeline-body">
-                            <div class="timeline-grid-lines">
-                                <div class="timeline-grid-line"></div>
-                                <div class="timeline-grid-line"></div>
-                                <div class="timeline-grid-line"></div>
-                                <div class="timeline-grid-line"></div>
-                                <div class="timeline-grid-line"></div>
-                                <div class="timeline-grid-line"></div>
-                                <div class="timeline-grid-line" style="background-color: rgba(244, 67, 54, 0.05);">
-                                </div>
-                                <div class="timeline-grid-line"></div>
-                                <div class="timeline-grid-line"></div>
-                                <div class="timeline-grid-line"></div>
-                                <div class="timeline-grid-line"></div>
-                                <div class="timeline-grid-line"></div>
-                                <div class="timeline-grid-line"></div>
-                                <div class="timeline-grid-line"></div>
-                                <div class="timeline-grid-line" style="background: var(--primitive-colors-gray-50);">
-                                </div>
-                                <div class="timeline-grid-line" style="background: var(--primitive-colors-gray-50);">
-                                </div>
-                                <div class="timeline-grid-line"></div>
-                                <div class="timeline-grid-line"></div>
-                                <div class="timeline-grid-line"></div>
-                                <div class="timeline-grid-line"></div>
-                            </div>
-                            <div class="timeline-today-line" style="left: 312px;"></div>
-
-                        </div>
+                <!-- Timeline Footer (Unified Row Like Data Grid) -->
+                <div class="timeline-footer-row">
+                    <div class="timeline-footer-cell">
+                        <button class="grid-create-btn" id="timeline-grid-create-btn">
+                            <div class="nav-icon icon-add"></div>
+                            <span class="data-grid-text">Create Tix</span>
+                        </button>
                     </div>
                 </div>
+            </div>
+
             </div>
         </section>
 
@@ -938,9 +941,11 @@
             // 메인 업무 추가
             function handleCreateTix(isTimeline) {
                 const container = isTimeline ? document.querySelector('.timeline-sidebar') : document.querySelector('.data-grid-container');
-                const footerRow = isTimeline ? container.querySelector('.data-grid-row:last-child') : document.getElementById('data-grid-footer-row');
+                
+                // 타겟 용 푸터 행 찾기 (타임라인은 푸터가 외부에 있으므로 null, 데이터 그리드는 내부 푸터 행을 찾음)
+                const footerRow = isTimeline ? null : document.getElementById('data-grid-footer-row');
 
-                if (!container || !footerRow) return;
+                if (!container) return;
 
                 const groupId = 'group-' + Date.now();
                 const newRow = document.createElement('div');
@@ -988,7 +993,12 @@
                     `;
                 }
 
-                container.insertBefore(newRow, footerRow);
+                // 삽입 위치 결정: 푸터가 있으면 푸터 앞에, 없으면 컨테이너 맨 뒤에
+                if (footerRow) {
+                    container.insertBefore(newRow, footerRow);
+                } else {
+                    container.appendChild(newRow);
+                }
 
                 if (isTimeline) {
                     const timelineBody = document.querySelector('.timeline-body');
@@ -1273,28 +1283,81 @@
                             });
 
                             if (drop && drop.element !== item) {
-                                const parentGroup = item.getAttribute('data-group');
                                 const isParent = item.getAttribute('data-type') === 'parent';
-                                
-                                // 이동 기준점 설정
-                                let insertionPoint = drop.type === 'before' ? drop.element : drop.element.nextSibling;
+                                const itemGroup = item.getAttribute('data-group');
+                                const container = item.parentNode;
 
-                                if (isParent) {
-                                    // 1. 부모 행 이동
-                                    item.parentNode.insertBefore(item, insertionPoint);
+                                if (drop.type === 'nest') {
+                                    // 1. 네스팅 (새로운 부모에게 편입)
+                                    const newParent = drop.element;
+                                    const newParentId = newParent.getAttribute('data-group');
+                                    const oldParentId = item.getAttribute('data-parent');
                                     
-                                    // 2. 부모에 속한 자식 행들 모두 찾아 같이 이동 (이동한 부모 바로 뒤로)
-                                    const container = item.parentNode;
-                                    const children = Array.from(container.querySelectorAll(`.grid-child-row[data-parent="${parentGroup}"]`));
+                                    if (item.getAttribute('data-type') === 'child') {
+                                        item.setAttribute('data-parent', newParentId);
+                                        // 부모 바로 뒤에 삽입
+                                        container.insertBefore(item, newParent.nextSibling);
+
+                                        // 새로운 부모의 expander 업데이트 (화살표 생성)
+                                        const expander = newParent.querySelector('.tree-expander');
+                                        if (expander && expander.classList.contains('empty')) {
+                                            expander.classList.remove('empty');
+                                            expander.classList.remove('collapsed');
+                                            expander.classList.add('expanded');
+                                            expander.style.opacity = '1';
+                                            expander.style.pointerEvents = 'auto';
+                                        }
+                                        
+                                        // (선택사항) 이전 부모가 비었는지 체크하여 empty 처리
+                                        if (oldParentId) {
+                                            const remaining = container.querySelectorAll(`.grid-child-row[data-parent="${oldParentId}"]`);
+                                            if (remaining.length === 0) {
+                                                const oldParent = container.querySelector(`.data-grid-row[data-group="${oldParentId}"]`);
+                                                const oldExpander = oldParent?.querySelector('.tree-expander');
+                                                if (oldExpander) {
+                                                    oldExpander.classList.add('empty');
+                                                    oldExpander.style.opacity = '0';
+                                                    oldExpander.style.pointerEvents = 'none';
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else if (drop.type === 'before') {
+                                    // 2. 다른 행 사이로 이동
+                                    let insertionPoint = drop.element;
+                                    const oldParentId = item.getAttribute('data-parent');
                                     
-                                    let currentAfter = item.nextSibling;
-                                    children.forEach(child => {
-                                        container.insertBefore(child, currentAfter);
-                                        currentAfter = child.nextSibling;
-                                    });
-                                } else {
-                                    // 자식 행 이동 (단일 이동)
-                                    item.parentNode.insertBefore(item, insertionPoint);
+                                    container.insertBefore(item, insertionPoint);
+
+                                    if (isParent) {
+                                        // 부모 이동 시 자식들도 함께 이동
+                                        const children = Array.from(container.querySelectorAll(`.grid-child-row[data-parent="${itemGroup}"]`));
+                                        let currentAfter = item.nextSibling;
+                                        children.forEach(child => {
+                                            container.insertBefore(child, currentAfter);
+                                            currentAfter = child.nextSibling;
+                                        });
+                                    } else {
+                                        // 자식이 다른 자식 사이로 이동한 경우, 타겟 자식의 부모를 따라감
+                                        const targetParent = drop.element.getAttribute('data-parent');
+                                        if (targetParent) {
+                                            item.setAttribute('data-parent', targetParent);
+                                        }
+                                        
+                                        // 이전 부모 비었는지 확인
+                                        if (oldParentId) {
+                                            const remaining = container.querySelectorAll(`.grid-child-row[data-parent="${oldParentId}"]`);
+                                            if (remaining.length === 0) {
+                                                const oldParent = container.querySelector(`.data-grid-row[data-group="${oldParentId}"]`);
+                                                const oldExpander = oldParent?.querySelector('.tree-expander');
+                                                if (oldExpander) {
+                                                    oldExpander.classList.add('empty');
+                                                    oldExpander.style.opacity = '0';
+                                                    oldExpander.style.pointerEvents = 'none';
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
 
