@@ -471,7 +471,8 @@
 
             <div class="timeline-grid-container">
                 <!-- Main Content (Sidebar + Viewport) -->
-                <div class="timeline-grid-main" style="display: flex; flex: 1; min-height: 0; width: 100%; position: relative;">
+                <div class="timeline-grid-main"
+                    style="display: flex; flex: 1; min-height: 0; width: 100%; position: relative;">
                     <!-- Sidebar (Left side) -->
                     <div class="timeline-sidebar">
                         <div class="data-grid-row data-grid-header"
@@ -508,7 +509,8 @@
                                         </div>
                                         <div style="display: flex; gap: 4px; margin-left: 8px;">
                                             <div class="nav-icon icon-chevron-lg-left"></div>
-                                            <span style="font-size: 13px; font-weight: 500; padding: 0 4px;">Today</span>
+                                            <span
+                                                style="font-size: 13px; font-weight: 500; padding: 0 4px;">Today</span>
                                             <div class="nav-icon icon-chevron-lg-right"></div>
                                         </div>
                                     </div>
@@ -559,9 +561,11 @@
                                     <div class="timeline-grid-line"></div>
                                     <div class="timeline-grid-line"></div>
                                     <div class="timeline-grid-line"></div>
-                                    <div class="timeline-grid-line" style="background: var(--primitive-colors-gray-50);">
+                                    <div class="timeline-grid-line"
+                                        style="background: var(--primitive-colors-gray-50);">
                                     </div>
-                                    <div class="timeline-grid-line" style="background: var(--primitive-colors-gray-50);">
+                                    <div class="timeline-grid-line"
+                                        style="background: var(--primitive-colors-gray-50);">
                                     </div>
                                     <div class="timeline-grid-line"></div>
                                     <div class="timeline-grid-line"></div>
@@ -926,7 +930,7 @@
 
                         const lastInsertId = lastInsertPoint.getAttribute('data-group');
                         const targetViewportRow = timelineBody.querySelector(`[data-group="${lastInsertId}"]`);
-                        
+
                         if (targetViewportRow) {
                             targetViewportRow.insertAdjacentElement('afterend', newTimeRow);
                         } else {
@@ -960,7 +964,7 @@
                 input.style.outline = 'none';
                 input.style.background = 'transparent';
                 input.style.padding = '0';
-                
+
                 textSpan.parentNode.insertBefore(input, textSpan.nextSibling);
                 input.focus();
 
@@ -979,7 +983,7 @@
                         row.remove();
                         const viewportRow = document.querySelector(`.timeline-body [data-group="${id}"]`);
                         if (viewportRow) viewportRow.remove();
-                        
+
                         // 부모가 다시 비었는지 체크하여 empty 처리 (로직 생략 가능하지만 UI 위해 권장)
                     } else {
                         textSpan.innerText = newName;
@@ -1007,7 +1011,7 @@
             // 메인 업무 추가
             function handleCreateTix(isTimeline, tixName = "New Tix") {
                 const container = isTimeline ? document.querySelector('.timeline-sidebar') : document.querySelector('.data-grid-container');
-                
+
                 // 타겟 용 푸터 행 찾기 (타임라인은 푸터가 외부에 있으므로 null, 데이터 그리드는 내부 푸터 행을 찾음)
                 const footerRow = isTimeline ? null : document.getElementById('data-grid-footer-row');
 
@@ -1100,7 +1104,7 @@
                     form.style.marginLeft = '8px';
                     form.style.flex = '1';
                 }
-                
+
                 form.innerHTML = `
                     <div class="nav-icon icon-add"></div>
                     <input type="text" class="grid-create-input" placeholder="${isSub ? 'Sub Tix name...' : 'Tix name...'}" spellcheck="false">
@@ -1324,7 +1328,7 @@
 
             function initSortable() {
                 const containers = document.querySelectorAll('.data-grid-container, .timeline-sidebar');
-                
+
                 // 가이드 라인 요소가 없으면 생성
                 if (!_indicatorLine) {
                     _indicatorLine = document.createElement('div');
@@ -1334,7 +1338,7 @@
 
                 containers.forEach(container => {
                     if (container._sortable) container._sortable.destroy();
-                    
+
                     container._sortable = new Sortable(container, {
                         sort: true,
                         animation: 0,
@@ -1348,14 +1352,14 @@
                         fallbackOnBody: true,
                         forceFallback: true,
 
-                        onStart: function(evt) {
+                        onStart: function (evt) {
                             window.lastDropTarget = null;
                             _indicatorLine.style.display = 'none';
                         },
 
                         onMove: function (evt) {
-                            const dragEl = evt.dragged;    
-                            const targetEl = evt.related;  
+                            const dragEl = evt.dragged;
+                            const targetEl = evt.related;
 
                             // 이전 네스팅 효과 제거
                             document.querySelectorAll('.drop-indicator-nest-active').forEach(el => {
@@ -1387,13 +1391,19 @@
                                         return false;
                                     }
                                 } else {
-                                    // 상위 업무 드래그 중 -> 모든 행 '사이'로만 이동 가능
-                                    const rect = targetEl.getBoundingClientRect();
-                                    _indicatorLine.style.display = 'block';
-                                    _indicatorLine.style.top = `${window.scrollY + rect.top}px`;
-                                    _indicatorLine.style.left = `${rect.left}px`;
-                                    _indicatorLine.style.width = `${rect.width}px`;
-                                    window.lastDropTarget = { element: targetEl, type: 'before' };
+                                    // 상위 업무 드래그 중 -> 다른 상위 업무 '사이'로만 이동 가능 (하위 업무 사이로는 이동 불가)
+                                    if (targetType === 'parent') {
+                                        const rect = targetEl.getBoundingClientRect();
+                                        _indicatorLine.style.display = 'block';
+                                        _indicatorLine.style.top = `${window.scrollY + rect.top}px`;
+                                        _indicatorLine.style.left = `${rect.left}px`;
+                                        _indicatorLine.style.width = `${rect.width}px`;
+                                        window.lastDropTarget = { element: targetEl, type: 'before' };
+                                    } else {
+                                        _indicatorLine.style.display = 'none';
+                                        window.lastDropTarget = null;
+                                        return false; // 이동 불가
+                                    }
                                 }
                             } else {
                                 _indicatorLine.style.display = 'none';
@@ -1422,7 +1432,7 @@
                                     const newParent = drop.element;
                                     const newParentId = newParent.getAttribute('data-group');
                                     const oldParentId = item.getAttribute('data-parent');
-                                    
+
                                     if (item.getAttribute('data-type') === 'child') {
                                         item.setAttribute('data-parent', newParentId);
                                         // 부모 바로 뒤에 삽입
@@ -1437,7 +1447,7 @@
                                             expander.style.opacity = '1';
                                             expander.style.pointerEvents = 'auto';
                                         }
-                                        
+
                                         // (선택사항) 이전 부모가 비었는지 체크하여 empty 처리
                                         if (oldParentId) {
                                             const remaining = container.querySelectorAll(`.grid-child-row[data-parent="${oldParentId}"]`);
@@ -1456,7 +1466,7 @@
                                     // 2. 다른 행 사이로 이동
                                     let insertionPoint = drop.element;
                                     const oldParentId = item.getAttribute('data-parent');
-                                    
+
                                     container.insertBefore(item, insertionPoint);
 
                                     if (isParent) {
@@ -1473,7 +1483,7 @@
                                         if (targetParent) {
                                             item.setAttribute('data-parent', targetParent);
                                         }
-                                        
+
                                         // 이전 부모 비었는지 확인
                                         if (oldParentId) {
                                             const remaining = container.querySelectorAll(`.grid-child-row[data-parent="${oldParentId}"]`);
@@ -1501,7 +1511,7 @@
 
             // Tix 생성 로직 보완 (initSortable 호출 추가)
             const _originalHandleCreateTix = handleCreateTix;
-            handleCreateTix = function(isTimeline, tixName) {
+            handleCreateTix = function (isTimeline, tixName) {
                 _originalHandleCreateTix(isTimeline, tixName);
                 initSortable(); // 새로 생성된 요소 드래그 가능하게 초기화
             };
@@ -1510,7 +1520,7 @@
             // 타임라인 본문 영역 순서를 사이드바와 동기화
             function syncTimelineOrder(sidebarContainer) {
                 if (!sidebarContainer.classList.contains('timeline-sidebar')) return;
-                
+
                 const timelineBody = document.querySelector('.timeline-body');
                 if (!timelineBody) return;
 
@@ -1519,7 +1529,7 @@
                 rows.forEach(sidebarRow => {
                     const groupId = sidebarRow.getAttribute('data-group');
                     if (!groupId) return;
-                    
+
                     const viewportRow = timelineBody.querySelector(`[data-group="${groupId}"]`);
                     if (viewportRow) {
                         timelineBody.appendChild(viewportRow); // 순서대로 다시 append하여 정렬
