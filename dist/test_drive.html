@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tixup - Data Test Drive (Final Master Pro)</title>
+    <link rel="stylesheet" href="assets/css/tokens.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <!-- Styles are now managed in assets/css/components.css -->
+</head>
+
+<body>
+    <nav class="nav-sidebar">
+        <header class="nav-header">
+            <div class="nav-logo-container"><img src="assets/images/icons/tixup_logo.svg" alt="Tixup" class="nav-logo">
+            </div>
+        </header>
+        <div class="nav-section">
+            <div class="nav-section-title-wrapper">
+                <div class="nav-section-title-label">Space</div>
+            </div>
+            <div class="nav-item active">
+                <div class="nav-item-content">
+                    <div class="nav-icon icon-work"></div>
+                    <div class="nav-item-label">Data Test Drive</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="guide-main">
+        <header class="tix-sticky-header">
+            <div class="header-left">
+                <div class="location-title">Development Lab</div>
+                <div class="header-action-group">
+                    <button class="icon-tool-btn selected"><i class="icon icon-list"></i></button>
+                    <button class="icon-tool-btn"><i class="icon icon-clock"></i></button>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="btn-primary-tix" id="top-tix-btn"><i class="icon icon-tix"
+                        style="background-color: white;"></i> Tix</button>
+            </div>
+        </header>
+
+        <section class="timeline-grid-container" id="data-grid-timeline">
+            <div class="timeline-grid-main">
+                <div class="timeline-sidebar" id="sidebar-container">
+                    <div class="data-grid-row data-grid-header">
+                        <div class="data-grid-cell center"><label class="checkbox-container"><input type="checkbox">
+                                <div class="checkbox-box"></div>
+                            </label></div>
+                        <div class="data-grid-cell" style="padding: 10px;">
+                            <div class="grid-filter-tabs">
+                                <button class="grid-filter-tab active">All</button>
+                                <button class="grid-filter-tab">Done</button>
+                                <button class="grid-filter-tab">Overdue</button>
+                            </div>
+                        </div>
+                        <div class="data-grid-cell" style="padding: 10px; font-weight: 600;">Status</div>
+                    </div>
+                    <div id="grid-tbody"></div>
+                </div>
+                <div class="timeline-view-viewport" id="viewport-container">
+                    <div class="timeline-grid-content" style="width: 2500px;">
+                        <div class="timeline-header">
+                            <div class="timeline-month-nav">August 2024</div>
+                            <div class="timeline-days-row">
+                                <script>for (let i = 1; i <= 31; i++) document.write(`<div class="timeline-day-cell ${i === 20 ? 'today-marker' : ''}">${i}</div>`);</script>
+                            </div>
+                        </div>
+                        <div class="timeline-body">
+                            <div class="timeline-grid-lines">
+                                <script>for (let i = 0; i < 31; i++) document.write(`<div class="timeline-grid-line"></div>`);</script>
+                            </div>
+                            <div class="timeline-today-line" style="left: 912px;"></div>
+                            <div id="timeline-tbody"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="timeline-footer-row">
+                <div class="timeline-footer-cell">
+                    <button class="grid-create-btn" id="footer-create-btn">
+                        <div class="nav-icon icon-add"></div><span class="data-grid-text">Create Tix</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 우클릭 컨텍스트 메뉴 -->
+    <div id="context-menu">
+        <div class="context-menu-item" id="delete-tix">
+            <span class="material-icons-outlined" style="font-size:16px;">delete</span>
+            Delete Task
+        </div>
+    </div>
+
+    <script src="assets/js/tixup-common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const STORAGE_KEY = 'tixup_master_pro_data';
+            let tasks = [];
+            let currentContextMenuId = null;
+
+            // 1. 초기 로드
+            function init() {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                tasks = saved ? JSON.parse(saved) : [
+                    { id: 't1', title: '설계 완벽 복원', status: 'done', type: 'parent', start: 432, width: 240 },
+                    { id: 't2', title: '자식 이슈 생성 테스트', status: 'inprogress', type: 'child', parentId: 't1', start: 672, width: 144 }
+                ];
+                renderAll();
+                // tixupCore.init() is called by its own DOMContentLoaded listener
+            }
+
+            function renderAll() {
+                const gB = document.getElementById('grid-tbody');
+                const tB = document.getElementById('timeline-tbody');
+                gB.innerHTML = ''; tB.innerHTML = '';
+
+                // 부모 먼저 렌더링 후 자식 찾아서 뒤에 붙이기
+                tasks.filter(t => t.type === 'parent').forEach(t => renderTask(t));
+                tasks.filter(t => t.type === 'child').forEach(t => renderTask(t));
+            }
+
+            function renderTask(task) {
+                const gB = document.getElementById('grid-tbody');
+                const tB = document.getElementById('timeline-tbody');
+
+                const gRow = document.createElement('div');
+                gRow.className = `data-grid-row ${task.type === 'child' ? 'grid-child-row' : 'level-0'}`;
+                gRow.setAttribute('data-group', task.id);
+                gRow.setAttribute('data-type', task.type);
+                if (task.parentId) gRow.setAttribute('data-parent', task.parentId);
+
+                // 상위 업무에 자식이 있는지 확인
+                const hasChildren = tasks.some(t => t.parentId === task.id);
+                const expanderHtml = task.type === 'parent'
+                    ? `<button class="tree-expander expanded ${hasChildren ? '' : 'empty'}"><div class="nav-icon icon-chevron-lg-bottom"></div></button>`
+                    : '';
+
+                const iconHtml = task.type === 'parent'
+                    ? `${expanderHtml}<div class="nav-icon icon-tix"></div>`
+                    : '<div class="nav-icon icon-stat"></div>';
+
+                gRow.innerHTML = `
+                    <div class="data-grid-cell center"><label class="checkbox-container"><input type="checkbox"><div class="checkbox-box"></div></label></div>
+                    <div class="data-grid-cell">
+                        <div class="row-title-container ${task.type === 'child' ? 'depth-2' : ''}">
+                            ${iconHtml}
+                            <span class="data-grid-text">${task.title}</span>
+                            ${task.type === 'parent' ? '<button class="add-child-btn"><div class="nav-icon icon-add"></div></button>' : ''}
+                        </div>
+                    </div>
+                    <div class="data-grid-cell"><div class="marker marker-has-icon marker-${task.status}">${task.status}</div></div>
+                `;
+
+                const tRow = document.createElement('div');
+                tRow.className = `timeline-row ${task.type === 'child' ? 'grid-child-row' : ''}`;
+                tRow.setAttribute('data-group', task.id);
+                if (task.parentId) tRow.setAttribute('data-parent', task.parentId);
+                tRow.innerHTML = `<div class="timeline-bar timeline-bar-${task.status}" style="left: ${task.start}px; width: ${task.width}px;">${task.title}</div>`;
+
+                // 삽입 위치 (부모 밑 혹은 컨테이너 끝)
+                if (task.type === 'child' && task.parentId) {
+                    const children = Array.from(gB.querySelectorAll(`[data-parent="${task.parentId}"]`));
+                    const targetInsert = children.length > 0 ? children[children.length - 1] : gB.querySelector(`[data-group="${task.parentId}"]`);
+                    if (targetInsert) {
+                        targetInsert.insertAdjacentElement('afterend', gRow);
+                        const ptRow = tB.querySelector(`[data-group="${targetInsert.getAttribute('data-group')}"]`);
+                        ptRow.insertAdjacentElement('afterend', tRow);
+                    } else {
+                        gB.appendChild(gRow); tB.appendChild(tRow);
+                    }
+                } else {
+                    gB.appendChild(gRow);
+                    tB.appendChild(tRow);
+                }
+
+                // 딜리트를 위한 우클릭 감지
+                gRow.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    showContextMenu(e.pageX, e.pageY, gRow.getAttribute('data-group'));
+                };
+            }
+
+            function handleAddChild(pRow) {
+                const pId = pRow.getAttribute('data-group');
+                const cId = 'live-' + Date.now();
+                
+                // 임시로 DOM에 추가 (인라인 편집용)
+                const gRow = document.createElement('div');
+                gRow.className = 'data-grid-row grid-child-row';
+                gRow.setAttribute('data-parent', pId);
+                gRow.setAttribute('data-group', cId);
+                gRow.setAttribute('data-type', 'child');
+                gRow.innerHTML = `
+                    <div class="data-grid-cell center">
+                        <label class="checkbox-container"><input type="checkbox"><div class="checkbox-box"></div></label>
+                    </div>
+                    <div class="data-grid-cell">
+                        <div class="row-title-container depth-2">
+                            <div class="nav-icon icon-stat"></div>
+                            <span class="data-grid-text"></span>
+                        </div>
+                    </div>
+                    <div class="data-grid-cell"><div class="marker marker-has-icon marker-pending">pending</div></div>
+                `;
+
+                const tRow = document.createElement('div');
+                tRow.className = 'timeline-row grid-child-row';
+                tRow.setAttribute('data-group', cId);
+                tRow.setAttribute('data-parent', pId);
+                tRow.innerHTML = `<div class="timeline-bar timeline-bar-pending" style="left: 912px; width: 96px;"></div>`;
+
+                const children = document.querySelectorAll(`#grid-tbody [data-parent="${pId}"]`);
+                const targetRef = children.length > 0 ? children[children.length - 1] : pRow;
+                targetRef.insertAdjacentElement('afterend', gRow);
+                const ptRef = document.querySelector(`#timeline-tbody [data-group="${targetRef.getAttribute('data-group')}"]`);
+                ptRef.insertAdjacentElement('afterend', tRow);
+
+                inlineEditRow(gRow, tRow, true);
+                
+                // 부모 화살표 업데이트
+                const exp = pRow.querySelector('.tree-expander');
+                if (exp && exp.classList.contains('empty')) {
+                    exp.classList.remove('empty');
+                }
+            }
+
+            function inlineEditRow(row, tRow, isNew = false) {
+                const textSpan = row.querySelector('.data-grid-text');
+                const tBar = tRow.querySelector('.timeline-bar');
+                textSpan.style.display = 'none';
+
+                const input = document.createElement('input');
+                input.className = 'grid-create-input';
+                input.value = textSpan.innerText;
+                textSpan.parentNode.insertBefore(input, textSpan.nextSibling);
+                input.focus();
+
+                const finish = (cancel = false) => {
+                    const name = input.value.trim();
+                    if (cancel || !name) {
+                        if (isNew) { row.remove(); tRow.remove(); }
+                        else { textSpan.style.display = 'inline'; input.remove(); }
+                    } else {
+                        textSpan.innerText = name;
+                        textSpan.style.display = 'inline';
+                        tBar.innerText = name;
+                        input.remove();
+                        saveData();
+                    }
+                };
+                input.onkeydown = (e) => { if (e.key === 'Enter') finish(); if (e.key === 'Escape') finish(true); };
+                input.onblur = () => finish();
+            }
+
+            // --- 우클릭 메뉴 처리 ---
+            const contextMenu = document.getElementById('context-menu');
+            function showContextMenu(x, y, id) {
+                currentContextMenuId = id;
+                contextMenu.style.display = 'block';
+                contextMenu.style.left = x + 'px';
+                contextMenu.style.top = y + 'px';
+            }
+
+            document.addEventListener('click', () => contextMenu.style.display = 'none');
+            document.getElementById('delete-tix').onclick = () => {
+                const id = currentContextMenuId;
+                if (!id) return;
+                // 자식들도 함께 삭제
+                document.querySelectorAll(`[data-parent="${id}"]`).forEach(el => {
+                    const cid = el.getAttribute('data-group');
+                    document.querySelectorAll(`[data-group="${cid}"]`).forEach(v => v.remove());
+                });
+                document.querySelectorAll(`[data-group="${id}"]`).forEach(v => v.remove());
+                saveData();
+                contextMenu.style.display = 'none';
+            };
+
+            // 커스텀 이벤트 리스너: 공통 컴포넌트에서 데이터 변경 시 호출
+            document.addEventListener('tixup:data-changed', () => {
+                saveData();
+            });
+
+            document.addEventListener('click', (e) => {
+                const addBtn = e.target.closest('.add-child-btn');
+                if (addBtn) { handleAddChild(addBtn.closest('.data-grid-row')); return; }
+                
+                const footerBtn = e.target.closest('#footer-create-btn') || e.target.closest('#top-tix-btn');
+                if (footerBtn) { handleCreateTix(document.getElementById('footer-create-btn')); }
+            });
+
+            function handleCreateTix(btn) {
+                btn.style.setProperty('display', 'none', 'important');
+                const form = document.createElement('div');
+                form.className = 'grid-create-input-form';
+                form.innerHTML = `<div class="nav-icon icon-add"></div><input type="text" class="grid-create-input" placeholder="Tix name...">`;
+                btn.parentElement.appendChild(form);
+                const input = form.querySelector('input'); input.focus();
+                const finish = () => {
+                    const name = input.value.trim();
+                    form.remove(); btn.style.display = 'flex';
+                    if (name) {
+                        const task = { id: 'live-' + Date.now(), title: name, status: 'pending', type: 'parent', start: 912, width: 96 };
+                        renderTask(task); 
+                        saveData();
+                    }
+                };
+                input.onkeydown = (e) => { if (e.key === 'Enter') finish(); if (e.key === 'Escape') finish(); };
+                input.onblur = finish;
+            }
+
+            function saveData() {
+                const res = [];
+                // DOM 순서대로 데이터 구성
+                document.querySelectorAll('#grid-tbody .data-grid-row').forEach(row => {
+                    const id = row.getAttribute('data-group');
+                    const bar = document.querySelector(`#timeline-tbody [data-group="${id}"] .timeline-bar`);
+                    if (!bar) return; 
+                    res.push({
+                        id, title: row.querySelector('.data-grid-text').innerText,
+                        status: row.querySelector('.marker')?.classList[2]?.replace('marker-', '') || 'pending',
+                        type: row.getAttribute('data-type'),
+                        parentId: row.getAttribute('data-parent'),
+                        start: parseInt(bar.style.left),
+                        width: parseInt(bar.style.width)
+                    });
+                });
+                tasks = res;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(res));
+            }
+
+            init();
+        });
+    </script>
+</body>
+
+</html>

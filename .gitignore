@@ -8,3 +8,8 @@ node_modules
 *.jpg
 *.jpeg
 *.gif
+
+# Build artifacts
+target/
+src-tauri/target/
+test_rust_proj/target/
