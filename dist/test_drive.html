@@ -95,10 +95,29 @@
     </main>
 
     <!-- 우클릭 컨텍스트 메뉴 -->
-    <div id="context-menu">
+    <div id="context-menu" class="context-menu-container">
         <div class="context-menu-item" id="delete-tix">
             <span class="material-icons-outlined" style="font-size:16px;">delete</span>
             Delete Task
+        </div>
+    </div>
+
+    <!-- 상태 선택 드롭다운 메뉴 -->
+    <div id="status-menu" class="context-menu-container">
+        <div class="status-menu-item" data-status="pending">
+            <div class="marker marker-has-icon marker-pending">Pending</div>
+        </div>
+        <div class="status-menu-item" data-status="inprogress">
+            <div class="marker marker-has-icon marker-inprogress">in Progress</div>
+        </div>
+        <div class="status-menu-item" data-status="pause">
+            <div class="marker marker-has-icon marker-pause">Pause</div>
+        </div>
+        <div class="status-menu-item" data-status="done">
+            <div class="marker marker-has-icon marker-done">Done</div>
+        </div>
+        <div class="status-menu-item" data-status="overdue">
+            <div class="marker marker-has-icon marker-overdue">Overdue</div>
         </div>
     </div>
 
@@ -112,10 +131,7 @@
             // 1. 초기 로드
             function init() {
                 const saved = localStorage.getItem(STORAGE_KEY);
-                tasks = saved ? JSON.parse(saved) : [
-                    { id: 't1', title: '설계 완벽 복원', status: 'done', type: 'parent', start: 432, width: 240 },
-                    { id: 't2', title: '자식 이슈 생성 테스트', status: 'inprogress', type: 'child', parentId: 't1', start: 672, width: 144 }
-                ];
+                tasks = saved ? JSON.parse(saved) : [];
                 renderAll();
                 // tixupCore.init() is called by its own DOMContentLoaded listener
             }
@@ -141,6 +157,7 @@
                 if (task.parentId) gRow.setAttribute('data-parent', task.parentId);
 
                 // 상위 업무에 자식이 있는지 확인
+                const status = (task.status || 'pending').toLowerCase().replace('onhold', 'pause');
                 const hasChildren = tasks.some(t => t.parentId === task.id);
                 const expanderHtml = task.type === 'parent'
                     ? `<button class="tree-expander expanded ${hasChildren ? '' : 'empty'}"><div class="nav-icon icon-chevron-lg-bottom"></div></button>`
@@ -159,14 +176,18 @@
                             ${task.type === 'parent' ? '<button class="add-child-btn"><div class="nav-icon icon-add"></div></button>' : ''}
                         </div>
                     </div>
-                    <div class="data-grid-cell"><div class="marker marker-has-icon marker-${task.status}">${task.status}</div></div>
+                    <div class="data-grid-cell">
+                        <div class="marker marker-has-icon marker-${status}">
+                            ${status === 'inprogress' ? 'In Progress' : status.charAt(0).toUpperCase() + status.slice(1)}
+                        </div>
+                    </div>
                 `;
 
                 const tRow = document.createElement('div');
                 tRow.className = `timeline-row ${task.type === 'child' ? 'grid-child-row' : ''}`;
                 tRow.setAttribute('data-group', task.id);
                 if (task.parentId) tRow.setAttribute('data-parent', task.parentId);
-                tRow.innerHTML = `<div class="timeline-bar timeline-bar-${task.status}" style="left: ${task.start}px; width: ${task.width}px;">${task.title}</div>`;
+                tRow.innerHTML = `<div class="timeline-bar timeline-bar-${status}" style="left: ${task.start}px; width: ${task.width}px;"><span class="timeline-bar-label">${task.title}</span></div>`;
 
                 // 삽입 위치 (부모 밑 혹은 컨테이너 끝)
                 if (task.type === 'child' && task.parentId) {
@@ -175,7 +196,11 @@
                     if (targetInsert) {
                         targetInsert.insertAdjacentElement('afterend', gRow);
                         const ptRow = tB.querySelector(`[data-group="${targetInsert.getAttribute('data-group')}"]`);
-                        ptRow.insertAdjacentElement('afterend', tRow);
+                        if (ptRow) {
+                            ptRow.insertAdjacentElement('afterend', tRow);
+                        } else {
+                            tB.appendChild(tRow);
+                        }
                     } else {
                         gB.appendChild(gRow); tB.appendChild(tRow);
                     }
@@ -194,7 +219,7 @@
             function handleAddChild(pRow) {
                 const pId = pRow.getAttribute('data-group');
                 const cId = 'live-' + Date.now();
-                
+
                 // 임시로 DOM에 추가 (인라인 편집용)
                 const gRow = document.createElement('div');
                 gRow.className = 'data-grid-row grid-child-row';
@@ -218,16 +243,34 @@
                 tRow.className = 'timeline-row grid-child-row';
                 tRow.setAttribute('data-group', cId);
                 tRow.setAttribute('data-parent', pId);
-                tRow.innerHTML = `<div class="timeline-bar timeline-bar-pending" style="left: 912px; width: 96px;"></div>`;
+                tRow.innerHTML = `<div class="timeline-bar timeline-bar-pending" style="left: 912px; width: 96px;"><span class="timeline-bar-label"></span></div>`;
+
+                const gB = document.getElementById('grid-tbody');
+                const tB = document.getElementById('timeline-tbody');
 
                 const children = document.querySelectorAll(`#grid-tbody [data-parent="${pId}"]`);
                 const targetRef = children.length > 0 ? children[children.length - 1] : pRow;
-                targetRef.insertAdjacentElement('afterend', gRow);
-                const ptRef = document.querySelector(`#timeline-tbody [data-group="${targetRef.getAttribute('data-group')}"]`);
-                ptRef.insertAdjacentElement('afterend', tRow);
+
+                if (targetRef) {
+                    targetRef.insertAdjacentElement('afterend', gRow);
+                    const ptRef = document.querySelector(`#timeline-tbody [data-group="${targetRef.getAttribute('data-group')}"]`);
+                    if (ptRef) {
+                        ptRef.insertAdjacentElement('afterend', tRow);
+                    } else {
+                        tB.appendChild(tRow);
+                    }
+                } else {
+                    gB.appendChild(gRow);
+                    tB.appendChild(tRow);
+                }
+
+                // 위치 즉시 동기화
+                if (window.tixupCore) {
+                    window.tixupCore.syncTimelineOrder();
+                }
 
                 inlineEditRow(gRow, tRow, true);
-                
+
                 // 부모 화살표 업데이트
                 const exp = pRow.querySelector('.tree-expander');
                 if (exp && exp.classList.contains('empty')) {
@@ -237,24 +280,30 @@
 
             function inlineEditRow(row, tRow, isNew = false) {
                 const textSpan = row.querySelector('.data-grid-text');
-                const tBar = tRow.querySelector('.timeline-bar');
+                const tBarLabel = tRow ? tRow.querySelector('.timeline-bar-label') : null;
+                if (!textSpan) {
+                    console.error('textSpan not found in row', row);
+                    return;
+                }
+
                 textSpan.style.display = 'none';
 
                 const input = document.createElement('input');
                 input.className = 'grid-create-input';
                 input.value = textSpan.innerText;
+                if (isNew) input.placeholder = 'sub tix';
                 textSpan.parentNode.insertBefore(input, textSpan.nextSibling);
                 input.focus();
 
                 const finish = (cancel = false) => {
                     const name = input.value.trim();
                     if (cancel || !name) {
-                        if (isNew) { row.remove(); tRow.remove(); }
+                        if (isNew) { row.remove(); tRow && tRow.remove(); }
                         else { textSpan.style.display = 'inline'; input.remove(); }
                     } else {
                         textSpan.innerText = name;
                         textSpan.style.display = 'inline';
-                        tBar.innerText = name;
+                        if (tBarLabel) tBarLabel.innerText = name;
                         input.remove();
                         saveData();
                     }
@@ -265,26 +314,62 @@
 
             // --- 우클릭 메뉴 처리 ---
             const contextMenu = document.getElementById('context-menu');
+            const statusMenu = document.getElementById('status-menu');
+
             function showContextMenu(x, y, id) {
                 currentContextMenuId = id;
                 contextMenu.style.display = 'block';
                 contextMenu.style.left = x + 'px';
                 contextMenu.style.top = y + 'px';
+                statusMenu.style.display = 'none';
             }
 
-            document.addEventListener('click', () => contextMenu.style.display = 'none');
+            document.addEventListener('click', () => {
+                contextMenu.style.display = 'none';
+                statusMenu.style.display = 'none';
+            });
+
             document.getElementById('delete-tix').onclick = () => {
                 const id = currentContextMenuId;
                 if (!id) return;
-                // 자식들도 함께 삭제
+                document.querySelectorAll(`[data-group="${id}"]`).forEach(v => v.remove());
                 document.querySelectorAll(`[data-parent="${id}"]`).forEach(el => {
                     const cid = el.getAttribute('data-group');
                     document.querySelectorAll(`[data-group="${cid}"]`).forEach(v => v.remove());
                 });
-                document.querySelectorAll(`[data-group="${id}"]`).forEach(v => v.remove());
                 saveData();
-                contextMenu.style.display = 'none';
             };
+
+            // 상태 변경 드롭다운 처리
+            document.querySelectorAll('.status-menu-item').forEach(item => {
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    const nextStatus = item.getAttribute('data-status');
+                    const rowId = statusMenu.getAttribute('data-row-id');
+                    if (!rowId) return;
+
+                    const row = document.querySelector(`.data-grid-row[data-group="${rowId}"]`);
+                    const marker = row.querySelector('.marker');
+                    const bar = document.querySelector(`#timeline-tbody [data-group="${rowId}"] .timeline-bar`);
+
+                    const states = ['pending', 'inprogress', 'pause', 'done', 'overdue'];
+                    // Find the existing status class from the marker
+                    let curr = states.find(s => marker.classList.contains(`marker-${s.toLowerCase()}`));
+                    
+                    if (curr) {
+                        marker.classList.replace(`marker-${curr}`, `marker-${nextStatus}`);
+                        if (bar) bar.classList.replace(`timeline-bar-${curr}`, `timeline-bar-${nextStatus}`);
+                    } else {
+                        marker.classList.add(`marker-${nextStatus}`);
+                        if (bar) bar.classList.add(`timeline-bar-${nextStatus}`);
+                    }
+                    
+                    marker.innerText = item.querySelector('.marker').innerText;
+                    saveData();
+
+                    statusMenu.style.display = 'none';
+                };
+            });
 
             // 커스텀 이벤트 리스너: 공통 컴포넌트에서 데이터 변경 시 호출
             document.addEventListener('tixup:data-changed', () => {
@@ -294,7 +379,18 @@
             document.addEventListener('click', (e) => {
                 const addBtn = e.target.closest('.add-child-btn');
                 if (addBtn) { handleAddChild(addBtn.closest('.data-grid-row')); return; }
-                
+
+                const marker = e.target.closest('.marker');
+                if (marker && !marker.closest('#status-menu')) {
+                    const rect = marker.getBoundingClientRect();
+                    statusMenu.style.display = 'block';
+                    statusMenu.style.left = (window.scrollX + rect.left) + 'px';
+                    statusMenu.style.top = (window.scrollY + rect.bottom + 4) + 'px';
+                    statusMenu.setAttribute('data-row-id', marker.closest('.data-grid-row').getAttribute('data-group'));
+                    contextMenu.style.display = 'none';
+                    return;
+                }
+
                 const footerBtn = e.target.closest('#footer-create-btn') || e.target.closest('#top-tix-btn');
                 if (footerBtn) { handleCreateTix(document.getElementById('footer-create-btn')); }
             });
@@ -311,7 +407,7 @@
                     form.remove(); btn.style.display = 'flex';
                     if (name) {
                         const task = { id: 'live-' + Date.now(), title: name, status: 'pending', type: 'parent', start: 912, width: 96 };
-                        renderTask(task); 
+                        renderTask(task);
                         saveData();
                     }
                 };
@@ -325,7 +421,7 @@
                 document.querySelectorAll('#grid-tbody .data-grid-row').forEach(row => {
                     const id = row.getAttribute('data-group');
                     const bar = document.querySelector(`#timeline-tbody [data-group="${id}"] .timeline-bar`);
-                    if (!bar) return; 
+                    if (!bar) return;
                     res.push({
                         id, title: row.querySelector('.data-grid-text').innerText,
                         status: row.querySelector('.marker')?.classList[2]?.replace('marker-', '') || 'pending',
@@ -337,6 +433,11 @@
                 });
                 tasks = res;
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(res));
+
+                // 타임라인 순서 동기화
+                if (window.tixupCore) {
+                    window.tixupCore.syncTimelineOrder();
+                }
             }
 
             init();

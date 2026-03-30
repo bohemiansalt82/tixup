@@ -40,7 +40,7 @@ class TixupCore {
             // 2. Add Child Button
             const addBtn = e.target.closest('.add-child-btn');
             if (addBtn) {
-                this.handleAddChild(addBtn);
+                // handleAddChild는 각 페이지의 스크립트에서 처리하므로 여기서는 중복 호출하지 않습니다.
                 return;
             }
         });
@@ -150,6 +150,7 @@ class TixupCore {
 
         let activeHandle = null;
         let startX, startLeft, startWidth;
+        let childrenWithInitialState = []; // child bars and their initial lefts
 
         const onMouseDown = (e) => {
             startX = e.clientX;
@@ -160,6 +161,25 @@ class TixupCore {
             else if (e.target.classList.contains('timeline-bar-resizer-right')) activeHandle = 'right';
             else activeHandle = 'drag';
 
+            // 상위 업무 이동 시 하위 업무들도 함께 이동하기 위해 초기 상태 저장
+            const row = bar.closest('.timeline-row');
+            if (activeHandle === 'drag' && row && !row.classList.contains('grid-child-row')) {
+                const groupId = row.getAttribute('data-group');
+                const childRows = document.querySelectorAll(`.grid-child-row[data-parent="${groupId}"]`);
+                childrenWithInitialState = Array.from(childRows).map(cr => {
+                    const cb = cr.querySelector('.timeline-bar');
+                    if (cb) {
+                        return {
+                            bar: cb,
+                            initialLeft: parseInt(cb.style.left) || 0
+                        };
+                    }
+                    return null;
+                }).filter(c => c !== null);
+            } else {
+                childrenWithInitialState = [];
+            }
+
             bar.classList.add(activeHandle === 'drag' ? 'is-dragging' : 'is-resizing');
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
@@ -169,19 +189,26 @@ class TixupCore {
         const onMouseMove = (e) => {
             if (!activeHandle) return;
             const dx = e.clientX - startX;
+            const gridDx = Math.round(dx / this.gridSize) * this.gridSize;
 
             if (activeHandle === 'left') {
-                let nL = Math.round((startLeft + dx) / this.gridSize) * this.gridSize;
+                let nL = startLeft + gridDx;
                 let nW = startWidth - (nL - startLeft);
                 if (nW >= this.gridSize) {
                     bar.style.left = nL + 'px';
                     bar.style.width = nW + 'px';
                 }
             } else if (activeHandle === 'right') {
-                let nW = Math.round((startWidth + dx) / this.gridSize) * this.gridSize;
+                let nW = startWidth + gridDx;
                 if (nW >= this.gridSize) bar.style.width = nW + 'px';
             } else if (activeHandle === 'drag') {
-                bar.style.left = Math.round((startLeft + dx) / this.gridSize) * this.gridSize + 'px';
+                const newLeft = startLeft + gridDx;
+                bar.style.left = newLeft + 'px';
+                
+                // 하위 업무들도 같은 거리만큼 이동
+                childrenWithInitialState.forEach(c => {
+                    c.bar.style.left = (c.initialLeft + gridDx) + 'px';
+                });
             }
         };
 
@@ -284,9 +311,17 @@ class TixupCore {
                                     next = c.nextSibling;
                                 });
                             } else {
-                                // Inherit target's parent if it's a child
+                                // Target's parent가 있으면 상속, 없으면 부모(top-level)가 됨
                                 const targetParent = drop.element.getAttribute('data-parent');
-                                if (targetParent) item.setAttribute('data-parent', targetParent);
+                                if (targetParent) {
+                                    item.setAttribute('data-parent', targetParent);
+                                    item.setAttribute('data-type', 'child');
+                                    this.updateRowHierarchyUI(item, true);
+                                } else {
+                                    item.removeAttribute('data-parent');
+                                    item.setAttribute('data-type', 'parent');
+                                    this.updateRowHierarchyUI(item, false);
+                                }
                             }
                         }
                     }
@@ -312,20 +347,40 @@ class TixupCore {
 
         if (isChild) {
             titleContainer.classList.add('depth-2');
-            // Remove expander if any
+            row.classList.add('grid-child-row');
+            row.classList.remove('level-0');
+            row.setAttribute('data-type', 'child');
+            
             const exp = titleContainer.querySelector('.tree-expander');
             if (exp) exp.remove();
-            // Ensure child icon
-            if (!titleContainer.querySelector('.icon-stat')) {
-                const tixIcon = titleContainer.querySelector('.icon-tix');
-                if (tixIcon) {
-                    tixIcon.classList.remove('icon-tix');
-                    tixIcon.classList.add('icon-stat');
-                }
+            
+            const addBtn = titleContainer.querySelector('.add-child-btn');
+            if (addBtn) addBtn.remove();
+
+            const tixIcon = titleContainer.querySelector('.nav-icon.icon-tix');
+            if (tixIcon) {
+                tixIcon.classList.remove('icon-tix');
+                tixIcon.classList.add('icon-stat');
             }
         } else {
             titleContainer.classList.remove('depth-2');
-            // Add expander if missing
+            row.classList.remove('grid-child-row');
+            row.classList.add('level-0');
+            row.setAttribute('data-type', 'parent');
+            row.removeAttribute('data-parent');
+
+            const statIcon = titleContainer.querySelector('.nav-icon.icon-stat');
+            if (statIcon) {
+                statIcon.classList.remove('icon-stat');
+                statIcon.classList.add('icon-tix');
+            }
+
+            if (!titleContainer.querySelector('.add-child-btn')) {
+                const b = document.createElement('button');
+                b.className = 'add-child-btn';
+                b.innerHTML = '<div class="nav-icon icon-add"></div>';
+                titleContainer.appendChild(b);
+            }
         }
     }
 
@@ -345,8 +400,9 @@ class TixupCore {
     }
 
     syncTimelineOrder() {
-        const sidebar = document.querySelector('.timeline-sidebar') || document.getElementById('grid-tbody');
-        const timelineBody = document.querySelector('.timeline-body') || document.getElementById('timeline-tbody');
+        // test_drive.html 구조에 맞게 정확한 컨테이너 선택
+        const sidebar = document.getElementById('grid-tbody') || document.querySelector('.timeline-sidebar');
+        const timelineBody = document.getElementById('timeline-tbody') || document.querySelector('.timeline-body');
         if (!sidebar || !timelineBody) return;
 
         const rows = sidebar.querySelectorAll('.data-grid-row:not(.data-grid-header)');

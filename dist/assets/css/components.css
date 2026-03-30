@@ -46,32 +46,26 @@ body {
 /* 1.1 Status Colors (Solid) */
 .marker-pending {
     background-color: var(--primitive-colors-gray-100);
-    color: var(--semantic-color-colors-text-caption);
 }
 
 .marker-inprogress {
     background-color: var(--primitive-colors-blue-50);
-    color: var(--primitive-colors-blue-700);
 }
 
 .marker-pause {
     background-color: var(--primitive-colors-yellow-50);
-    color: var(--primitive-colors-yellow-800);
 }
 
 .marker-done {
     background-color: var(--primitive-colors-green-50);
-    color: var(--primitive-colors-green-800);
 }
 
 .marker-overdue {
     background-color: var(--primitive-colors-red-50);
-    color: var(--primitive-colors-red-700);
 }
 
 .marker-drop {
     background-color: var(--primitive-colors-purple-50);
-    color: var(--primitive-colors-purple-700);
 }
 
 /* 1.2 Marker V3 Style (Ghost + Icon) */
@@ -815,7 +809,6 @@ body {
     height: 22px !important;
     border: none !important;
     box-shadow: none !important;
-    color: var(--colors-text-body) !important;
     font-size: var(--semantic-font-font-size-font-size-md) !important;
 }
 
@@ -1244,6 +1237,23 @@ body {
 /* -------------------------------------
    8. Button Component (Figma Spec)
 ---------------------------------------- */
+.marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    height: 24px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.marker:hover {
+    opacity: 0.8;
+}
+
 .btn {
     display: inline-flex;
     align-items: center;
@@ -1461,7 +1471,7 @@ body {
 }
 
 .timeline-sidebar .data-grid-header .data-grid-cell {
-    min-height: 82px !important;
+    /* min-height: 82px !important; */
 }
 
 
@@ -1774,7 +1784,9 @@ body {
 
 .grid-create-input::placeholder {
     color: var(--primitive-colors-gray-400);
+    font-size: var(--semantic-font-font-size-font-size-lg);
 }
+
 /* -------------------------------------
    10. Timeline Prototype & Extension
    ------------------------------------- */
@@ -1789,13 +1801,14 @@ body {
     height: 48px;
     background: white;
     border-bottom: 1px solid var(--primitive-colors-gray-100);
+    font-size: var(--semantic-font-font-size-font-size-lg);
 }
 
 .grid-create-input {
     flex: 1;
     border: none;
     outline: none;
-    font-size: 14px;
+    font-size: var(--semantic-font-font-size-font-size-lg);
     font-family: inherit;
     color: var(--primitive-colors-gray-900);
     background: transparent;
@@ -1803,21 +1816,21 @@ body {
 }
 
 /* Custom Context Menu */
-#context-menu {
-    position: fixed;
+.context-menu-container {
+    position: absolute;
     display: none;
     background: white;
     border: 1px solid var(--primitive-colors-gray-200);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    padding: 4px 0;
+    z-index: 2000;
     min-width: 140px;
+    padding: 6px 0;
 }
 
-.context-menu-item {
+.context-menu-item,
+.status-menu-item {
     padding: 8px 16px;
-    font-size: 13px;
     color: var(--primitive-colors-gray-700);
     cursor: pointer;
     display: flex;
@@ -1844,8 +1857,13 @@ body {
     z-index: 10;
 }
 
-.timeline-bar-resizer-left { left: 0; }
-.timeline-bar-resizer-right { right: 0; }
+.timeline-bar-resizer-left {
+    left: 0;
+}
+
+.timeline-bar-resizer-right {
+    right: 0;
+}
 
 .sortable-ghost {
     opacity: 0.4;
