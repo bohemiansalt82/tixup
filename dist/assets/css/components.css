@@ -367,9 +367,9 @@ body {
 
 .nav-icon {
     display: inline-block;
-    width: 20px;
-    height: 20px;
-    background-color: var(--primitive-colors-gray-500);
+    width: 18px;
+    height: 18px;
+    background-color: #1F1F1F; /* 전보다 더 진한 검은색 계열로 가시성 확보 */
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
     -webkit-mask-position: center;
@@ -377,6 +377,17 @@ body {
     -webkit-mask-size: contain;
     mask-size: contain;
     flex-shrink: 0;
+    vertical-align: middle;
+}
+
+.icon-tix {
+    -webkit-mask-image: var(--icon-url-tix) !important;
+    mask-image: var(--icon-url-tix) !important;
+}
+
+.icon-stat {
+    -webkit-mask-image: var(--icon-url-stat) !important;
+    mask-image: var(--icon-url-stat) !important;
 }
 
 .nav-item.active .nav-icon {
