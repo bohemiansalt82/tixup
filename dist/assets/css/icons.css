@@ -1,18 +1,16 @@
-/* icons.css - SVG Icon Path Variables and Mappings (Full List) */
+/* icons.css - SVG Icon Path Variables and Mappings */
 
 :root {
-    /* Base64 Embedded Icons for Local Compatibility (CORS Bypass) */
-    --icon-url-tix: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xOSA0QzIwLjY2IDQgMjIgNS4zNCAyMiA3VjguMTI5ODhDMjIgOC42MDk4NSAyMS42NjAyIDguOTgwMzMgMjEuMjAwMiA5LjExMDM1QzE5LjkzMDIgOS40NjAzNSAxOSAxMC42MiAxOSAxMkMxOSAxMy4zOCAxOS45MzAyIDE0LjUzOTYgMjEuMjAwMiAxNC44ODk2QzIxLjY2MDIgMTUuMDE5NyAyMiAxNS40MDAxIDIyIDE1Ljg3MDFWMTdDMjIgMTguNjYgMjAuNjYgMjAgMTkgMjBINUMzLjM0IDIwIDIgMTguNjYgMiAxN1YxNS44NzAxQzIgMTUuMzkwMSAyLjMzOTg1IDE1LjAxOTcgMi43OTk4IDE0Ljg4OTZDNC4wNjk4IDE0LjUzOTYgNSAxMy4zOCA1IDEyQzUgMTAuNjIgNC4wNjk4IDkuNDYwMzUgMi43OTk4IDkuMTEwMzVDMi4zMzk4NSA4Ljk4MDMzIDIgOC41OTk4NSAyIDguMTI5ODhWNyBDMiA1LjM0IDMuMzQgNCA1IDRIMTlXTTUgNS41QzQuMTcgNS41IDMuNSA2LjE3IDMuNSA3VjcuNzU5NzdWNyBDMy41IDYuMTcgNC4xNyA1LjUgNSA1LjVIMTlDMTkuODMgNS41IDIwLjUgNi4xNyAyMC41IDdWNy43NTk3N0MyMC41IDcuNzU5NzcgMjAuNSA3VjcuNzU5NzdDMTguNzIgOC4zODk3NyAxNy41IDEwLjA5IDE3LjUgMTJDMTcuNSAxMy45MSAxOC43MiAxNS42MjAyIDIwLjUgMTYuMjQwMlYxN0MyMC41IDE3LjgzIDE5LjgzIDE4LjUgMTkgMTguNUg1QzQuMTcgMTguNSAzLjUgMTcuODMgMy41IDE3VjE2LjI0MDJDMi4zMzk4NSAxNS42MTAyIDIgMTMuOTEgMiAxMkMyIDguMzc5NzcgMy41IDcuNzU5NzcgMy41IDdWNS41WiIgZmlsbD0iYmxhY2siLz4KPC9zdmc+');
-    --icon-url-stat: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwLjcyMDcgMTcuMDA5Mkw2Ljk5MDcyIDEzLjI3OTJDNi44MTEwNSAxMy4wOTk0IDYuNjc3NjMgMTIuODk3MyA2LjU5MDQ3IDEyLjY3M0M2LjUwMzMwIDEyLjQ0ODYgNi40NTk3MiAxMi4yMjQzIDYuNDU5NzIgMTJDNi40NTk3MiAxMS43NzU2IDYuNTAzMzAgMTEuNTUxMyA2LjU5MDQ3IDExLjMyNzBDNi42Nzc2MyAxMS4xMDI2IDYuODExMDUgMTAuOTAwNiA2Ljk5MDcyIDEwLjcyMDdMMTAuNzIwNyA2Ljk5MDcyQzEwLjkwMDUgNi44MTEwNSAxMS4xMDI2IDYuNjc3NjMgMTEuMzI3IDYuNTkwNDdDMTEuNTUxMyA2LjUwMzMwIDExLjc3NTYgNi40NTk3MiAxMiA2LjQ1OTcyQzEyLjIyNDMgNi40NTk3MiAxMi40NDg2IDYuNTAzMzAgMTIuNjczIDYuNTkwNDdDMTIuODk3MyA2LjY3NzYzIDEzLjA5OTQgNi44MTEwNSAxMy4yNzkyIDYuOTkwNzJMMTcuMDA5MiAxMC43MjA3QzE3LjE4ODkgMTAuOTAwNiAxNy4zMjIzIDExLjEwMjYgMTcuNDA5NSAxMS4zMjdDMTcuNDk2NiAxMS41NTEzIDE3LjU0MDIgMTEuNzc1NiAxNy41NDAyIDE2QzE3LjU0MDIgMTIuMjI0MyAxNy40OTY2IDEyLjQ0ODYgMTcuNDA5NSAxMi42NzNDMTcuMzIyMyAxMi44OTczIDE3LjE4ODkgMTMuMDk5NCAxNy4wMDkyIDEzLjI3OTJMMTMuMjc5MiAxNy4wMDkyQzEzLjA5OTQgMTcuMTg4OSAxMi44OTczIDE3LjMyMjMgMTIuNjczIDE3LjQwOTVDMTIuNDQ4NiAxNy40OTY2IDEyLjIyNDMgMTcuNTQwMiAxMiAxNy41NDAyQzExLjc3NTYgMTcuNTQwMiAxMS41NTEzIDE3LjQ5NjYgMTEuMzI3IDE3LjQwOTVDMTEuMTAyNiAxNy4zMjIzIDEwLjkwMDUgMTcuMTg4OSAxMC43MjA3IDE3LjAwOTJaTTEyLjIyMTIgMTUuOTI4N0wxNS45Mjg3IDEyLjIyMTJDMTUuOTg2NCAxMi4xNjM1IDE2LjAxNTIgMTIuMDg5OCAxNi4wMTUyIDEyQzE2LjAxNTIgMTEuOTEwMSAxNS45ODY0IDExLjgzNjQgMTUuOTI4NyAxMS43Nzg3TDEyLjIyMTIgOC4wNzEyMkMxMi4xNjM1IDguMDEzNTUgMTIuMDg5OCA3Ljk4NDcyIDEyIDcuOTg0NzJDMTEuOTEwMSA3Ljk4NDcyIDExLjgzNjQgOC4wMTM1NSAxMS43Nzg3IDguMDcxMjJMODCheckLMTI2IDExLjc3ODdDOC4wMTM1NSAxMS44MzY0IDcuOTg0NzIgMTEuOTEwMSA3Ljk4NDcyIDEyQzcuOTg0NzIgMTIuMDg5OCA4LjAxMzU1IDEyLjE2MzUgOC4wNzEyMiAxMi4yMjEyTDExLjc3ODcgMTUuOTI4N0MxMS44MzY0IDluOTg2NCAxMS45MTAxIDE2LjAxNTIgMTIgMTYuMDE1MkMxMi4vMDg5OCAxNi4wMTUyIDEyLjE2MzUgMTUuOTI4N1oiIGZpbGw9ImJsYWNrIi8+Cjwvc3ZnPg==');
-    --icon-url-add: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTExLjI1IDEyLjc1SDYuMjVDNi4wMzc1IDEyLjc1IDUuODU5MzggMTIuNjc4MSA1LjcxNTYzIDEyLjUzNDNDNS41NzE4NyAxMi4zOTA0IDUuNSAxMi4yMTIyIDUuNSAxMS45OTk3QzUuNSAxMS43ODcxIDUuNTcxODcgMTEuNjA5IDUuNzE1NjMgMTEuNDY1NEM1Ljg1OTM4IDExLjMyMTggNi4wMzc1IDExLjI1IDYuMjUgMTEuMjVIMTEuMjVWNi4yNUMxMS4yNSA2LjAzNzUgMTEuMzIxOSA1Ljg1OTM4IDExLjQ2NTcgNS43MTU2M0MxMS42MDk1IDUuNTcxODcgMTEuNzg3NyA1LjUgMTIuMDAwMyA1LjVDMTIuMjEyOSA1LjUgMTIuMzkxIDUuNTcxODcgMTIuNTM0NiA1LjcxNTYzQzEyLjY3ODIgNS44NTkzOCAxMi43NDk5IDYuMDM3NSAxMi43NDk5IDYuMjVWMTEuMjVIMTcuNzVDMTcuOTYyNSAxMS4yNSAxOC4xNDA2IDExLjMyMTkgMTguMjg0MyAxMS40NjU3QzE4LjQyODEgMTEuNjA5NSAxOC41IDExLjc4NzcgMTguNSAxMi4wMDAzQzE4LjUgMTIuMjEyOSAxOC40MjgxIDEyLjM5MSAxOC4yODQzIDEyLjUzNDZDMTguMTQwNiAxMi42NzgyIDE3Ljk2MjUgMTIuNzUgMTcuNzUgMTIuNzVIMTIuNzQ5OVYxNy43NUMxMi43NDk5IDE3Ljk2MjUgMTIuNjc4MSAxOC4xNDA2IDEyLjUzNDIgMTguMjg0M0MxMi4zOTA0IDE4LjQyODEgMTIuMjEyMiAxOC41IDExLjk5OTcgMTguNUMxMS43ODcgMTguNSAxMS42MDkgMTguNDI4MSAxMS40NjU0IDE4LjI4NDND M044IDkuNzI1MjlMMTMuMjMzOCAxNy4zODExQzEzLjA1MzAgMTcuNTYxOCAxMi44NTA1IDE3LjY5NTggMTIuNjI2MSAxNy43ODNDMTIuNDAxOCAxNy44NzAyIDEyLjE3NzQgMTUuOTEzNyAxMS45NTMxIDE3LjkxMzdDMTEuNzI4NyAxNy45MTM3IDExLjUwNDQgMTcuODcwMiAxMS4yOCAxNy43ODNDMTEuMDU1NiAxNy42OTU4IDEwLjg1MzEgMTcuNTYxOCAxMC42NzIzIDE3LjM4MTFMMC4zMDAxMTYgOS43MDk5MUMyLjgwMjQ1IDkuNTExMiAyLjcwNTY1IDkuMjc3MjIgMi43MTA3NiA5LjAwNzk5QzIuNzE1OTAgOC43Mzg3NyAyLjgxNzgyIDguNTA0ODEgMy4wMTY1NCA4LjMwNjA5QzMuMjE1MjYgOC4xMDczNyAzLjQ1MTc5IDguMDA4MDEgMy43MjYxNCA4LjAwODAxQzQuMDAwNDkgOC4wMDgwMSA0LjIzNzAyIDguMTA3MzcgNC40MzU3NCA4LjMwNjA5TDExLjk1MzEgMTUuODIzNFoiIGZpbGw9ImJsYWNrIi8+Cjwvc3ZnPg==');
-    --icon-url-chevron-lg-bottom: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTExLjk1MzEgMTUuODIzNEwxOS40ODU4IDguMjkwNzFDMTkuNjg0NSA4LjA5MiAxOS45MjEgNy45OTUyIDIwLjE5NTQgOC4wMDAzMUMyMC40Njk3IDguMDA1NDUgMjAuNzA2MyA4LjEwNzM3IDIwLjkwNSA4LjMwNjA5QzIxLjEwMzcgOC41MDQ4MSAyMS4yMDMgOC43NDEzNCAyMS4yMDMgOS4wMTU2OUMyMS4yMDMgOS4yOTAwNCAyMS4xMDM3IDkuNTI2NTcgMjAuOTA1IDkuNzI1MjlMMTMuMjMzOCAxNy4zODExQzEzLjA1MzAgMTcuNTYxOCAxMi44NTA1IDE3LjY5NTggMTIuNjI2MSAxNy43ODNDMTIuNDAxOCAxNy44NzAyIDEyLjE3NzQgMTUuOTEzNyAxMS45NTMxIDE3LjkxMzdDMTEuNzI4NyAxNy45MTM3IDExLjUwNDQgMTcuODcwMiAxMS4yOCAxNy43ODNDMTEuMDU1NiAxNy42OTU4IDEwLjg1MzEgMTcuNTYxOCAxMC42NzIzIDE3LjM4MTFMMC4zMDAxMTYgOS43MDk5MUMyLjgwMjQ1IDkuNTExMiAyLjcwNTY1IDkuMjc3MjIgMi43MTA3NiA5LjAwNzk5QzIuNzE1OTAgOC43Mzg3NyAyLjgxNzgyIDguNTA0ODEgMy4wMTY1NCA4LjMwNjA5QzMuMjE1MjYgOC4xMDczNyAzLjQ1MTc5IDguMDA4MDEgMy43MjYxNCA4LjAwODAxQzQuMDAwNDkgOC4wMDgwMSA0LjIzNzAyIDguMTA3MzcgNC40MzU3NCA4LjMwNjA5TDExLjk1MzEgMTUuODIzNFoiIGZpbGw9ImJsYWNrIi8+Cjwvc3ZnPg==');
-
-    /* Internal Paths as Fallbacks */
+    /* Icon Path Definitions */
     --icon-url-deployed: url('../images/icons/deployed_code.svg');
     --icon-url-planet: url('../images/icons/planet.svg');
     --icon-url-work: url('../images/icons/work_filled.svg');
+    --icon-url-add: url('../images/icons/add.svg');
     --icon-url-check: url('../images/icons/check.svg');
     --icon-url-minus: url('../images/icons/minus.svg');
+    --icon-url-chevron-lg-bottom: url('../images/icons/chevron_lg_bottom.svg');
+    --icon-url-tix: url('../images/icons/tix.svg');
+    --icon-url-stat: url('../images/icons/stat.svg');
     --icon-url-filter: url('../images/icons/filter.svg');
     --icon-url-sort: url('../images/icons/sort.svg');
     --icon-url-visibility-off: url('../images/icons/visibility_off.svg');
@@ -22,20 +20,83 @@
     --icon-url-visibility: url('../images/icons/visibility.svg');
 }
 
-/* Class Mappings - 모든 클래스 복구 */
-.icon-tix { -webkit-mask-image: var(--icon-url-tix); mask-image: var(--icon-url-tix); }
-.icon-stat { -webkit-mask-image: var(--icon-url-stat); mask-image: var(--icon-url-stat); }
-.icon-add { -webkit-mask-image: var(--icon-url-add); mask-image: var(--icon-url-add); }
-.icon-deployed { -webkit-mask-image: var(--icon-url-deployed); mask-image: var(--icon-url-deployed); }
-.icon-planet { -webkit-mask-image: var(--icon-url-planet); mask-image: var(--icon-url-planet); }
-.icon-work { -webkit-mask-image: var(--icon-url-work); mask-image: var(--icon-url-work); }
-.icon-check { -webkit-mask-image: var(--icon-url-check); mask-image: var(--icon-url-check); }
-.icon-minus { -webkit-mask-image: var(--icon-url-minus); mask-image: var(--icon-url-minus); }
-.icon-chevron-lg-bottom { -webkit-mask-image: var(--icon-url-chevron-lg-bottom); mask-image: var(--icon-url-chevron-lg-bottom); }
-.icon-filter { -webkit-mask-image: var(--icon-url-filter); mask-image: var(--icon-url-filter); }
-.icon-sort { -webkit-mask-image: var(--icon-url-sort); mask-image: var(--icon-url-sort); }
-.icon-visibility-off { -webkit-mask-image: var(--icon-url-visibility-off); mask-image: var(--icon-url-visibility-off); }
-.icon-calendar { -webkit-mask-image: var(--icon-url-calendar); mask-image: var(--icon-url-calendar); }
-.icon-clock { -webkit-mask-image: var(--icon-url-clock); mask-image: var(--icon-url-clock); }
-.icon-list { -webkit-mask-image: var(--icon-url-list); mask-image: var(--icon-url-list); }
-.icon-visibility { -webkit-mask-image: var(--icon-url-visibility); mask-image: var(--icon-url-visibility); }
+/* Class Mappings */
+.icon-deployed {
+    -webkit-mask-image: var(--icon-url-deployed);
+    mask-image: var(--icon-url-deployed);
+}
+
+.icon-planet {
+    -webkit-mask-image: var(--icon-url-planet);
+    mask-image: var(--icon-url-planet);
+}
+
+.icon-work {
+    -webkit-mask-image: var(--icon-url-work);
+    mask-image: var(--icon-url-work);
+}
+
+.icon-add {
+    -webkit-mask-image: var(--icon-url-add);
+    mask-image: var(--icon-url-add);
+}
+
+.icon-check {
+    -webkit-mask-image: var(--icon-url-check);
+    mask-image: var(--icon-url-check);
+}
+
+.icon-minus {
+    -webkit-mask-image: var(--icon-url-minus);
+    mask-image: var(--icon-url-minus);
+}
+
+.icon-chevron-lg-bottom {
+    -webkit-mask-image: var(--icon-url-chevron-lg-bottom);
+    mask-image: var(--icon-url-chevron-lg-bottom);
+}
+
+.icon-tix {
+    -webkit-mask-image: var(--icon-url-tix);
+    mask-image: var(--icon-url-tix);
+}
+
+.icon-stat {
+    -webkit-mask-image: var(--icon-url-stat);
+    mask-image: var(--icon-url-stat);
+}
+
+.icon-filter {
+    -webkit-mask-image: var(--icon-url-filter);
+    mask-image: var(--icon-url-filter);
+}
+
+.icon-sort {
+    -webkit-mask-image: var(--icon-url-sort);
+    mask-image: var(--icon-url-sort);
+}
+
+.icon-visibility-off {
+    -webkit-mask-image: var(--icon-url-visibility-off);
+    mask-image: var(--icon-url-visibility-off);
+}
+
+.icon-calendar {
+    -webkit-mask-image: var(--icon-url-calendar);
+    mask-image: var(--icon-url-calendar);
+}
+
+.icon-clock {
+    -webkit-mask-image: var(--icon-url-clock);
+    mask-image: var(--icon-url-clock);
+}
+
+.icon-list {
+    -webkit-mask-image: var(--icon-url-list);
+    mask-image: var(--icon-url-list);
+}
+
+.icon-visibility {
+    -webkit-mask-image: var(--icon-url-visibility);
+    mask-image: var(--icon-url-visibility);
+}
