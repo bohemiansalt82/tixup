@@ -231,6 +231,17 @@ class TixupCore {
         };
 
         bar.addEventListener('mousedown', onMouseDown);
+        
+        // 타임라인 바 전용 더블 클릭 리스너
+        bar.addEventListener('dblclick', (e) => {
+            const timelineRow = bar.closest('.timeline-row');
+            if (timelineRow && !timelineRow.classList.contains('grid-child-row')) {
+                const rowId = timelineRow.getAttribute('data-group');
+                const gridRow = document.querySelector(`.data-grid-row[data-group="${rowId}"]`);
+                if (gridRow) this.handleAutoResize(gridRow);
+                e.stopPropagation();
+            }
+        });
     }
 
     initSortable() {
@@ -405,7 +416,6 @@ class TixupCore {
 
         children.forEach(child => {
             const childId = child.getAttribute('data-group');
-            // Look for bars in the whole document since they are moved between containers
             const bars = document.querySelectorAll(`[data-group="${childId}"] .timeline-bar`);
             bars.forEach(bar => {
                 const l = parseInt(bar.style.left) || 0;

@@ -819,14 +819,19 @@ body {
     font-size: var(--semantic-font-font-size-font-size-md) !important;
 }
 
+.marker-has-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .marker-has-icon::before {
-    content: "";
-    display: inline-block;
-    width: 22px;
-    height: 22px;
+    content: '';
+    width: 16px;
+    height: 16px;
     background-size: contain;
     background-repeat: no-repeat;
-    background-position: center;
+    display: inline-block;
     flex-shrink: 0;
 }
 
