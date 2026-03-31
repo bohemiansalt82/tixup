@@ -45,6 +45,25 @@ class TixupCore {
             }
         });
 
+        // 3. Double Click for Auto Resize Parent
+        document.addEventListener('dblclick', (e) => {
+            const row = e.target.closest('.data-grid-row');
+            if (row && row.getAttribute('data-type') === 'parent') {
+                this.handleAutoResize(row);
+                return;
+            }
+            const bar = e.target.closest('.timeline-bar');
+            if (bar) {
+                const parentRow = bar.closest('.timeline-row');
+                if (parentRow && !parentRow.classList.contains('grid-child-row')) {
+                    const rowId = parentRow.getAttribute('data-group');
+                    const gridRow = document.querySelector(`.data-grid-row[data-group="${rowId}"]`);
+                    if (gridRow) this.handleAutoResize(gridRow);
+                    return;
+                }
+            }
+        });
+
         // Hover Effect for Add Button
         document.addEventListener('mouseover', (e) => {
             const row = e.target.closest('.data-grid-row');
@@ -411,6 +430,46 @@ class TixupCore {
             const vRow = timelineBody.querySelector(`[data-group="${id}"]`);
             if (vRow) timelineBody.appendChild(vRow);
         });
+    }
+
+    handleAutoResize(parentRow) {
+        const parentId = parentRow.getAttribute('data-group');
+        const children = document.querySelectorAll(`.grid-child-row[data-parent="${parentId}"]`);
+        
+        if (children.length === 0) return;
+
+        let minLeft = Infinity;
+        let maxRight = -Infinity;
+
+        children.forEach(child => {
+            const childGroupId = child.getAttribute('data-group');
+            const bars = document.querySelectorAll(`[data-group="${childGroupId}"] .timeline-bar`);
+            bars.forEach(bar => {
+                const l = parseInt(bar.style.left) || 0;
+                const w = parseInt(bar.style.width) || 0;
+                minLeft = Math.min(minLeft, l);
+                maxRight = Math.max(maxRight, l + w);
+            });
+        });
+
+        if (minLeft !== Infinity) {
+            const parentBars = document.querySelectorAll(`[data-group="${parentId}"] .timeline-bar`);
+            parentBars.forEach(parentBar => {
+                parentBar.style.left = minLeft + 'px';
+                parentBar.style.width = (maxRight - minLeft) + 'px';
+                
+                // Visual feedback
+                parentBar.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                parentBar.classList.add('auto-resizing');
+                setTimeout(() => {
+                    parentBar.style.transition = '';
+                    parentBar.classList.remove('auto-resizing');
+                }, 300);
+            });
+            
+            // Trigger save
+            document.dispatchEvent(new CustomEvent('tixup:data-changed'));
+        }
     }
 }
 
