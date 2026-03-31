@@ -232,14 +232,21 @@ class TixupCore {
 
         bar.addEventListener('mousedown', onMouseDown);
         
-        // 타임라인 바 전용 더블 클릭 리스너
+        // [수정] 타임라인 바 더블 클릭 시 하위 업무 기간에 맞춰 부모 바 자동 조절
         bar.addEventListener('dblclick', (e) => {
+            console.log("%c[Tixup] Timeline Bar Double-Click Detected", "color: orange; font-weight: bold;");
             const timelineRow = bar.closest('.timeline-row');
+            
+            // 상위 업무(Parent)인 경우에만 자식들을 추적하여 자동 조절 실행
             if (timelineRow && !timelineRow.classList.contains('grid-child-row')) {
                 const rowId = timelineRow.getAttribute('data-group');
                 const gridRow = document.querySelector(`.data-grid-row[data-group="${rowId}"]`);
-                if (gridRow) this.handleAutoResize(gridRow);
-                e.stopPropagation();
+                
+                if (gridRow) {
+                    console.log(`[Tixup] Triggering auto-resize for parent: ${rowId}`);
+                    this.handleAutoResize(gridRow);
+                }
+                e.stopPropagation(); // 드래그 이벤트 등으로 전이되지 않도록 방지
             }
         });
     }
