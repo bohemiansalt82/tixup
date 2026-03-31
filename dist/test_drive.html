@@ -105,19 +105,19 @@
     <!-- 상태 선택 드롭다운 메뉴 -->
     <div id="status-menu" class="context-menu-container">
         <div class="status-menu-item" data-status="pending">
-            <div class="marker marker-has-icon marker-pending">Pending</div>
+            <div class="marker marker-has-icon marker-pending"><img src="assets/images/icons/marker_pending.png" class="marker-img">Pending</div>
         </div>
         <div class="status-menu-item" data-status="inprogress">
-            <div class="marker marker-has-icon marker-inprogress">in Progress</div>
+            <div class="marker marker-has-icon marker-inprogress"><img src="assets/images/icons/marker_in_progress.png" class="marker-img">in Progress</div>
         </div>
         <div class="status-menu-item" data-status="pause">
-            <div class="marker marker-has-icon marker-pause">Pause</div>
+            <div class="marker marker-has-icon marker-pause"><img src="assets/images/icons/marker_pause.png" class="marker-img">Pause</div>
         </div>
         <div class="status-menu-item" data-status="done">
-            <div class="marker marker-has-icon marker-done">Done</div>
+            <div class="marker marker-has-icon marker-done"><img src="assets/images/icons/marker_done.png" class="marker-img">Done</div>
         </div>
         <div class="status-menu-item" data-status="overdue">
-            <div class="marker marker-has-icon marker-overdue">Overdue</div>
+            <div class="marker marker-has-icon marker-overdue"><img src="assets/images/icons/marker_overdue.png" class="marker-img">Overdue</div>
         </div>
     </div>
 
@@ -178,6 +178,7 @@
                     </div>
                     <div class="data-grid-cell">
                         <div class="marker marker-has-icon marker-${status}">
+                            <img src="assets/images/icons/marker_${status === 'inprogress' ? 'in_progress' : status}.png" class="marker-img" onerror="this.style.display='none'">
                             ${status === 'inprogress' ? 'In Progress' : status.charAt(0).toUpperCase() + status.slice(1)}
                         </div>
                     </div>

@@ -149,6 +149,13 @@ body {
     mask-position: center;
 }
 
+.marker-img {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    object-fit: contain;
+}
+
 .marker-v3.marker-pending .marker-icon {
     -webkit-mask-image: var(--icon-url-stat);
     mask-image: var(--icon-url-stat);
