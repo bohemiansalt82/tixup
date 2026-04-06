@@ -59,28 +59,8 @@ class TixupCore {
             }
         });
 
-        // 3. Double Click for Auto Resize Parent
-        console.log('TixupCore: Double-click listener active');
-        document.addEventListener('dblclick', (e) => {
-            console.log('TixupCore: dblclick detected on', e.target);
-            const row = e.target.closest('.data-grid-row');
-            const bar = e.target.closest('.timeline-bar');
-            
-            if (row && row.getAttribute('data-type') === 'parent') {
-                console.log('TixupCore: Auto-resizing parent from row click');
-                this.handleAutoResize(row);
-                return;
-            }
-            if (bar) {
-                const timelineRow = bar.closest('.timeline-row');
-                if (timelineRow && !timelineRow.classList.contains('grid-child-row')) {
-                    const rowId = timelineRow.getAttribute('data-group');
-                    console.log('TixupCore: Auto-resizing parent from bar click for', rowId);
-                    const gridRow = document.querySelector(`.data-grid-row[data-group="${rowId}"]`);
-                    if (gridRow) this.handleAutoResize(gridRow);
-                }
-            }
-        });
+        // 3. Double Click for Auto Resize Parent (Sidebar/Grid Title) - Disabled as requested
+        // document.addEventListener('dblclick', (e) => { ... });
     }
 
     handleToggle(expander) {
@@ -170,8 +150,39 @@ class TixupCore {
         let activeHandle = null;
         let startX, startLeft, startWidth;
         let childrenWithInitialState = [];
+        let lastClickTime = 0;
+        let lastClickX = 0;
+        let lastClickY = 0;
 
         const onMouseDown = (e) => {
+            const now = Date.now();
+            const timeDiff = now - lastClickTime;
+            const dist = Math.sqrt(Math.pow(e.clientX - lastClickX, 2) + Math.pow(e.clientY - lastClickY, 2));
+
+            lastClickTime = now;
+            lastClickX = e.clientX;
+            lastClickY = e.clientY;
+
+            const row = bar.closest('.timeline-row');
+            const isParent = row && !row.classList.contains('grid-child-row');
+
+            // Manual Double-Click Detection (500ms threshold, within 15px movement)
+            if (timeDiff > 50 && timeDiff < 500 && dist < 15 && isParent) {
+                console.log("%c[Tixup] Manual Double-Click SUCCESS", "background: #00bcd4; color: white; padding: 2px 5px; border-radius: 3px; font-weight: bold;");
+                const rowId = row.getAttribute('data-group');
+                const gridRow = document.querySelector(`.data-grid-row[data-group="${rowId}"]`);
+                if (gridRow) {
+                    this.handleAutoResize(gridRow);
+                }
+
+                // Abort drag operation
+                bar.classList.remove('is-dragging', 'is-resizing');
+                activeHandle = null;
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+
             startX = e.clientX;
             startLeft = parseInt(bar.style.left) || 0;
             startWidth = parseInt(bar.style.width) || bar.offsetWidth;
@@ -180,10 +191,9 @@ class TixupCore {
             else if (e.target.classList.contains('timeline-bar-resizer-right')) activeHandle = 'right';
             else activeHandle = 'drag';
 
-            const row = bar.closest('.timeline-row');
-            if (activeHandle === 'drag' && row && !row.classList.contains('grid-child-row')) {
+            if (activeHandle === 'drag' && isParent) {
                 const groupId = row.getAttribute('data-group');
-                const childRows = document.querySelectorAll(`.grid-child-row[data-parent="${groupId}"]`);
+                const childRows = document.querySelectorAll(`.timeline-body .grid-child-row[data-parent="${groupId}"]`);
                 childrenWithInitialState = Array.from(childRows).map(cr => {
                     const cb = cr.querySelector('.timeline-bar');
                     return cb ? { bar: cb, initialLeft: parseInt(cb.style.left) || 0 } : null;
@@ -231,24 +241,6 @@ class TixupCore {
         };
 
         bar.addEventListener('mousedown', onMouseDown);
-        
-        // [수정] 타임라인 바 더블 클릭 시 하위 업무 기간에 맞춰 부모 바 자동 조절
-        bar.addEventListener('dblclick', (e) => {
-            console.log("%c[Tixup] Timeline Bar Double-Click Detected", "color: orange; font-weight: bold;");
-            const timelineRow = bar.closest('.timeline-row');
-            
-            // 상위 업무(Parent)인 경우에만 자식들을 추적하여 자동 조절 실행
-            if (timelineRow && !timelineRow.classList.contains('grid-child-row')) {
-                const rowId = timelineRow.getAttribute('data-group');
-                const gridRow = document.querySelector(`.data-grid-row[data-group="${rowId}"]`);
-                
-                if (gridRow) {
-                    console.log(`[Tixup] Triggering auto-resize for parent: ${rowId}`);
-                    this.handleAutoResize(gridRow);
-                }
-                e.stopPropagation(); // 드래그 이벤트 등으로 전이되지 않도록 방지
-            }
-        });
     }
 
     initSortable() {
@@ -415,32 +407,39 @@ class TixupCore {
         console.log('TixupCore: Starting auto-resize for', parentId);
         const children = document.querySelectorAll(`[data-parent="${parentId}"]`);
         console.log(`TixupCore: Found ${children.length} children`);
-        
+
         if (children.length === 0) return;
 
         let minLeft = Infinity;
         let maxRight = -Infinity;
 
         children.forEach(child => {
+            // Find child bar specifically in the timeline body to ensure we get correct coordinates
             const childId = child.getAttribute('data-group');
-            const bars = document.querySelectorAll(`[data-group="${childId}"] .timeline-bar`);
-            bars.forEach(bar => {
-                const l = parseInt(bar.style.left) || 0;
-                const w = parseInt(bar.style.width) || 0;
-                minLeft = Math.min(minLeft, l);
-                maxRight = Math.max(maxRight, l + w);
-            });
+            const timelineChildRow = document.querySelector(`.timeline-body [data-group="${childId}"]`);
+            if (timelineChildRow) {
+                const bar = timelineChildRow.querySelector('.timeline-bar');
+                if (bar) {
+                    const l = parseInt(bar.style.left) || 0;
+                    const w = parseInt(bar.style.width) || 0;
+                    minLeft = Math.min(minLeft, l);
+                    maxRight = Math.max(maxRight, l + w);
+                }
+            }
         });
 
         if (minLeft !== Infinity) {
-            console.log(`TixupCore: New range for ${parentId}: ${minLeft} to ${maxRight}`);
+            console.log(`TixupCore: Resizing ${parentId} to bounds: ${minLeft}px - ${maxRight}px`);
             const parentBars = document.querySelectorAll(`[data-group="${parentId}"] .timeline-bar`);
             parentBars.forEach(pb => {
-                pb.style.left = minLeft + 'px';
-                pb.style.width = (maxRight - minLeft) + 'px';
-                pb.style.transition = 'all 0.4s ease-in-out';
+                pb.style.setProperty('left', minLeft + 'px', 'important');
+                pb.style.setProperty('width', (maxRight - minLeft) + 'px', 'important');
+                pb.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
                 pb.classList.add('auto-resizing-animation');
-                setTimeout(() => { pb.style.transition = ''; pb.classList.remove('auto-resizing-animation'); }, 400);
+                setTimeout(() => {
+                    pb.style.transition = '';
+                    pb.classList.remove('auto-resizing-animation');
+                }, 450);
             });
             document.dispatchEvent(new CustomEvent('tixup:data-changed'));
         }
