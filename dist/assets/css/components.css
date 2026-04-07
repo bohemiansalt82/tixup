@@ -24,6 +24,52 @@ body {
     flex-direction: column;
 }
 
+/* Global Dragging State - The "Aesthetic Bypass" 6.0 (Stealth Mode) */
+/* This rule is now applied to both HTML and BODY to ensure no browser escapes the block. */
+/* We also use the transparent selection hack to definitively hide any active highlights. */
+html.dragging-active,
+body.dragging-active,
+html.dragging-active *,
+body.dragging-active * {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    cursor: grabbing !important;
+}
+
+html.dragging-active ::selection,
+body.dragging-active ::selection,
+html.dragging-active *::selection,
+body.dragging-active *::selection {
+    background-color: transparent !important;
+    color: inherit !important;
+}
+
+/* Timeline Bar Resizer Handles */
+.timeline-bar-resizer {
+    position: absolute;
+    top: 0;
+    width: 8px;
+    height: 100%;
+    cursor: ew-resize;
+    z-index: 10;
+    transition: background-color 0.2s;
+}
+
+.resizer-left { left: 0; }
+.resizer-right { right: 0; }
+
+.timeline-bar:hover .timeline-bar-resizer {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.timeline-bar.selected .timeline-bar-resizer {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.timeline-bar-resizer:hover {
+    background-color: rgba(255, 255, 255, 0.4) !important;
+}
+
 /* 1. Marker Component (Figma Marker V3 Spec) */
 .marker {
     display: inline-flex;
@@ -1665,6 +1711,18 @@ body {
     z-index: 10;
 }
 
+.timeline-bar.selected {
+    border-color: rgba(0, 0, 0, 0.2) !important;
+
+    z-index: 100 !important;
+}
+
+.timeline-bar.is-dragging {
+    transition: none !important;
+    opacity: 0.8;
+    z-index: 1000 !important;
+}
+
 .timeline-bar-resizer {
     position: absolute;
     top: 0;
@@ -1786,7 +1844,8 @@ body {
     gap: 8px;
     width: 100%;
     height: 48px;
-    padding: 0 !important; /* Ensure alignment with parent */
+    padding: 0 !important;
+    /* Ensure alignment with parent */
     background: transparent !important;
 }
 
@@ -1964,4 +2023,37 @@ body {
 
 .action-btn.delete .material-icons-outlined {
     color: #FF5252;
+}
+
+/* -------------------------------------
+   Full Data Grid Specifics
+---------------------------------------- */
+.full-data-grid-container {
+    display: none;
+    border: 1px solid var(--primitive-colors-gray-200);
+    border-radius: var(--semantic-size-radius-md);
+    overflow: hidden;
+    height: calc(100vh - 120px);
+    flex-direction: column;
+    background-color: var(--primitive-colors-base-white);
+}
+
+.full-grid-tbody {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.full-grid-footer {
+    padding: 0 16px;
+    border-top: 1px solid var(--primitive-colors-gray-200);
+    height: 56px;
+    display: flex;
+    align-items: center;
+}
+
+.full-grid-footer-cell {
+    border: none !important;
+    display: flex;
+    align-items: center;
+    flex: 1;
 }

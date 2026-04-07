@@ -14,7 +14,7 @@ class TixupCore {
         this.createIndicatorLine();
         this.initEventListeners();
         this.initSortable();
-        this.initTimelineInteraction();
+        // this.initTimelineInteraction(); // DISABLED: conflicts with test-drive-script
         this.syncScroll();
     }
 
@@ -403,46 +403,8 @@ class TixupCore {
     }
 
     handleAutoResize(parentRow) {
-        const parentId = parentRow.getAttribute('data-group');
-        console.log('TixupCore: Starting auto-resize for', parentId);
-        const children = document.querySelectorAll(`[data-parent="${parentId}"]`);
-        console.log(`TixupCore: Found ${children.length} children`);
-
-        if (children.length === 0) return;
-
-        let minLeft = Infinity;
-        let maxRight = -Infinity;
-
-        children.forEach(child => {
-            // Find child bar specifically in the timeline body to ensure we get correct coordinates
-            const childId = child.getAttribute('data-group');
-            const timelineChildRow = document.querySelector(`.timeline-body [data-group="${childId}"]`);
-            if (timelineChildRow) {
-                const bar = timelineChildRow.querySelector('.timeline-bar');
-                if (bar) {
-                    const l = parseInt(bar.style.left) || 0;
-                    const w = parseInt(bar.style.width) || 0;
-                    minLeft = Math.min(minLeft, l);
-                    maxRight = Math.max(maxRight, l + w);
-                }
-            }
-        });
-
-        if (minLeft !== Infinity) {
-            console.log(`TixupCore: Resizing ${parentId} to bounds: ${minLeft}px - ${maxRight}px`);
-            const parentBars = document.querySelectorAll(`[data-group="${parentId}"] .timeline-bar`);
-            parentBars.forEach(pb => {
-                pb.style.setProperty('left', minLeft + 'px', 'important');
-                pb.style.setProperty('width', (maxRight - minLeft) + 'px', 'important');
-                pb.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-                pb.classList.add('auto-resizing-animation');
-                setTimeout(() => {
-                    pb.style.transition = '';
-                    pb.classList.remove('auto-resizing-animation');
-                }, 450);
-            });
-            document.dispatchEvent(new CustomEvent('tixup:data-changed'));
-        }
+        // [DELETED] Automatic resizing was causing unwanted shrinking. Control is now purely manual.
+        console.log('TixupCore: Auto-resize is now DISABLED globally.');
     }
 }
 
