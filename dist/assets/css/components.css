@@ -52,8 +52,9 @@ body.dragging-active *::-moz-selection {
 .dragging-active .marker,
 .dragging-active .data-grid-text-sm,
 .dragging-active .location-title {
-    pointer-events: none !important;
+    /* pointer-events: none !important; - Removed to restore bar selection */
 }
+
 
 
 /* Timeline Bar Resizer Handles */
