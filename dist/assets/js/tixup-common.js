@@ -73,15 +73,19 @@ class TixupCore {
         const children = container.querySelectorAll(`.grid-child-row[data-parent="${groupName}"]`);
 
         if (isExpanded) {
+            // Collapsing
             expander.classList.remove('expanded');
             expander.classList.add('collapsed');
             children.forEach(child => child.classList.add('collapsed'));
         } else {
+            // Expanding
             expander.classList.remove('collapsed');
             expander.classList.add('expanded');
             children.forEach(child => child.classList.remove('collapsed'));
         }
     }
+
+
 
     syncScroll() {
         const sidebar = document.querySelector('.timeline-sidebar');
@@ -203,10 +207,17 @@ class TixupCore {
             }
 
             bar.classList.add(activeHandle === 'drag' ? 'is-dragging' : 'is-resizing');
+            document.body.classList.add('dragging-active');
+            document.documentElement.classList.add('dragging-active');
+            window.getSelection().removeAllRanges(); // Clear any existing selection
             document.addEventListener('mousemove', onMouseMove);
+
             document.addEventListener('mouseup', onMouseUp);
+
+            e.preventDefault();
             e.stopPropagation();
         };
+
 
         const onMouseMove = (e) => {
             if (!activeHandle) return;
@@ -234,7 +245,10 @@ class TixupCore {
 
         const onMouseUp = () => {
             bar.classList.remove('is-dragging', 'is-resizing');
+            document.body.classList.remove('dragging-active');
+            document.documentElement.classList.remove('dragging-active');
             activeHandle = null;
+
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
             document.dispatchEvent(new CustomEvent('tixup:data-changed'));
@@ -252,14 +266,21 @@ class TixupCore {
                 handle: '.data-grid-row',
                 draggable: '.data-grid-row:not(.data-grid-header):not(.data-grid-footer)',
                 filter: '.tree-expander, .add-child-btn, .checkbox-container, button, input',
-                preventOnFilter: false,
+                preventOnFilter: true,
                 ghostClass: 'sortable-ghost',
                 dragClass: 'sortable-drag',
                 forceFallback: true,
                 onStart: (evt) => {
                     this.lastDropTarget = null;
                     if (this.indicatorLine) this.indicatorLine.style.display = 'none';
+                    document.body.classList.add('dragging-active');
+                    document.documentElement.classList.add('dragging-active');
+                    window.getSelection().removeAllRanges(); // Clear any existing selection
                 },
+
+
+
+
                 onMove: (evt) => {
                     const dragEl = evt.dragged;
                     const targetEl = evt.related;
@@ -331,8 +352,13 @@ class TixupCore {
                         }
                     }
                     this.syncTimelineOrder();
+                    document.body.classList.remove('dragging-active');
+                    document.documentElement.classList.remove('dragging-active');
                     document.dispatchEvent(new CustomEvent('tixup:data-changed'));
+
                 }
+
+
             });
         });
     }
@@ -394,13 +420,41 @@ class TixupCore {
         const sidebar = document.getElementById('grid-tbody') || document.querySelector('.timeline-sidebar');
         const timelineBody = document.getElementById('timeline-tbody') || document.querySelector('.timeline-body');
         if (!sidebar || !timelineBody) return;
-        const rows = sidebar.querySelectorAll('.data-grid-row:not(.data-grid-header)');
-        rows.forEach(r => {
+        const rows = Array.from(sidebar.querySelectorAll('.data-grid-row:not(.data-grid-header)'));
+        
+        rows.forEach((r, index) => {
             const id = r.getAttribute('data-group');
             const vRow = timelineBody.querySelector(`[data-group="${id}"]`);
-            if (vRow) timelineBody.appendChild(vRow);
+            if (vRow) {
+                // 1. Sync DOM Position
+                if (timelineBody.children[index] !== vRow) {
+                    timelineBody.insertBefore(vRow, timelineBody.children[index]);
+                }
+                
+                // 2. Sync Hierarchy Attributes & Classes (Crucial for Toggle Animation)
+                const type = r.getAttribute('data-type');
+                const parentId = r.getAttribute('data-parent');
+                vRow.setAttribute('data-type', type || 'parent');
+                if (parentId) vRow.setAttribute('data-parent', parentId);
+                else vRow.removeAttribute('data-parent');
+
+                if (type === 'child') {
+                    vRow.classList.add('grid-child-row');
+                } else {
+                    vRow.classList.remove('grid-child-row');
+                }
+
+                // 3. Sync Collapsed State
+                if (r.classList.contains('collapsed')) {
+                    vRow.classList.add('collapsed');
+                } else {
+                    vRow.classList.remove('collapsed');
+                }
+            }
         });
     }
+
+
 
     handleAutoResize(parentRow) {
         // [DELETED] Automatic resizing was causing unwanted shrinking. Control is now purely manual.

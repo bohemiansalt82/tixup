@@ -153,16 +153,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const selectedIds = getSelectedIds();
             if (selectedIds.length === 0) return;
 
+            const idsToRemove = [...selectedIds];
             selectedIds.forEach(id => {
-                document.querySelectorAll(`[data-group="${id}"]`).forEach(v => v.remove());
-                // Also remove children if it's a parent
                 document.querySelectorAll(`[data-parent="${id}"]`).forEach(el => {
-                    const cid = el.getAttribute('data-group');
-                    document.querySelectorAll(`[data-group="${cid}"]`).forEach(v => v.remove());
+                    idsToRemove.push(el.getAttribute('data-group'));
                 });
             });
-            updateSelectionBar();
-            saveData();
+
+            animateAndRemove([...new Set(idsToRemove)], () => {
+                updateSelectionBar();
+                saveData();
+            });
         };
 
         bulkStatusBtn.onclick = (e) => {
@@ -251,13 +252,14 @@ document.addEventListener('DOMContentLoaded', () => {
         tasks.filter(t => t.type === 'child').forEach(t => renderTask(t));
     }
 
-    function renderTask(task) {
+    function renderTask(task, animate = false) {
         const status = (task.status || 'pending').toLowerCase().replace('onhold', 'pause');
         const hasChildren = tasks.some(t => t.parentId === task.id);
 
         // 1. Sidebar Grid Row
         const gRow = document.createElement('div');
         gRow.className = `data-grid-row ${task.type === 'child' ? 'grid-child-row' : 'level-0'}`;
+        if (animate) gRow.classList.add('tix-anim-enter');
         gRow.setAttribute('data-group', task.id);
         gRow.setAttribute('data-type', task.type);
         gRow.setAttribute('data-status', status); // Added for filtering
@@ -314,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tRow.setAttribute('data-status', status); // Added for filtering
         if (task.parentId) tRow.setAttribute('data-parent', task.parentId);
         tRow.innerHTML = `
-            <div class="timeline-bar timeline-bar-${status}" style="left: ${task.start}px; width: ${task.width}px;">
+            <div class="timeline-bar timeline-bar-${status} ${animate ? 'tix-anim-enter' : ''}" style="left: ${task.start}px; width: ${task.width}px;">
                 <div class="timeline-bar-resizer resizer-left"></div>
                 <span class="timeline-bar-label">${task.title}</span>
                 <div class="timeline-bar-resizer resizer-right"></div>
@@ -361,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const now = new Date();
             const todayPos = (now.getDate() - 1) * 48;
             const task = { id: cId, title: '', status: 'pending', type: 'child', parentId: pId, start: todayPos, width: 96 };
-            renderTask(task);
+            renderTask(task, true); // Animate creation
 
             const gRow = document.querySelector(`#grid-tbody [data-group="${cId}"]`);
             const fRow = document.querySelector(`#full-grid-tbody [data-group="${cId}"]`);
@@ -451,12 +453,15 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteTixBtn.onclick = () => {
             const id = currentContextMenuId;
             if (!id) return;
-            document.querySelectorAll(`[data-group="${id}"]`).forEach(v => v.remove());
+
+            const idsToRemove = [id];
             document.querySelectorAll(`[data-parent="${id}"]`).forEach(el => {
-                const cid = el.getAttribute('data-group');
-                document.querySelectorAll(`[data-group="${cid}"]`).forEach(v => v.remove());
+                idsToRemove.push(el.getAttribute('data-group'));
             });
-            saveData();
+
+            animateAndRemove(idsToRemove, () => {
+                saveData();
+            });
         };
     }
 
@@ -545,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const now = new Date();
                 const todayPos = (now.getDate() - 1) * 48;
                 const task = { id: 'live-' + Date.now(), title: name, status: 'pending', type: 'parent', start: todayPos, width: 96 };
-                renderTask(task);
+                renderTask(task, true); // Animate creation
                 saveData();
             }
         };
@@ -574,6 +579,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(res));
         if (window.tixupCore) window.tixupCore.syncTimelineOrder();
+    }
+
+    function animateAndRemove(ids, callback) {
+        const elements = [];
+        ids.forEach(id => {
+            document.querySelectorAll(`[data-group="${id}"]`).forEach(el => elements.push(el));
+        });
+
+        if (elements.length === 0) {
+            if (callback) callback();
+            return;
+        }
+
+        elements.forEach(el => el.classList.add('tix-anim-exit'));
+
+        // Wait for the exit animation to finish (0.3s)
+        setTimeout(() => {
+            elements.forEach(el => el.remove());
+            if (callback) callback();
+        }, 300);
     }
 
     // --- Multi-Selection, Multi-Drag & Multi-Resize Logic ---

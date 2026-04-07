@@ -24,9 +24,7 @@ body {
     flex-direction: column;
 }
 
-/* Global Dragging State - The "Aesthetic Bypass" 6.0 (Stealth Mode) */
-/* This rule is now applied to both HTML and BODY to ensure no browser escapes the block. */
-/* We also use the transparent selection hack to definitively hide any active highlights. */
+/* Global Dragging State - The "Aesthetic Bypass" 7.5 (Full Stealth) */
 html.dragging-active,
 body.dragging-active,
 html.dragging-active *,
@@ -36,13 +34,27 @@ body.dragging-active * {
     cursor: grabbing !important;
 }
 
+/* Definitively kill the blue selection box across ALL browsers */
 html.dragging-active ::selection,
 body.dragging-active ::selection,
 html.dragging-active *::selection,
-body.dragging-active *::selection {
+body.dragging-active *::selection,
+html.dragging-active ::-moz-selection,
+body.dragging-active ::-moz-selection,
+html.dragging-active *::-moz-selection,
+body.dragging-active *::-moz-selection {
     background-color: transparent !important;
     color: inherit !important;
 }
+
+/* Even more aggressive targeting for nested elements */
+.dragging-active .data-grid-text,
+.dragging-active .marker,
+.dragging-active .data-grid-text-sm,
+.dragging-active .location-title {
+    pointer-events: none !important;
+}
+
 
 /* Timeline Bar Resizer Handles */
 .timeline-bar-resizer {
@@ -857,9 +869,27 @@ body.dragging-active *::selection {
 /* -------------------------------------
    Data Grid - Hierarchy Control
 ---------------------------------------- */
-.grid-child-row.collapsed {
-    display: none !important;
+.grid-child-row {
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    max-height: 48px; /* Perfectly match 48px row height to avoid clipping lag */
+    min-height: 48px;
+    height: 48px;
+    overflow: hidden;
 }
+
+
+
+.grid-child-row.collapsed {
+    max-height: 0 !important;
+    min-height: 0 !important;
+    opacity: 0 !important;
+    border-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    pointer-events: none !important;
+}
+
+
 
 
 /* --------------------------------------------------
@@ -1486,9 +1516,7 @@ body.dragging-active *::selection {
     margin: 0 !important;
 }
 
-.grid-child-row.collapsed {
-    display: none !important;
-}
+/* Redundant rule removed to avoid conflicts */
 
 .timeline-sidebar .data-grid-header {
     min-height: 82px !important;
@@ -1656,12 +1684,29 @@ body.dragging-active *::selection {
 }
 
 .timeline-row {
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    max-height: 48px;
+    min-height: 48px;
     height: 48px;
+    overflow: hidden;
+
+
     border-bottom: 1px solid var(--primitive-colors-gray-200);
     position: relative;
     display: flex;
     align-items: center;
 }
+
+.timeline-row.collapsed {
+    max-height: 0 !important;
+    min-height: 0 !important;
+    opacity: 0 !important;
+    padding: 0 !important;
+    border-bottom: 0 !important;
+    pointer-events: none !important;
+}
+
+
 
 .timeline-grid-lines {
     position: absolute;
@@ -2056,4 +2101,85 @@ body.dragging-active *::selection {
     display: flex;
     align-items: center;
     flex: 1;
+}
+
+/* -------------------------------------
+   Tix Animation System (Creation/Deletion)
+---------------------------------------- */
+
+/* Grid Row Entry Animation */
+@keyframes tix-entry {
+    0% {
+        opacity: 0;
+        transform: translateY(-8px);
+        background-color: var(--primitive-colors-blue-50);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        background-color: transparent;
+    }
+}
+
+/* Timeline Bar Entry Animation */
+@keyframes tix-bar-entry {
+    0% {
+        opacity: 0;
+        transform: scale(0.9) translateY(4px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Exit Animation (Shared) */
+@keyframes tix-exit {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+}
+
+/* Timeline Bar Exit Animation */
+@keyframes tix-bar-exit {
+    0% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.9) translateY(4px);
+    }
+}
+
+.tix-anim-enter {
+    animation: tix-entry 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.timeline-bar.tix-anim-enter {
+    animation: tix-bar-entry 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.tix-anim-exit {
+    animation: tix-exit 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
+    pointer-events: none !important;
+}
+
+.timeline-bar.tix-anim-exit {
+    animation: tix-bar-exit 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
+}
+
+/* Hierarchy Toggle Animations */
+.tix-collapsing {
+    animation: tix-exit 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
+    pointer-events: none !important;
+}
+
+.tix-expanding {
+    animation: tix-entry 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
 }
