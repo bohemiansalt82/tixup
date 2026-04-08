@@ -313,6 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tRow = document.createElement('div');
         tRow.className = `timeline-row ${task.type === 'child' ? 'grid-child-row' : ''}`;
         tRow.setAttribute('data-group', task.id);
+        tRow.setAttribute('data-type', task.type);
         tRow.setAttribute('data-status', status); // Added for filtering
         if (task.parentId) tRow.setAttribute('data-parent', task.parentId);
         tRow.innerHTML = `
@@ -798,7 +799,23 @@ document.addEventListener('DOMContentLoaded', () => {
         initialPositions.clear();
         initialWidths.clear();
 
+        // 1. Collect all explicit selections
+        const dragSet = new Set(timelineSelectedIds);
+
+        // 2. Expand dragSet to include all children of selected parents
         timelineSelectedIds.forEach(id => {
+            const row = document.querySelector(`#timeline-tbody [data-group="${id}"]`);
+            // Robust parent check: has data-type="parent" OR has no data-parent attribute
+            if (row && (row.getAttribute('data-type') === 'parent' || !row.getAttribute('data-parent'))) {
+                const children = document.querySelectorAll(`#timeline-tbody [data-parent="${id}"]`);
+                children.forEach(childRow => {
+                    dragSet.add(childRow.getAttribute('data-group'));
+                });
+            }
+        });
+
+        // 3. Initialize positions for the entire expanded set
+        dragSet.forEach(id => {
             const bar = document.querySelector(`#timeline-tbody [data-group="${id}"] .timeline-bar`);
             if (bar) {
                 initialPositions.set(id, parseInt(bar.style.left) || 0);
