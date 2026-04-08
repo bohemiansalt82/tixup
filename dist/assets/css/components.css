@@ -595,6 +595,12 @@ body.dragging-active *::-moz-selection {
     font-weight: var(--semantic-font-font-weight-default);
     color: var(--semantic-color-colors-text-body);
     font-family: var(--semantic-font-font-family-default);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    flex: 1;
+    min-width: 0;
 }
 
 .data-grid-cell .nav-icon {
