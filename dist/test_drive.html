@@ -5,14 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tixup - Data Test Drive (Final Master Pro)</title>
-    <link rel="stylesheet" href="assets/css/tokens.css">
-    <link rel="stylesheet" href="assets/css/components.css">
-    <link rel="stylesheet" href="assets/css/icons.css">
+    <link rel="stylesheet" href="assets/css/tokens.css?v=1776110243">
+    <link rel="stylesheet" href="assets/css/components.css?v=1776110243">
+    <link rel="stylesheet" href="assets/css/icons.css?v=1776110243">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <!-- Styles are now managed in assets/css/components.css -->
-</head>
+<script src="assets/js/debug-mutations.js"></script></head>
 
 <body>
     <nav class="nav-sidebar">
@@ -69,7 +69,26 @@
                 <div class="timeline-view-viewport" id="viewport-container">
                     <div class="timeline-grid-content" style="width: 2500px;">
                         <div class="timeline-header">
-                            <div class="timeline-month-nav" id="timeline-month-label"></div>
+                            <!-- Fixed Left Master Header (Year + Month) -->
+                            <div id="timeline-fixed-master"></div>
+                            
+                            <!-- Floating Month Labels (Month only) -->
+                            <div id="timeline-floating-labels"></div>
+                            
+                            <!-- Today Button Container (Refined Navigation) -->
+                            <div class="timeline-nav-actions">
+                                <div class="timeline-nav-group">
+                                    <button class="nav-arrow-btn" id="nav-prev-2w">
+                                        <img src="assets/images/icons/chevron_left.svg" alt="이전">
+                                    </button>
+                                    <button class="nav-today-btn" id="go-today-btn">오늘</button>
+                                    <button class="nav-arrow-btn" id="nav-next-2w">
+                                        <img src="assets/images/icons/chevron_right.svg" alt="다음">
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Days Row (Numbers) -->
                             <div class="timeline-days-row" id="timeline-days-header"></div>
                         </div>
                         <div class="timeline-body">
@@ -164,13 +183,8 @@
         </button>
     </div>
 
-    <script src="assets/js/tixup-common.js?v=1.0.5"></script>
-
-
-
-
-
-    <script src="assets/js/tixup-test-drive.js"></script>
+    <script src="assets/js/tixup-common.js?v=1776110243"></script>
+    <script src="assets/js/tixup-test-drive.js?v=1776110243"></script>
 </body>
 
 </html>

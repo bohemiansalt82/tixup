@@ -68,8 +68,13 @@ body.dragging-active *::-moz-selection {
     transition: background-color 0.2s;
 }
 
-.resizer-left { left: 0; }
-.resizer-right { right: 0; }
+.resizer-left {
+    left: 0;
+}
+
+.resizer-right {
+    right: 0;
+}
 
 .timeline-bar:hover .timeline-bar-resizer {
     background-color: rgba(255, 255, 255, 0.1);
@@ -878,7 +883,8 @@ body.dragging-active *::-moz-selection {
 ---------------------------------------- */
 .grid-child-row {
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    max-height: 48px; /* Perfectly match 48px row height to avoid clipping lag */
+    max-height: 48px;
+    /* Perfectly match 48px row height to avoid clipping lag */
     min-height: 48px;
     height: 48px;
     overflow: hidden;
@@ -1465,6 +1471,42 @@ body.dragging-active *::-moz-selection {
     height: var(--primitive-sizes-24);
 }
 
+.btn-today-prominent {
+    height: 36px;
+    padding: 0 20px;
+    border-radius: 18px;
+    background-color: var(--primitive-colors-red-600);
+    color: var(--primitive-colors-base-white) !important;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    box-shadow: 0 4px 15px rgba(229, 57, 53, 0.4);
+    z-index: 1000;
+    margin-left: 20px;
+}
+
+.btn-today-prominent .icon {
+    width: 16px;
+    height: 16px;
+    background-color: white !important;
+}
+
+.btn-today-prominent:hover {
+    background-color: var(--primitive-colors-red-700);
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 8px 20px rgba(229, 57, 53, 0.5);
+}
+
+.btn-today-prominent:active {
+    transform: scale(0.95);
+}
+
 /* -------------------------------------
    9. Timeline Data Grid Component
 ---------------------------------------- */
@@ -1591,13 +1633,13 @@ body.dragging-active *::-moz-selection {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 0 16px 0 8px;
+    padding: 0 16px 0 0;
     width: 100%;
     overflow: hidden;
 }
 
 .row-title-container.depth-2 {
-    padding-left: 36px;
+    padding-left: 28px;
 }
 
 .add-child-btn {
@@ -1622,7 +1664,6 @@ body.dragging-active *::-moz-selection {
     overflow: auto;
     height: 100%;
     position: relative;
-    background-color: var(--primitive-colors-gray-50);
     overscroll-behavior: none;
     /* padding-bottom removed */
 }
@@ -1637,23 +1678,99 @@ body.dragging-active *::-moz-selection {
     position: sticky;
     top: 0;
     background: var(--primitive-colors-base-white);
-    z-index: 150 !important;
-    /* Match sidebar header z-index */
+    z-index: 151 !important;
     border-bottom: 1px solid var(--primitive-colors-gray-200);
 }
 
-.timeline-month-nav {
+#timeline-fixed-master {
+    position: sticky;
+    left: 0;
+    top: 0;
+    float: left;
     height: 48px;
-    padding: 0 16px;
+    width: 160px;
+    /* Reliable width for "2026년 12월" */
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--primitive-colors-gray-100);
+    padding: 0 16px;
+    background-color: var(--primitive-colors-base-white);
+    z-index: 500;
+    /* Highest priority */
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--primitive-colors-gray-900);
+
+}
+
+.timeline-nav-actions {
+    position: sticky;
+    right: 0;
+    top: 0;
+    float: right;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    padding-right: 16px;
+    z-index: 510;
+    background-color: var(--primitive-colors-base-white);
+}
+
+.timeline-nav-group {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Increased gap for better text-button feel */
+    background: none;
+    padding: 0;
+    border: none;
+}
+
+.nav-arrow-btn, .nav-today-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.nav-arrow-btn:hover, .nav-today-btn:hover {
+    background-color: var(--primitive-colors-gray-200);
+}
+
+.nav-arrow-btn img {
+    width: 20px;
+    height: 20px;
+}
+
+.nav-today-btn {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primitive-colors-gray-700);
+    padding: 4px 8px;
+}
+
+
+#timeline-floating-labels {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 48px;
+    width: 100%;
+    pointer-events: none;
+    z-index: 100;
+    /* Below fixed master */
 }
 
 .timeline-days-row {
     height: 34px;
     display: flex;
+    width: 2000000px;
+    position: absolute;
+    top: 48px;
+    left: 0;
 }
 
 .timeline-day-cell {
@@ -1688,6 +1805,8 @@ body.dragging-active *::-moz-selection {
 
 .timeline-body {
     position: relative;
+    width: 2000000px;
+    overflow-x: hidden;
 }
 
 .timeline-row {
@@ -1696,9 +1815,8 @@ body.dragging-active *::-moz-selection {
     min-height: 48px;
     height: 48px;
     overflow: hidden;
-
-
-    border-bottom: 1px solid var(--primitive-colors-gray-200);
+    width: 2000000px;
+    /* border-bottom: 1px solid var(--primitive-colors-gray-200); */
     position: relative;
     display: flex;
     align-items: center;
@@ -1713,8 +1831,6 @@ body.dragging-active *::-moz-selection {
     pointer-events: none !important;
 }
 
-
-
 .timeline-grid-lines {
     position: absolute;
     top: 0;
@@ -1723,12 +1839,30 @@ body.dragging-active *::-moz-selection {
     right: 0;
     display: flex;
     pointer-events: none;
+    width: 2000000px;
 }
 
 .timeline-grid-line {
     width: 48px;
     height: 100%;
     border-right: 1px solid var(--primitive-colors-gray-100);
+}
+
+.timeline-grid-line.is-weekend {
+    background-color: var(--primitive-colors-gray-50);
+}
+
+.timeline-month-label-floating {
+    position: absolute;
+    top: 0;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    padding-left: 14px;
+    color: var(--primitive-colors-gray-500);
+    font-size: 13px;
+    font-weight: 600;
+    pointer-events: none;
 }
 
 .timeline-today-line {
@@ -2121,6 +2255,7 @@ body.dragging-active *::-moz-selection {
         transform: translateY(-8px);
         background-color: var(--primitive-colors-blue-50);
     }
+
     100% {
         opacity: 1;
         transform: translateY(0);
@@ -2134,6 +2269,7 @@ body.dragging-active *::-moz-selection {
         opacity: 0;
         transform: scale(0.9) translateY(4px);
     }
+
     100% {
         opacity: 1;
         transform: scale(1) translateY(0);
@@ -2145,10 +2281,26 @@ body.dragging-active *::-moz-selection {
     0% {
         opacity: 1;
         transform: translateY(0);
+        height: 48px;
+        max-height: 48px;
+        min-height: 48px;
+        border-bottom-width: 1px;
+        padding-top: auto;
+        padding-bottom: auto;
     }
+
     100% {
         opacity: 0;
         transform: translateY(-8px);
+        height: 0px !important;
+        max-height: 0px !important;
+        min-height: 0px !important;
+        border-bottom-width: 0px !important;
+        padding-top: 0px !important;
+        padding-bottom: 0px !important;
+        margin-top: 0px !important;
+        margin-bottom: 0px !important;
+        font-size: 0;
     }
 }
 
@@ -2158,6 +2310,7 @@ body.dragging-active *::-moz-selection {
         opacity: 1;
         transform: scale(1) translateY(0);
     }
+
     100% {
         opacity: 0;
         transform: scale(0.9) translateY(4px);
@@ -2175,6 +2328,7 @@ body.dragging-active *::-moz-selection {
 .tix-anim-exit {
     animation: tix-exit 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
     pointer-events: none !important;
+    overflow: hidden !important;
 }
 
 .timeline-bar.tix-anim-exit {
@@ -2185,6 +2339,10 @@ body.dragging-active *::-moz-selection {
 .tix-collapsing {
     animation: tix-exit 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
     pointer-events: none !important;
+}
+
+.tix-expanding {
+    animation: tix-entry 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
 }
 
 .tix-expanding {

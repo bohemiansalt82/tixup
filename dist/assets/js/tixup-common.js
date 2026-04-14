@@ -371,8 +371,8 @@ class TixupCore {
         let maxRight = -Infinity;
 
         children.forEach(bar => {
-            const left = parseInt(bar.style.left) || 0;
-            const width = parseInt(bar.style.width) || 0;
+            const left = parseFloat(bar.style.left) || 0;
+            const width = parseFloat(bar.style.width) || 0;
             minLeft = Math.min(minLeft, left);
             maxRight = Math.max(maxRight, left + width);
         });

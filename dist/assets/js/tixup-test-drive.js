@@ -1,7 +1,27 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const STORAGE_KEY = 'tixup_master_pro_data';
+    const STORAGE_KEY = 'tixup_master_v1';
     let tasks = [];
     let currentContextMenuId = null;
+
+    const UI_CONSTANTS = { CELL_WIDTH: 48, VIRTUAL_WIDTH: 35000, CENTER_PX: 1000000 };
+    let panOffset = UI_CONSTANTS.CENTER_PX - (UI_CONSTANTS.VIRTUAL_WIDTH / 2);
+
+    // Robust parsing for coordinates that might be in scientific notation (e.g. 1.00048e+06px)
+    function parseSafePx(pxStr, defaultVal = 0) {
+        if (!pxStr) return defaultVal;
+        const val = parseFloat(pxStr);
+        return isNaN(val) ? defaultVal : val;
+    }
+
+    const BASE_EPOCH = new Date();
+    BASE_EPOCH.setHours(0, 0, 0, 0);
+
+    function getDateFromPx(px) {
+        const daysOffset = Math.floor((px - UI_CONSTANTS.CENTER_PX) / UI_CONSTANTS.CELL_WIDTH);
+        const d = new Date(BASE_EPOCH);
+        d.setDate(d.getDate() + daysOffset);
+        return d;
+    }
 
     // DOM Element Caching
     const gB = document.getElementById('grid-tbody');
@@ -29,55 +49,230 @@ document.addEventListener('DOMContentLoaded', () => {
         const saved = localStorage.getItem(STORAGE_KEY);
         tasks = saved ? JSON.parse(saved) : [];
 
-        // 만약 데이터가 없거나 과거 데이터라면 현재 날짜 기준으로 샘플 생성/보정
-        if (tasks.length === 0) {
-            tasks = [
-                { id: 'p1', title: 'Design System Update', status: 'inprogress', type: 'parent', start: 48, width: 144, assignee: '이대수', dueDate: '2026-04-10', tag: 'Design' },
-                { id: 'c1', title: 'Color Palette logic', status: 'done', type: 'child', parentId: 'p1', start: 48, width: 48, assignee: '김철수', dueDate: '2026-04-05', tag: 'Sub' },
-                { id: 'c2', title: 'Icon set optimization', status: 'pending', type: 'child', parentId: 'p1', start: 96, width: 96, assignee: '이영희', dueDate: '2026-04-07', tag: 'Sub' },
-                { id: 'p2', title: 'Backend Integration', status: 'pause', type: 'parent', start: 240, width: 192, assignee: '박지민', dueDate: '2026-04-15', tag: 'Dev' }
-            ];
+        // Detect corrupt or extremely outdated data (coordinates near 0 or negative when they should be near 1M)
+        let isOldFormat = tasks.length > 0 && tasks.some(t => t.start < 300000);
+
+        if (isOldFormat) {
+            console.warn("[Data Recovery] Old format detected. Resetting coordinates.");
+            const todayPx = UI_CONSTANTS.CENTER_PX;
+            tasks.forEach(t => {
+                if (t.start < 300000) {
+                    t.start = todayPx + 48; // Shift to a reasonable default near today
+                }
+            });
             saveData();
+        }
+
+        const gridContent = document.querySelector('.timeline-grid-content');
+        if (gridContent) gridContent.style.width = UI_CONSTANTS.VIRTUAL_WIDTH + 'px';
+
+        const viewport = document.querySelector('.timeline-view-viewport');
+        if (viewport) {
+            viewport.scrollLeft = (UI_CONSTANTS.VIRTUAL_WIDTH / 2) - (viewport.clientWidth / 2) + 24;
         }
 
         renderTimelineHeader();
         initFilters();
         initViewToggle();
         initSelection();
-        initTimelineDragging(); // Initialize timeline dragging
+        initTimelineDragging();
+
+        const goTodayBtn = document.getElementById('go-today-btn');
+        const headerGoTodayBtn = document.getElementById('go-today-btn-header');
+        const navPrevBtn = document.getElementById('nav-prev-2w');
+        const navNextBtn = document.getElementById('nav-next-2w');
+
+        // Smooth Scroll Helper (easeInOutQuart for premium feel)
+        const animateScroll = (targetX) => {
+            const startX = viewport.scrollLeft;
+            const distance = targetX - startX;
+            const duration = 500; // ms
+            let startTime = null;
+
+            const easing = (t) => t < 0.5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t;
+
+            const step = (currentTime) => {
+                if (!startTime) startTime = currentTime;
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                viewport.scrollLeft = startX + (distance * easing(progress));
+
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        };
+
+        const scrollToday = () => {
+            const target = (UI_CONSTANTS.VIRTUAL_WIDTH / 2) - (viewport.clientWidth / 2) + 24;
+            animateScroll(target);
+        };
+
+        if (goTodayBtn && viewport) goTodayBtn.addEventListener('click', scrollToday);
+        if (headerGoTodayBtn && viewport) headerGoTodayBtn.addEventListener('click', scrollToday);
+        
+        if (navPrevBtn && viewport) {
+            navPrevBtn.addEventListener('click', () => {
+                const target = viewport.scrollLeft - (14 * UI_CONSTANTS.CELL_WIDTH);
+                animateScroll(target);
+            });
+        }
+        if (navNextBtn && viewport) {
+            navNextBtn.addEventListener('click', () => {
+                const target = viewport.scrollLeft + (14 * UI_CONSTANTS.CELL_WIDTH);
+                animateScroll(target);
+            });
+        }
+
         renderAll();
+
+        if (viewport) {
+            viewport.addEventListener('scroll', () => {
+                window.requestAnimationFrame(renderTimelineHeader);
+            }, { passive: true });
+        }
     }
 
+    let lastRenderedStartDay = null;
+
     function renderTimelineHeader() {
-        const now = new Date(); // Actual current date: 2026-04-04
-        const year = now.getFullYear();
-        const month = now.getMonth();
-        const today = now.getDate();
+        const viewport = document.querySelector('.timeline-view-viewport');
+        if (!viewport) return;
 
-        // 1. Set Month Label (e.g., April 2026)
-        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        document.getElementById('timeline-month-label').innerText = `${monthNames[month]} ${year}`;
+        let currentScrollLeft = viewport.scrollLeft;
 
-        // 2. Generate Day Cells
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        // Treadmill Anchoring Loop (Disabled during drag/resize to prevent math artifacts)
+        if (!isDragging && !isResizing) {
+            const JUMP_MARGIN = 5000;
+            const CENTER_SCROLL = UI_CONSTANTS.VIRTUAL_WIDTH / 2;
+
+            if (currentScrollLeft < JUMP_MARGIN) {
+                console.log(`[Treadmill] Left Jump triggered. panOffset: ${panOffset} -> ${panOffset - (CENTER_SCROLL - currentScrollLeft)}`);
+                const diff = CENTER_SCROLL - currentScrollLeft;
+                panOffset -= diff;
+                viewport.scrollLeft = CENTER_SCROLL;
+                currentScrollLeft = CENTER_SCROLL;
+                return; // Let the next scroll event re-trigger rendering cleanly
+            } else if (currentScrollLeft > UI_CONSTANTS.VIRTUAL_WIDTH - JUMP_MARGIN) {
+                console.log(`[Treadmill] Right Jump triggered. panOffset: ${panOffset} -> ${panOffset + (currentScrollLeft - CENTER_SCROLL)}`);
+                const diff = currentScrollLeft - CENTER_SCROLL;
+                panOffset += diff;
+                viewport.scrollLeft = CENTER_SCROLL;
+                currentScrollLeft = CENTER_SCROLL;
+                return;
+            }
+        }
+
+        const absoluteScrollLeft = currentScrollLeft + panOffset;
+        const viewportWidth = viewport.clientWidth || window.innerWidth;
+
+        const startVisiblePx = absoluteScrollLeft - (UI_CONSTANTS.CELL_WIDTH * 15);
+        const endVisiblePx = absoluteScrollLeft + viewportWidth + (UI_CONSTANTS.CELL_WIDTH * 15);
+
+        const startDayOffset = Math.floor((startVisiblePx - UI_CONSTANTS.CENTER_PX) / UI_CONSTANTS.CELL_WIDTH);
+        const endDayOffset = Math.floor((endVisiblePx - UI_CONSTANTS.CENTER_PX) / UI_CONSTANTS.CELL_WIDTH);
+
+        const fixedMaster = document.getElementById('timeline-fixed-master');
+        if (fixedMaster) {
+            const displayDate = getDateFromPx(absoluteScrollLeft + 80); // Anchor near the left edge
+            const yearStr = displayDate.getFullYear() + '년';
+            const monthStr = (displayDate.getMonth() + 1) + '월';
+            fixedMaster.innerText = `${yearStr} ${monthStr}`;
+        }
+
         const daysHeader = document.getElementById('timeline-days-header');
         const gridBack = document.getElementById('timeline-grid-back');
+        const tbody = document.getElementById('timeline-tbody');
+        const todayIndicator = document.getElementById('timeline-today-indicator');
+
+        const translation = `translateX(${-panOffset}px)`;
+        if (daysHeader) { daysHeader.style.position = 'absolute'; daysHeader.style.bottom = '0'; daysHeader.style.transform = translation; }
+        if (gridBack) { gridBack.style.position = 'absolute'; gridBack.style.transform = translation; }
+        if (tbody) tbody.style.transform = translation;
+
+        const floatingLabels = document.getElementById('timeline-floating-labels');
+        if (floatingLabels) {
+            floatingLabels.style.transform = translation;
+        }
+
+        if (todayIndicator) {
+            todayIndicator.style.transform = translation;
+            todayIndicator.style.left = `${UI_CONSTANTS.CENTER_PX + 24}px`;
+            todayIndicator.style.display = 'block';
+            todayIndicator.style.zIndex = '5';
+        }
+
+        if (startDayOffset === lastRenderedStartDay) {
+             updateFloatingMonthLabels(floatingLabels, startDayOffset, endDayOffset, absoluteScrollLeft);
+             return;
+        }
+        lastRenderedStartDay = startDayOffset;
+
+        if (!daysHeader || !gridBack) return;
 
         let daysHtml = '';
         let gridHtml = '';
-        for (let i = 1; i <= daysInMonth; i++) {
-            const isToday = i === today;
-            daysHtml += `<div class="timeline-day-cell ${isToday ? 'today-marker' : ''}">${i}</div>`;
-            gridHtml += `<div class="timeline-grid-line"></div>`;
+        for (let i = startDayOffset; i <= endDayOffset; i++) {
+            const date = new Date(BASE_EPOCH);
+            date.setDate(date.getDate() + i);
+            const isToday = i === 0;
+            const leftPos = UI_CONSTANTS.CENTER_PX + (i * UI_CONSTANTS.CELL_WIDTH);
+            const dayOfWeek = date.getDay();
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+            daysHtml += `<div class="timeline-day-cell ${isToday ? 'today-marker' : ''}" style="position: absolute; left: ${leftPos}px; top: 0; padding:0; margin:0; justify-content:center; ${isWeekend ? 'color: var(--primitive-colors-gray-400);' : ''}">${date.getDate()}</div>`;
+            gridHtml += `<div class="timeline-grid-line ${isWeekend ? 'is-weekend' : ''}" style="position: absolute; left: ${leftPos}px; top: 0; bottom: 0; width:48px; border-right: 1px solid var(--primitive-colors-gray-100);"></div>`;
         }
+
         daysHeader.innerHTML = daysHtml;
         gridBack.innerHTML = gridHtml;
 
-        // 3. Position Today Line (48px per day, center it at 24px)
-        const todayIndicator = document.getElementById('timeline-today-indicator');
-        const leftPos = (today - 1) * 48 + 24;
-        todayIndicator.style.left = `${leftPos}px`;
-        todayIndicator.style.display = 'block';
+        updateFloatingMonthLabels(floatingLabels, startDayOffset, endDayOffset, absoluteScrollLeft);
+    }
+
+    function updateFloatingMonthLabels(container, startOffset, endOffset, absoluteScrollLeft) {
+        if (!container) return;
+
+        const startDate = new Date(BASE_EPOCH);
+        startDate.setDate(startDate.getDate() + startOffset);
+
+        const endDate = new Date(BASE_EPOCH);
+        endDate.setDate(endDate.getDate() + endOffset);
+
+        // Find all month boundaries in the visible range
+        const months = [];
+        let iterDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+
+        while (iterDate <= endDate) {
+            const monthStartMs = iterDate.getTime();
+            const dayOffset = Math.round((monthStartMs - BASE_EPOCH.getTime()) / (24 * 60 * 60 * 1000));
+            const startPx = UI_CONSTANTS.CENTER_PX + (dayOffset * UI_CONSTANTS.CELL_WIDTH);
+
+            // Get end of month
+            const nextMonth = new Date(iterDate.getFullYear(), iterDate.getMonth() + 1, 1);
+            const nextMonthDayOffset = Math.round((nextMonth.getTime() - BASE_EPOCH.getTime()) / (24 * 60 * 60 * 1000));
+            const endPx = UI_CONSTANTS.CENTER_PX + (nextMonthDayOffset * UI_CONSTANTS.CELL_WIDTH);
+
+            months.push({
+                label: `${iterDate.getMonth() + 1}월`,
+                start: startPx,
+                end: endPx
+            });
+
+            iterDate = nextMonth;
+        }
+
+        let floatingHtml = '';
+        months.forEach(m => {
+            const labelWidth = 100; 
+            let leftPos = m.start; // Purely absolute grid position
+            
+            floatingHtml += `<div class="timeline-month-label-floating" style="left: ${leftPos}px; width: ${labelWidth}px;">${m.label}</div>`;
+        });
+
+        container.innerHTML = floatingHtml;
     }
 
     function initFilters() {
@@ -361,8 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const pId = pRow.getAttribute('data-group');
             const cId = 'live-' + Date.now();
-            const now = new Date();
-            const todayPos = (now.getDate() - 1) * 48;
+            const todayPos = UI_CONSTANTS.CENTER_PX;
             const task = { id: cId, title: '', status: 'pending', type: 'child', parentId: pId, start: todayPos, width: 96 };
             renderTask(task, true); // Animate creation
 
@@ -548,8 +742,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 applyStatusFilter('all');
 
-                const now = new Date();
-                const todayPos = (now.getDate() - 1) * 48;
+                const todayPos = UI_CONSTANTS.CENTER_PX;
                 const task = { id: 'live-' + Date.now(), title: name, status: 'pending', type: 'parent', start: todayPos, width: 96 };
                 renderTask(task, true); // Animate creation
                 saveData();
@@ -571,8 +764,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 status: row.querySelector('.marker')?.classList[2]?.replace('marker-', '') || 'pending',
                 type: row.getAttribute('data-type'),
                 parentId: row.getAttribute('data-parent'),
-                start: parseInt(bar.style.left),
-                width: parseInt(bar.style.width),
+                start: parseSafePx(bar.style.left, UI_CONSTANTS.CENTER_PX),
+                width: parseSafePx(bar.style.width, 48),
                 assignee: fRow ? fRow.querySelector('.data-grid-text-sm')?.innerText : '이대수',
                 dueDate: fRow ? fRow.querySelectorAll('.data-grid-text-sm')[1]?.innerText : '2025-08-09',
                 tag: fRow ? fRow.querySelector('.grid-tag')?.innerText : 'Design'
@@ -593,9 +786,29 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        elements.forEach(el => el.classList.add('tix-anim-exit'));
+        elements.forEach(el => {
+            el.style.height = el.offsetHeight + 'px';
+            el.style.minHeight = 'unset';
+            el.style.maxHeight = el.offsetHeight + 'px';
+            el.style.overflow = 'hidden';
+            el.style.transition = 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
+        });
 
-        // Wait for the exit animation to finish (0.3s)
+        // Force browser reflow
+        if (elements.length > 0) elements[0].offsetHeight;
+
+        elements.forEach(el => {
+            el.style.height = '0px';
+            el.style.maxHeight = '0px';
+            el.style.paddingTop = '0px';
+            el.style.paddingBottom = '0px';
+            el.style.marginTop = '0px';
+            el.style.marginBottom = '0px';
+            el.style.borderWidth = '0px';
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(-8px)';
+        });
+
         setTimeout(() => {
             elements.forEach(el => el.remove());
             if (callback) callback();
@@ -607,7 +820,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isResizing = false;
     let resizeSide = null; // 'left' or 'right'
     let dragStartX = 0;
-    
+
     let initialPositions = new Map(); // id -> initialLeft
     let initialWidths = new Map();    // id -> initialWidth
 
@@ -623,7 +836,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.stopImmediatePropagation();
                 const side = resizer.classList.contains('resizer-left') ? 'left' : 'right';
                 const id = bar.parentElement.getAttribute('data-group');
-                
+
                 // If clicked resizer's bar isn't selected, select it
                 if (!timelineSelectedIds.has(id)) {
                     if (!e.shiftKey && !e.metaKey && !e.ctrlKey) {
@@ -636,11 +849,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 startResize(e, side);
                 return;
             }
-            
+
             // Add dragging-active immediately at the click to both roots
             document.documentElement.classList.add('dragging-active');
             document.body.classList.add('dragging-active');
-            
+
             if (!bar) {
                 e.stopImmediatePropagation();
                 if (!e.shiftKey && !e.metaKey && !e.ctrlKey) {
@@ -656,7 +869,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopImmediatePropagation();
             const id = bar.parentElement.getAttribute('data-group');
             const isMulti = e.shiftKey || e.metaKey || e.ctrlKey;
-            
+
             // Handle timeline-specific selection for drag initiation
             if (isMulti) {
                 if (timelineSelectedIds.has(id)) {
@@ -670,7 +883,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     timelineSelectedIds.add(id);
                 }
             }
-            
+
             syncTimelineSelectionUI();
 
             // Start drag for all currently selected bars
@@ -679,29 +892,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window.addEventListener('mousemove', (e) => {
             if (!isDragging && !isResizing) return;
-            
+
             // DEFENDER: Actively strip any browser-initiated selection highlights in real-time
             if (window.getSelection) window.getSelection().removeAllRanges();
 
             let deltaX = e.clientX - dragStartX;
-            
+
             if (isDragging) {
                 initialPositions.forEach((startPos, id) => {
                     const bar = document.querySelector(`#timeline-tbody [data-group="${id}"] .timeline-bar`);
                     if (bar) {
                         const newLeft = startPos + deltaX;
+                        const dayDelta = (deltaX / 48).toFixed(2);
+                        console.log(`[Drag] ID: ${id}, deltaX: ${deltaX}px (~${dayDelta} days), newLeft: ${newLeft}`);
                         bar.style.left = `${newLeft}px`;
                     }
                 });
             } else if (isResizing) {
                 // GROUP CLAMPING: Verify if any bar hits the 48px limit
                 let allowedDeltaX = deltaX;
-                
+
                 initialWidths.forEach((startWidth, id) => {
                     if (resizeSide === 'right') {
                         // For right resize, deltaX shrinking is limited by width reaching 48
                         if (startWidth + deltaX < 48) {
-                            allowedDeltaX = Math.min(allowedDeltaX, 48 - startWidth); 
+                            allowedDeltaX = Math.min(allowedDeltaX, 48 - startWidth);
                         }
                     } else if (resizeSide === 'left') {
                         // For left resize, deltaX growing is limited by width reaching 48 (since width = start - delta)
@@ -733,29 +948,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window.addEventListener('mouseup', () => {
             if (!isDragging && !isResizing) return;
-            
+
             isDragging = false;
             isResizing = false;
-            
+
             // Finalize positions & widths (snap to grid)
             initialPositions.forEach((_, id) => {
                 const bar = document.querySelector(`#timeline-tbody [data-group="${id}"] .timeline-bar`);
                 if (bar) {
-                    // Snap Left
-                    let finalLeft = parseInt(bar.style.left);
-                    finalLeft = Math.round(finalLeft / 48) * 48;
+                    // Snap Left safely using CENTER_PX basis
+                    let finalLeft = parseSafePx(bar.style.left, UI_CONSTANTS.CENTER_PX);
+                    finalLeft = UI_CONSTANTS.CENTER_PX + Math.round((finalLeft - UI_CONSTANTS.CENTER_PX) / 48) * 48;
                     bar.style.left = `${finalLeft}px`;
 
-                    // Snap Width
-                    let finalWidth = parseInt(bar.style.width);
+                    // Snap Width safely
+                    let finalWidth = parseSafePx(bar.style.width, 48);
                     finalWidth = Math.round(finalWidth / 48) * 48;
-                    bar.style.width = `${finalWidth}px`;
-                    
+                    bar.style.width = `${Math.max(48, finalWidth)}px`;
+
                     bar.classList.remove('is-dragging');
                 }
             });
 
             saveData();
+            console.log(`[Drag End] Finalized and snapped positions saved.`);
             initialPositions.clear();
             initialWidths.clear();
             document.body.style.cursor = '';
@@ -774,8 +990,11 @@ document.addEventListener('DOMContentLoaded', () => {
         timelineSelectedIds.forEach(id => {
             const bar = document.querySelector(`#timeline-tbody [data-group="${id}"] .timeline-bar`);
             if (bar) {
-                initialPositions.set(id, parseInt(bar.style.left) || 0);
-                initialWidths.set(id, parseInt(bar.style.width) || 48);
+                let sLeft = parseSafePx(bar.style.left, UI_CONSTANTS.CENTER_PX);
+                let sWidth = parseSafePx(bar.style.width, 48);
+
+                initialPositions.set(id, sLeft);
+                initialWidths.set(id, sWidth);
                 bar.classList.add('is-dragging');
             }
         });
@@ -818,12 +1037,16 @@ document.addEventListener('DOMContentLoaded', () => {
         dragSet.forEach(id => {
             const bar = document.querySelector(`#timeline-tbody [data-group="${id}"] .timeline-bar`);
             if (bar) {
-                initialPositions.set(id, parseInt(bar.style.left) || 0);
-                initialWidths.set(id, parseInt(bar.style.width) || 48);
+                let sLeft = parseSafePx(bar.style.left, UI_CONSTANTS.CENTER_PX);
+                let sWidth = parseSafePx(bar.style.width, 48);
+
+                initialPositions.set(id, sLeft);
+                initialWidths.set(id, sWidth);
+                console.log(`[Drag Start] ID: ${id}, initialLeft: ${sLeft}, initialWidth: ${sWidth}`);
                 bar.classList.add('is-dragging');
             }
         });
-        
+
         document.body.style.cursor = 'grabbing';
         document.documentElement.classList.add('dragging-active');
         document.body.classList.add('dragging-active');
