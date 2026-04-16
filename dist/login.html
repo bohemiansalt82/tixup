@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tixup - Sign In</title>
+    <link rel="stylesheet" href="assets/css/tokens.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <!-- Google Identity Services SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Background animated gradient blobs */
+        .bg-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.4;
+            animation: blobFloat 20s ease-in-out infinite alternate;
+        }
+        .bg-blob-1 {
+            width: 600px; height: 600px;
+            background: #6C5CE7;
+            top: -200px; left: -100px;
+            animation-delay: 0s;
+        }
+        .bg-blob-2 {
+            width: 500px; height: 500px;
+            background: #00B894;
+            bottom: -200px; right: -100px;
+            animation-delay: -7s;
+        }
+        .bg-blob-3 {
+            width: 400px; height: 400px;
+            background: #E17055;
+            top: 30%; right: 10%;
+            animation-delay: -14s;
+        }
+
+        @keyframes blobFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -20px) scale(1.05); }
+            66% { transform: translate(-20px, 30px) scale(0.95); }
+            100% { transform: translate(10px, -10px) scale(1.02); }
+        }
+
+        /* Login Card */
+        .login-card {
+            position: relative;
+            z-index: 1;
+            width: 440px;
+            padding: 56px 48px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            box-shadow:
+                0 32px 64px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 36px;
+            animation: cardEnter 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        @keyframes cardEnter {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-logo {
+            width: 140px;
+            filter: brightness(0) invert(1);
+        }
+
+        .login-title {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .login-subtitle {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            font-weight: 400;
+            margin-top: -20px;
+        }
+
+        /* Google Sign-In button container */
+        .google-signin-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* Custom Google button (used before GIS loads or as fallback) */
+        .btn-google {
+            width: 100%;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: #fff;
+            border: none;
+            border-radius: 14px;
+            color: #333;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-google:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-google:active { transform: translateY(0); }
+
+        .btn-google img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .divider-row {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: -8px 0;
+        }
+
+        .divider-row::before,
+        .divider-row::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .divider-row span {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Demo Login Form */
+        .demo-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .demo-form input {
+            width: 100%;
+            height: 48px;
+            padding: 0 16px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .demo-form input::placeholder {
+            color: rgba(255, 255, 255, 0.35);
+        }
+
+        .demo-form input:focus {
+            border-color: #6C5CE7;
+            background: rgba(108, 92, 231, 0.08);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+        }
+
+        .btn-login {
+            width: 100%;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%);
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 16px rgba(108, 92, 231, 0.3);
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.45);
+        }
+
+        .btn-login:active { transform: translateY(0); }
+
+        .btn-login .material-icons-outlined { font-size: 22px; }
+
+        .btn-login:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .login-footer {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+            text-align: center;
+        }
+
+        /* Error message */
+        .login-error {
+            color: #E17055;
+            font-size: 13px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-blob bg-blob-1"></div>
+    <div class="bg-blob bg-blob-2"></div>
+    <div class="bg-blob bg-blob-3"></div>
+
+    <div class="login-card">
+        <img src="assets/images/icons/tixup_logo.svg" alt="Tixup" class="login-logo">
+        <div class="login-title">Welcome to Tixup</div>
+        <div class="login-subtitle">Sign in to manage your issue tracker</div>
+
+        <!-- Google Sign-In (primary) -->
+        <div class="google-signin-container">
+            <button class="btn-google" id="google-login-btn">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                Continue with Google
+            </button>
+            <div class="login-error" id="login-error"></div>
+        </div>
+
+        <div class="divider-row"><span>or</span></div>
+
+        <!-- Demo Login (fallback) -->
+        <div class="demo-form">
+            <input type="text" id="login-name" placeholder="Your name" autocomplete="name">
+            <input type="email" id="login-email" placeholder="Email address" autocomplete="email">
+            <button class="btn-login" id="demo-login-btn" disabled>
+                <span class="material-icons-outlined">login</span>
+                Sign In
+            </button>
+        </div>
+
+        <div class="login-footer">Your data is stored locally in your browser.</div>
+    </div>
+
+    <script src="assets/js/tixup-auth.js"></script>
+    <script>
+        // ══════════════════════════════════════════
+        // Google OAuth Client ID Configuration
+        // Get yours at: https://console.cloud.google.com/apis/credentials
+        // ══════════════════════════════════════════
+        const GOOGLE_CLIENT_ID = '467199830071-2b2hvheuuju9vnpqmds727vahefjucvf.apps.googleusercontent.com';
+
+        // If already logged in, redirect
+        if (TixupAuth.getUser()) {
+            window.location.href = 'test_drive.html';
+        }
+
+        const nameInput = document.getElementById('login-name');
+        const emailInput = document.getElementById('login-email');
+        const demoBtn = document.getElementById('demo-login-btn');
+        const googleBtn = document.getElementById('google-login-btn');
+        const errorEl = document.getElementById('login-error');
+
+        // ─── Google Identity Services ───
+        function handleGoogleCredential(response) {
+            try {
+                // Decode JWT token safely (handling Base64URL and UTF-8)
+                const base64Url = response.credential.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                const payload = JSON.parse(jsonPayload);
+                
+                const user = {
+                    id: 'google-' + payload.sub,
+                    name: payload.name || payload.email.split('@')[0],
+                    email: payload.email,
+                    picture: payload.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(payload.name || 'U')}&background=6C5CE7&color=fff&size=128`
+                };
+
+                TixupAuth.setUser(user);
+                TixupAuth.migrateOldData();
+
+                // Create default space if none exist
+                if (TixupAuth.getSpaces().length === 0) {
+                    const space = TixupAuth.createSpace('My Project');
+                    TixupAuth.setActiveSpaceId(space.id);
+                }
+
+                window.location.href = 'test_drive.html';
+            } catch (err) {
+                console.error('Google login error:', err);
+                showError('Login failed. Please try again.');
+            }
+        }
+
+        function initGoogleSignIn() {
+            if (!GOOGLE_CLIENT_ID) {
+                // No Client ID configured - show prompt to set it up
+                googleBtn.addEventListener('click', () => {
+                    const clientId = prompt(
+                        'Google OAuth Client ID를 입력하세요.\n\n' +
+                        '발급 방법:\n' +
+                        '1. https://console.cloud.google.com/apis/credentials 접속\n' +
+                        '2. "Create Credentials" → "OAuth client ID" 선택\n' +
+                        '3. Application type: "Web application"\n' +
+                        '4. Authorized JavaScript origins에 "http://localhost:3000" 추가\n' +
+                        '5. 생성된 Client ID를 여기에 붙여넣기'
+                    );
+                    if (clientId && clientId.trim()) {
+                        localStorage.setItem('tixup-google-client-id', clientId.trim());
+                        window.location.reload(); // Reload to initialize with the new ID
+                    }
+                });
+                return;
+            }
+
+            // Wait for GIS library to load
+            const waitForGIS = setInterval(() => {
+                if (typeof google !== 'undefined' && google.accounts) {
+                    clearInterval(waitForGIS);
+
+                    google.accounts.id.initialize({
+                        client_id: GOOGLE_CLIENT_ID,
+                        callback: handleGoogleCredential,
+                        auto_select: false,
+                        ux_mode: 'popup'
+                    });
+
+                    // Override our custom button to trigger Google popup
+                    googleBtn.addEventListener('click', () => {
+                        google.accounts.id.prompt((notification) => {
+                            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                                // FedCM / One Tap blocked → use popup flow
+                                google.accounts.oauth2.initTokenClient({
+                                    client_id: GOOGLE_CLIENT_ID,
+                                    scope: 'openid email profile',
+                                    callback: async (tokenResponse) => {
+                                        try {
+                                            const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                                                headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                                            });
+                                            const payload = await res.json();
+                                            
+                                            const user = {
+                                                id: 'google-' + payload.sub,
+                                                name: payload.name || payload.email.split('@')[0],
+                                                email: payload.email,
+                                                picture: payload.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(payload.name || 'U')}&background=6C5CE7&color=fff&size=128`
+                                            };
+
+                                            TixupAuth.setUser(user);
+                                            TixupAuth.migrateOldData();
+
+                                            if (TixupAuth.getSpaces().length === 0) {
+                                                const space = TixupAuth.createSpace('My Project');
+                                                TixupAuth.setActiveSpaceId(space.id);
+                                            }
+
+                                            window.location.href = 'test_drive.html';
+                                        } catch (err) {
+                                            console.error('Google userinfo error:', err);
+                                            showError('Failed to get user info. Please try again.');
+                                        }
+                                    }
+                                }).requestAccessToken();
+                            }
+                        });
+                    });
+                }
+            }, 100);
+
+            // Timeout after 5 seconds
+            setTimeout(() => {
+                if (typeof google === 'undefined') {
+                    console.warn('Google Identity Services failed to load');
+                }
+            }, 5000);
+        }
+
+        function showError(msg) {
+            errorEl.textContent = msg;
+            errorEl.style.display = 'block';
+            setTimeout(() => { errorEl.style.display = 'none'; }, 5000);
+        }
+
+        // Initialize Google Sign-In
+        initGoogleSignIn();
+
+        // ─── Demo Login ───
+        function validateForm() {
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+            demoBtn.disabled = !(name && email && email.includes('@'));
+        }
+
+        nameInput.addEventListener('input', validateForm);
+        emailInput.addEventListener('input', validateForm);
+
+        demoBtn.addEventListener('click', () => {
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+            if (!name || !email) return;
+
+            TixupAuth.demoLogin(name, email);
+            window.location.href = 'test_drive.html';
+        });
+
+        // Enter key submits
+        [nameInput, emailInput].forEach(inp => {
+            inp.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !demoBtn.disabled) {
+                    demoBtn.click();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

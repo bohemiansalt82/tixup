@@ -20,16 +20,20 @@
             <div class="nav-logo-container"><img src="assets/images/icons/tixup_logo.svg" alt="Tixup" class="nav-logo">
             </div>
         </header>
-        <div class="nav-section">
+        <div class="nav-section nav-section-spaces">
             <div class="nav-section-title-wrapper">
                 <div class="nav-section-title-label">Space</div>
+                <button class="nav-space-add-btn" id="add-space-btn" title="New Space">
+                    <div class="nav-icon icon-add"></div>
+                </button>
             </div>
-            <div class="nav-item active">
-                <div class="nav-item-content">
-                    <div class="nav-icon icon-work"></div>
-                    <div class="nav-item-label">Data Test Drive</div>
-                </div>
+            <div id="space-list" class="space-list">
+                <!-- Spaces rendered by JS -->
             </div>
+        </div>
+        <div class="nav-sidebar-spacer"></div>
+        <div class="nav-user-profile" id="nav-user-profile">
+            <!-- Rendered by JS -->
         </div>
     </nav>
 
@@ -85,6 +89,12 @@
                                     <button class="nav-arrow-btn" id="nav-next-2w">
                                         <img src="assets/images/icons/chevron_right.svg" alt="다음">
                                     </button>
+                                </div>
+                                
+                                <div class="timeline-zoom-group">
+                                    <button class="zoom-btn" id="zoom-out-btn">−</button>
+                                    <input type="range" class="zoom-slider" id="timeline-zoom-range" min="4" max="150" value="48">
+                                    <button class="zoom-btn" id="zoom-in-btn">+</button>
                                 </div>
                             </div>
 
@@ -183,8 +193,9 @@
         </button>
     </div>
 
-    <script src="assets/js/tixup-common.js?v=1776110243"></script>
-    <script src="assets/js/tixup-test-drive.js?v=1776110243"></script>
+    <script src="assets/js/tixup-auth.js"></script>
+    <script src="assets/js/tixup-common.js?v=20260416"></script>
+    <script src="assets/js/tixup-test-drive.js?v=20260416"></script>
 </body>
 
 </html>

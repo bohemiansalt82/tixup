@@ -55,6 +55,30 @@ body.dragging-active *::-moz-selection {
     /* pointer-events: none !important; - Removed to restore bar selection */
 }
 
+/* Kill ALL hover effects during drag */
+.dragging-active .data-grid-row:not(.data-grid-header):hover {
+    background-color: transparent !important;
+    cursor: grabbing !important;
+}
+
+.dragging-active .data-grid-row:hover .add-child-btn {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.dragging-active .tree-expander:hover {
+    background-color: transparent !important;
+}
+
+.dragging-active .marker:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.dragging-active .checkbox-container:hover .checkbox-box {
+    border-color: inherit !important;
+}
+
 
 
 /* Timeline Bar Resizer Handles */
@@ -505,6 +529,266 @@ body.dragging-active *::-moz-selection {
     word-wrap: break-word;
 }
 
+/* ─── Space System ─── */
+.nav-section-spaces {
+    flex: 0 0 auto;
+    overflow-y: auto;
+    max-height: 50vh;
+}
+
+.nav-section-title-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 12px 8px 16px;
+}
+
+.nav-space-add-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.nav-section-spaces:hover .nav-space-add-btn,
+.nav-space-add-btn:focus {
+    opacity: 1;
+}
+
+.nav-space-add-btn:hover {
+    background: var(--primitive-colors-gray-200);
+}
+
+.nav-space-add-btn .nav-icon {
+    width: 16px;
+    height: 16px;
+    background-color: #999;
+}
+
+.space-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0;
+    /* Changed from 0 8px to fill width */
+    width: 100%;
+}
+
+.space-item {
+    height: 38px;
+    padding: 0 16px;
+    margin: 4px 8px;
+    /* Increased from 0 8px to match nav-section headers */
+    border-radius: 8px;
+    /* Optional: set to 0 or keep for slight inset rounded look */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+}
+
+.space-item:hover {
+    background: var(--primitive-colors-gray-100);
+}
+
+.space-item.active {
+    background: var(--primitive-colors-gray-200);
+}
+
+.space-item-icon-container {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.space-deployed-icon {
+    width: 20px;
+    height: 20px;
+    filter: invert(68%) sepia(0%) saturate(0%) hue-rotate(174deg) brightness(91%) contrast(89%);
+    /* Gray 500 */
+    transition: filter 0.15s;
+}
+
+.space-item.active .space-deployed-icon {
+    /* Primary Color filter: #18675a 
+       Approximation for Fairway 700 
+    */
+    filter: invert(32%) sepia(16%) saturate(1786%) hue-rotate(124deg) brightness(93%) contrast(92%);
+}
+
+.space-item-label {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--primitive-colors-base-black);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1;
+}
+
+.space-item-more {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.space-item:hover .space-item-more {
+    opacity: 1;
+}
+
+.space-item-more:hover {
+    background: var(--primitive-colors-gray-300);
+}
+
+/* Space create input */
+.space-create-input {
+    width: 100%;
+    height: 38px;
+    padding: 0 8px 0 40px;
+    border: 2px solid #6C5CE7;
+    border-radius: 8px;
+    background: var(--primitive-colors-base-white);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    color: var(--primitive-colors-base-black);
+}
+
+/* Sidebar spacer */
+.nav-sidebar-spacer {
+    flex: 1;
+}
+
+/* User profile section */
+.nav-user-profile {
+    padding: 12px 12px;
+    border-top: 1px solid var(--primitive-colors-gray-200);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    flex-shrink: 0;
+}
+
+.nav-user-profile:hover {
+    background: var(--primitive-colors-gray-100);
+}
+
+.nav-user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.nav-user-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.nav-user-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primitive-colors-base-black);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nav-user-email {
+    font-size: 11px;
+    color: var(--semantic-color-colors-text-caption);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nav-logout-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.nav-user-profile:hover .nav-logout-btn {
+    opacity: 1;
+}
+
+.nav-logout-btn:hover {
+    background: var(--primitive-colors-gray-200);
+}
+
+/* Space context menu */
+.space-context-menu {
+    position: fixed;
+    background: #fff;
+    border: 1px solid var(--primitive-colors-gray-200);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 4px;
+    min-width: 160px;
+    z-index: 99999;
+    display: none;
+}
+
+.space-context-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #333;
+    transition: background 0.1s;
+}
+
+.space-context-menu-item:hover {
+    background: var(--primitive-colors-gray-100);
+}
+
+.space-context-menu-item.danger {
+    color: #e74c3c;
+}
+
+.space-context-menu-item .material-icons-outlined {
+    font-size: 16px;
+}
+
 .nav-scrollable-container {
     align-self: stretch;
     flex: 1 1 0;
@@ -641,6 +925,13 @@ body.dragging-active *::-moz-selection {
     cursor: pointer;
 }
 
+.full-grid-tbody,
+#grid-tbody,
+#timeline-tbody {
+    padding-bottom: 80px;
+    /* Essential for bottom-sorting area */
+}
+
 /* Checkbox Component (SVG Mask Method) */
 .checkbox-container {
     display: inline-flex;
@@ -767,8 +1058,8 @@ body.dragging-active *::-moz-selection {
 /* Tree expander */
 .tree-expander {
     cursor: pointer;
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
     color: var(--primitive-colors-gray-700);
     display: flex;
     align-items: center;
@@ -776,7 +1067,17 @@ body.dragging-active *::-moz-selection {
     background: none;
     border: none;
     padding: 0;
-    transition: transform 0.2s ease;
+    transition: background-color 0.2s;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.tree-expander:hover {
+    background-color: var(--primitive-colors-gray-100);
+}
+
+.tree-expander .nav-icon {
+    pointer-events: none;
 }
 
 .tree-expander.collapsed .nav-icon {
@@ -788,8 +1089,8 @@ body.dragging-active *::-moz-selection {
 }
 
 .tree-expander.empty {
-    opacity: 0 !important;
-    pointer-events: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
 }
 
 /* Add Child Button */
@@ -1671,6 +1972,9 @@ body.dragging-active *::-moz-selection {
 .timeline-grid-content {
     min-width: 1440px;
     position: relative;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .timeline-header {
@@ -1710,7 +2014,7 @@ body.dragging-active *::-moz-selection {
     height: 48px;
     display: flex;
     align-items: center;
-    padding-right: 16px;
+    padding-right: 24px;
     z-index: 510;
     background-color: var(--primitive-colors-base-white);
 }
@@ -1718,13 +2022,15 @@ body.dragging-active *::-moz-selection {
 .timeline-nav-group {
     display: flex;
     align-items: center;
-    gap: 8px; /* Increased gap for better text-button feel */
+    gap: 0px;
+    /* Increased gap for better text-button feel */
     background: none;
     padding: 0;
     border: none;
 }
 
-.nav-arrow-btn, .nav-today-btn {
+.nav-arrow-btn,
+.nav-today-btn {
     border: none;
     background: transparent;
     cursor: pointer;
@@ -1736,7 +2042,8 @@ body.dragging-active *::-moz-selection {
     transition: background-color 0.2s;
 }
 
-.nav-arrow-btn:hover, .nav-today-btn:hover {
+.nav-arrow-btn:hover,
+.nav-today-btn:hover {
     background-color: var(--primitive-colors-gray-200);
 }
 
@@ -1750,6 +2057,42 @@ body.dragging-active *::-moz-selection {
     font-weight: 600;
     color: var(--primitive-colors-gray-700);
     padding: 4px 8px;
+}
+
+.timeline-zoom-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 16px;
+    padding-left: 16px;
+    border-left: 1px solid var(--primitive-colors-gray-200);
+}
+
+.zoom-btn {
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 16px;
+    color: var(--primitive-colors-gray-500);
+    transition: all 0.2s;
+}
+
+.zoom-btn:hover {
+    background: var(--primitive-colors-gray-100);
+    color: var(--primitive-colors-gray-900);
+}
+
+.zoom-slider {
+    width: 60px;
+    cursor: pointer;
+    accent-color: var(--primitive-colors-gray-800);
+    height: 4px;
 }
 
 
@@ -1807,6 +2150,7 @@ body.dragging-active *::-moz-selection {
     position: relative;
     width: 2000000px;
     overflow-x: hidden;
+    flex: 1;
 }
 
 .timeline-row {
@@ -1822,13 +2166,9 @@ body.dragging-active *::-moz-selection {
     align-items: center;
 }
 
+/* Timeline row hidden state is exclusively managed via the grid-child-row class to ensure parents remain visible */
 .timeline-row.collapsed {
-    max-height: 0 !important;
-    min-height: 0 !important;
-    opacity: 0 !important;
-    padding: 0 !important;
-    border-bottom: 0 !important;
-    pointer-events: none !important;
+    border-bottom: none;
 }
 
 .timeline-grid-lines {
@@ -1974,49 +2314,73 @@ body.dragging-active *::-moz-selection {
 /* -------------------------------------
    Drag and Drop Styles
 ---------------------------------------- */
-/* 드래그 중인 요소의 원래 위치(고스트) - 반투명하게 유지하여 빈 공간 효과와 내용 확인을 동시에 제공 */
+/* Ghost: stays in place, completely unchanged - no visual reaction */
 .sortable-ghost {
-    opacity: 0.5 !important;
-    background-color: var(--primitive-colors-gray-50) !important;
-}
-
-.sortable-drag {
     opacity: 1 !important;
-    background-color: var(--primitive-colors-base-white) !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
-    border: 1px solid var(--primitive-colors-gray-400) !important;
-    border-radius: 8px !important;
-    z-index: 9999;
+    background-color: transparent !important;
+    position: relative !important;
 }
 
-/* 절대 위치로 표시되는 파란색 구분선 가이드 */
+/* Drag Clone: semi-transparent copy follows the mouse in grid */
+.sortable-drag {
+    opacity: 0.5 !important;
+    background-color: var(--primitive-colors-base-white) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+    border: none !important;
+    border-radius: 4px !important;
+    z-index: 9999 !important;
+    pointer-events: none !important;
+    transition: none !important;
+    animation: none !important;
+    /* Kill tix-anim-enter on cloned elements */
+    /* Override grid-child-row constraints */
+    overflow: visible !important;
+    max-height: 48px !important;
+    min-height: 48px !important;
+    height: 48px !important;
+}
+
+/* Drop indicator: thin blue line (timeline area only) */
 .drop-indicator-line {
     position: absolute;
-    height: 4px;
-    background-color: #3B82F6;
+    height: 2px;
+    background-color: #2383E2;
     z-index: 10000;
     pointer-events: none;
-    /* 드래그 타겟 감지 방해 금지 */
-    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
-    transition: all 0.1s ease;
+    box-shadow: none;
+    transition: top 0.08s ease;
     display: none;
-    /* 기본적으로 숨김 */
+    border-radius: 1px;
 }
 
-/* 하위 카테고리가 상위 카테고리 위로 올라갔을 때 (Nesting Overlay) */
+/* Drop indicator circle accent on the left edge */
+.drop-indicator-line::before {
+    content: '';
+    position: absolute;
+    left: -3px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    background-color: #2383E2;
+    border-radius: 50%;
+}
+
+/* Nesting Overlay */
 .drop-indicator-nest-active {
-    background-color: rgba(226, 232, 240, 0.6) !important;
-    outline: 2px solid #3B82F6 !important;
+    background-color: rgba(35, 131, 226, 0.04) !important;
+    outline: 2px solid #2383E2 !important;
     outline-offset: -2px;
+    border-radius: 4px;
 }
 
 .sortable-drag .data-grid-cell {
     border-right: none !important;
 }
 
-/* 행 전체 드래그 가능함을 암시하는 커서 */
+/* Row drag cursor - Notion uses default cursor, grab only on handle hover */
 .data-grid-row:not(.data-grid-header) {
-    cursor: grab;
+    cursor: default;
 }
 
 .data-grid-row:not(.data-grid-header):active {
@@ -2122,10 +2486,7 @@ body.dragging-active *::-moz-selection {
     right: 0;
 }
 
-.sortable-ghost {
-    opacity: 0.4;
-    background-color: var(--primitive-colors-gray-100) !important;
-}
+/* (Notion-style ghost defined in main DnD section above) */
 
 /* -------------------------------------
    10. Floating Selection Bar (Bulk Actions)
@@ -2248,18 +2609,29 @@ body.dragging-active *::-moz-selection {
    Tix Animation System (Creation/Deletion)
 ---------------------------------------- */
 
-/* Grid Row Entry Animation */
+/* Grid Row Entry Animation - height expands to push siblings down */
 @keyframes tix-entry {
     0% {
         opacity: 0;
-        transform: translateY(-8px);
-        background-color: var(--primitive-colors-blue-50);
+        height: 0px;
+        min-height: 0px;
+        max-height: 0px;
+        overflow: hidden;
+    }
+
+    60% {
+        height: 48px;
+        min-height: 48px;
+        max-height: 48px;
+        overflow: hidden;
     }
 
     100% {
         opacity: 1;
-        transform: translateY(0);
-        background-color: transparent;
+        height: 48px;
+        min-height: 48px;
+        max-height: 48px;
+        overflow: visible;
     }
 }
 
@@ -2273,6 +2645,23 @@ body.dragging-active *::-moz-selection {
     100% {
         opacity: 1;
         transform: scale(1) translateY(0);
+    }
+}
+
+/* Timeline Row Entry - height expands in sync with grid */
+@keyframes tix-row-entry {
+    0% {
+        height: 0px;
+        min-height: 0px;
+        max-height: 0px;
+        overflow: hidden;
+    }
+
+    100% {
+        height: 48px;
+        min-height: 48px;
+        max-height: 48px;
+        overflow: visible;
     }
 }
 
@@ -2318,11 +2707,18 @@ body.dragging-active *::-moz-selection {
 }
 
 .tix-anim-enter {
-    animation: tix-entry 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    animation: tix-entry 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    overflow: hidden;
+}
+
+.timeline-row.tix-anim-enter {
+    animation: tix-row-entry 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    overflow: hidden;
 }
 
 .timeline-bar.tix-anim-enter {
-    animation: tix-bar-entry 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    animation: tix-bar-entry 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+    opacity: 0;
 }
 
 .tix-anim-exit {

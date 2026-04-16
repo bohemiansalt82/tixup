@@ -1,10 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const STORAGE_KEY = 'tixup_master_v1';
+    // Auth guard - redirect to login if not authenticated
+    if (typeof TixupAuth !== 'undefined' && !TixupAuth.getUser()) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    const SPACE_COLORS = ['#6C5CE7', '#00B894', '#E17055', '#0984E3', '#FDCB6E', '#E84393', '#00CEC9', '#D63031', '#636E72', '#2D3436'];
+
+    function getStorageKey() {
+        if (typeof TixupAuth === 'undefined') return 'tixup_master_v1';
+        const spaceId = TixupAuth.getActiveSpaceId();
+        return spaceId ? TixupAuth.getTasksKey(spaceId) : 'tixup_master_v1';
+    }
+
     let tasks = [];
     let currentContextMenuId = null;
 
     const UI_CONSTANTS = { CELL_WIDTH: 48, VIRTUAL_WIDTH: 35000, CENTER_PX: 1000000 };
-    let panOffset = UI_CONSTANTS.CENTER_PX - (UI_CONSTANTS.VIRTUAL_WIDTH / 2);
+    let currentCellWidth = UI_CONSTANTS.CELL_WIDTH;
+    let panOffset = 1000000 - (35000 / 2); // Explicitly lock to center point
 
     // Robust parsing for coordinates that might be in scientific notation (e.g. 1.00048e+06px)
     function parseSafePx(pxStr, defaultVal = 0) {
@@ -17,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     BASE_EPOCH.setHours(0, 0, 0, 0);
 
     function getDateFromPx(px) {
-        const daysOffset = Math.floor((px - UI_CONSTANTS.CENTER_PX) / UI_CONSTANTS.CELL_WIDTH);
+        const daysOffset = Math.floor((px - UI_CONSTANTS.CENTER_PX) / currentCellWidth);
         const d = new Date(BASE_EPOCH);
         d.setDate(d.getDate() + daysOffset);
         return d;
@@ -43,22 +57,245 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastClickTime = 0;
     let lastClickX = 0;
     let lastClickY = 0;
+    // ─── Space System ───
+    let spaceContextMenu = null;
+    let spaceContextTargetId = null;
+
+    function renderSpaceList() {
+        const spaceList = document.getElementById('space-list');
+        if (!spaceList || typeof TixupAuth === 'undefined') return;
+
+        const spaces = TixupAuth.getSpaces();
+        const activeId = TixupAuth.getActiveSpaceId();
+
+        spaceList.innerHTML = '';
+        spaces.forEach((space, idx) => {
+            const color = SPACE_COLORS[idx % SPACE_COLORS.length];
+            const initial = (space.name || 'S').charAt(0).toUpperCase();
+            const isActive = space.id === activeId;
+
+            const item = document.createElement('div');
+            item.className = `space-item ${isActive ? 'active' : ''}`;
+            item.setAttribute('data-space-id', space.id);
+            item.innerHTML = `
+                <div class="space-item-icon-container">
+                    <img src="assets/images/icons/deployed_code.svg" class="space-deployed-icon">
+                </div>
+                <div class="space-item-label">${space.name}</div>
+                <button class="space-item-more" title="More">
+                    <span class="material-icons-outlined" style="font-size: 16px; color: #999;">more_horiz</span>
+                </button>
+            `;
+
+            // Click to switch space
+            item.addEventListener('click', (e) => {
+                if (e.target.closest('.space-item-more')) return;
+                switchSpace(space.id);
+            });
+
+            // More button → context menu
+            item.querySelector('.space-item-more').addEventListener('click', (e) => {
+                e.stopPropagation();
+                showSpaceContextMenu(e, space.id);
+            });
+
+            spaceList.appendChild(item);
+        });
+
+        // Update location title to active space name
+        const activeSpace = spaces.find(s => s.id === activeId);
+        const locationTitle = document.querySelector('.location-title');
+        if (locationTitle && activeSpace) {
+            locationTitle.textContent = activeSpace.name;
+        }
+    }
+
+    function renderUserProfile() {
+        const profileEl = document.getElementById('nav-user-profile');
+        if (!profileEl || typeof TixupAuth === 'undefined') return;
+
+        const user = TixupAuth.getUser();
+        if (!user) return;
+
+        profileEl.innerHTML = `
+            <img class="nav-user-avatar" src="${user.picture}" alt="${user.name}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6C5CE7&color=fff'">
+            <div class="nav-user-info">
+                <div class="nav-user-name">${user.name}</div>
+                <div class="nav-user-email">${user.email}</div>
+            </div>
+            <button class="nav-logout-btn" title="Sign Out">
+                <span class="material-icons-outlined" style="font-size: 18px; color: #999;">logout</span>
+            </button>
+        `;
+
+        profileEl.querySelector('.nav-logout-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (confirm('Sign out?')) TixupAuth.logout();
+        });
+    }
+
+    function initSpaceEvents() {
+        // Add space button
+        const addBtn = document.getElementById('add-space-btn');
+        if (addBtn) {
+            addBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showSpaceCreateInput();
+            });
+        }
+
+        // Create context menu element (once)
+        if (!spaceContextMenu) {
+            spaceContextMenu = document.createElement('div');
+            spaceContextMenu.className = 'space-context-menu';
+            spaceContextMenu.innerHTML = `
+                <div class="space-context-menu-item" data-action="rename">
+                    <span class="material-icons-outlined">edit</span> Rename
+                </div>
+                <div class="space-context-menu-item danger" data-action="delete">
+                    <span class="material-icons-outlined">delete</span> Delete
+                </div>
+            `;
+            document.body.appendChild(spaceContextMenu);
+
+            spaceContextMenu.addEventListener('click', (e) => {
+                const action = e.target.closest('.space-context-menu-item')?.getAttribute('data-action');
+                if (!action || !spaceContextTargetId) return;
+
+                if (action === 'rename') {
+                    const newName = prompt('Space name:');
+                    if (newName && newName.trim()) {
+                        TixupAuth.renameSpace(spaceContextTargetId, newName.trim());
+                        renderSpaceList();
+                    }
+                } else if (action === 'delete') {
+                    const spaces = TixupAuth.getSpaces();
+                    if (spaces.length <= 1) {
+                        alert('You must have at least one space.');
+                        return;
+                    }
+                    if (confirm('Delete this space and all its data?')) {
+                        const isActive = spaceContextTargetId === TixupAuth.getActiveSpaceId();
+                        TixupAuth.deleteSpace(spaceContextTargetId);
+                        if (isActive) {
+                            const remaining = TixupAuth.getSpaces();
+                            switchSpace(remaining[0].id);
+                        }
+                        renderSpaceList();
+                    }
+                }
+                spaceContextMenu.style.display = 'none';
+            });
+
+            document.addEventListener('click', () => {
+                if (spaceContextMenu) spaceContextMenu.style.display = 'none';
+            });
+        }
+    }
+
+    function showSpaceContextMenu(e, spaceId) {
+        spaceContextTargetId = spaceId;
+        const rect = e.target.closest('.space-item-more').getBoundingClientRect();
+        spaceContextMenu.style.display = 'block';
+        spaceContextMenu.style.left = `${rect.right + 4}px`;
+        spaceContextMenu.style.top = `${rect.top}px`;
+    }
+
+    function showSpaceCreateInput() {
+        const spaceList = document.getElementById('space-list');
+        if (!spaceList) return;
+
+        // Remove existing input if any and prevent its finish() from running
+        const existing = spaceList.querySelector('.space-create-wrapper');
+        if (existing) {
+            const existingInput = existing.querySelector('input');
+            if (existingInput && existingInput._finish) {
+                existingInput._finish(true); // Call with cancel=true
+            }
+            existing.remove();
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'space-create-wrapper space-item';
+        wrapper.innerHTML = `
+            <div class="space-item-icon" style="background: ${SPACE_COLORS[TixupAuth.getSpaces().length % SPACE_COLORS.length]}">
+                <span class="material-icons-outlined" style="font-size: 14px;">add</span>
+            </div>
+            <input type="text" class="space-create-input" placeholder="Space name..." style="padding-left: 8px;">
+        `;
+        spaceList.appendChild(wrapper);
+
+        const input = wrapper.querySelector('input');
+        input.focus();
+
+        let done = false;
+        const finish = (cancel = false) => {
+            if (done) return;
+            done = true;
+            const name = input.value.trim();
+            wrapper.remove();
+            if (!cancel && name) {
+                const space = TixupAuth.createSpace(name);
+                switchSpace(space.id);
+            }
+        };
+        input._finish = finish; // Store for cancellation
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') finish();
+            if (e.key === 'Escape') finish(true);
+        });
+        input.addEventListener('blur', () => setTimeout(finish, 100));
+    }
+
+    function switchSpace(spaceId) {
+        // Save current data first
+        if (typeof saveData === 'function') {
+            try { saveData(); } catch (e) { }
+        }
+
+        TixupAuth.setActiveSpaceId(spaceId);
+
+        // Reload tasks for new space
+        const saved = localStorage.getItem(getStorageKey());
+        tasks = saved ? JSON.parse(saved) : [];
+
+        // Every time we switch space, we reset to Data Grid by default!
+        if (typeof setView === 'function') setView('list');
+        
+        // Fully reset timeline offset coordinates!
+        panOffset = UI_CONSTANTS.CENTER_PX - (UI_CONSTANTS.VIRTUAL_WIDTH / 2);
+        window.__tixupScrollInitialized = false;
+
+        renderSpaceList();
+        renderAll();
+    }
 
     // 1. 초기 로드
     function init() {
-        const saved = localStorage.getItem(STORAGE_KEY);
+        // Render sidebar: spaces + user profile
+        renderSpaceList();
+        renderUserProfile();
+        initSpaceEvents();
+
+        // 1. 초기 데이터 및 상태 로드
+        const saved = localStorage.getItem(getStorageKey());
         tasks = saved ? JSON.parse(saved) : [];
 
-        // Detect corrupt or extremely outdated data (coordinates near 0 or negative when they should be near 1M)
-        let isOldFormat = tasks.length > 0 && tasks.some(t => t.start < 300000);
+        // Restore Zoom Level
+        const savedZoom = localStorage.getItem('tixup_zoom');
+        if (savedZoom) {
+            currentCellWidth = parseFloat(savedZoom);
+            if (window.tixupCore) window.tixupCore.gridSize = currentCellWidth;
+        }
 
+        // Detect corrupt or extremely outdated data
+        let isOldFormat = tasks.length > 0 && tasks.some(t => t.start < 300000);
         if (isOldFormat) {
             console.warn("[Data Recovery] Old format detected. Resetting coordinates.");
             const todayPx = UI_CONSTANTS.CENTER_PX;
             tasks.forEach(t => {
-                if (t.start < 300000) {
-                    t.start = todayPx + 48; // Shift to a reasonable default near today
-                }
+                if (t.start < 300000) t.start = todayPx + 48;
             });
             saveData();
         }
@@ -68,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const viewport = document.querySelector('.timeline-view-viewport');
         if (viewport) {
-            viewport.scrollLeft = (UI_CONSTANTS.VIRTUAL_WIDTH / 2) - (viewport.clientWidth / 2) + 24;
+            // Initialization is now deferred safely to setView() to avoid display:none bugs.
         }
 
         renderTimelineHeader();
@@ -95,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!startTime) startTime = currentTime;
                 const elapsed = currentTime - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-                
+
                 viewport.scrollLeft = startX + (distance * easing(progress));
 
                 if (progress < 1) {
@@ -106,29 +343,99 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const scrollToday = () => {
-            const target = (UI_CONSTANTS.VIRTUAL_WIDTH / 2) - (viewport.clientWidth / 2) + 24;
-            animateScroll(target);
+            // Calculate absolute pixel location for today's date
+            const todayAbsPx = UI_CONSTANTS.CENTER_PX;
+            
+            // Recompute target scroll target based on the current panOffset drift
+            const exactTarget = todayAbsPx - panOffset - (viewport.clientWidth / 2) + 24;
+            const distance = Math.abs(exactTarget - viewport.scrollLeft);
+
+            // Animate only if within the active virtual frame (safely away from treadmill jumps)
+            if (exactTarget > 5000 && exactTarget < (UI_CONSTANTS.VIRTUAL_WIDTH - 5000) && distance < 15000) {
+                animateScroll(exactTarget);
+            } else {
+                // If drifted too far (e.g. 2014), instantly reset everything to origin point
+                panOffset = UI_CONSTANTS.CENTER_PX - (UI_CONSTANTS.VIRTUAL_WIDTH / 2);
+                viewport.scrollLeft = (UI_CONSTANTS.VIRTUAL_WIDTH / 2) - (viewport.clientWidth / 2) + 24;
+                renderTimelineHeader();
+                renderAll();
+            }
         };
 
         if (goTodayBtn && viewport) goTodayBtn.addEventListener('click', scrollToday);
         if (headerGoTodayBtn && viewport) headerGoTodayBtn.addEventListener('click', scrollToday);
-        
+
         if (navPrevBtn && viewport) {
             navPrevBtn.addEventListener('click', () => {
-                const target = viewport.scrollLeft - (14 * UI_CONSTANTS.CELL_WIDTH);
+                const target = viewport.scrollLeft - (14 * currentCellWidth);
                 animateScroll(target);
             });
         }
         if (navNextBtn && viewport) {
             navNextBtn.addEventListener('click', () => {
-                const target = viewport.scrollLeft + (14 * UI_CONSTANTS.CELL_WIDTH);
+                const target = viewport.scrollLeft + (14 * currentCellWidth);
                 animateScroll(target);
             });
         }
 
         renderAll();
 
+        // 줌 컨트롤 로직
+        const zoomRange = document.getElementById('timeline-zoom-range');
+        const zoomInBtn = document.getElementById('zoom-in-btn');
+        const zoomOutBtn = document.getElementById('zoom-out-btn');
+
+        const updateZoom = (val, focalX = null) => {
+            // Use parseFloat to support fine-grained zooming and prevent 'sticking' at minimum values
+            let newVal = parseFloat(val);
+            newVal = Math.max(4, Math.min(150, newVal));
+
+            // Allow small changes for a more 'premium' and fluid feel
+            if (Math.abs(newVal - currentCellWidth) < 0.01) return;
+
+            // 줌 기준점 계산 (전달된 focalX가 있으면 마우스 위치, 없으면 Viewport 중앙)
+            const targetFocalX = focalX !== null ? focalX : (viewport.clientWidth / 2);
+            const focalAbsoluteX = viewport.scrollLeft + panOffset + targetFocalX;
+            const centerDateOffset = (focalAbsoluteX - UI_CONSTANTS.CENTER_PX) / currentCellWidth;
+
+            currentCellWidth = newVal;
+            localStorage.setItem('tixup_zoom', newVal);
+            if (zoomRange) zoomRange.value = newVal;
+
+            // Sync with global core for auto-resize logic
+            if (window.tixupCore) window.tixupCore.gridSize = newVal;
+
+            // 줌 이후 기준점이 제자리에 있도록 스크롤 조정
+            const newFocalAbsoluteX = UI_CONSTANTS.CENTER_PX + (centerDateOffset * currentCellWidth);
+            viewport.scrollLeft = newFocalAbsoluteX - panOffset - targetFocalX;
+
+            renderAll();
+            renderTimelineHeader();
+        };
+
+        if (zoomRange) {
+            zoomRange.addEventListener('input', (e) => updateZoom(e.target.value));
+        }
+        if (zoomInBtn) {
+            zoomInBtn.addEventListener('click', () => updateZoom(currentCellWidth * 1.2));
+        }
+        if (zoomOutBtn) {
+            zoomOutBtn.addEventListener('click', () => updateZoom(currentCellWidth / 1.2));
+        }
+
+        // CMD/CTRL + Wheel 줌 기능 추가
         if (viewport) {
+            viewport.addEventListener('wheel', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    // 휠 방향에 따라 줌 레벨 결정 (균형 잡힌 3~5%씩 촘촘하게 변경)
+                    const zoomFactor = e.deltaY > 0 ? 0.95 : 1.05;
+                    const rect = viewport.getBoundingClientRect();
+                    const focalX = e.clientX - rect.left;
+                    updateZoom(currentCellWidth * zoomFactor, focalX);
+                }
+            }, { passive: false });
+
             viewport.addEventListener('scroll', () => {
                 window.requestAnimationFrame(renderTimelineHeader);
             }, { passive: true });
@@ -140,6 +447,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderTimelineHeader() {
         const viewport = document.querySelector('.timeline-view-viewport');
         if (!viewport) return;
+
+        // CRITICAL BUGFIX: Never attempt math or treadmill jumps if the timeline is hidden or uninitialized!
+        if (viewport.offsetParent === null || !window.__tixupScrollInitialized) return;
 
         let currentScrollLeft = viewport.scrollLeft;
 
@@ -168,11 +478,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const absoluteScrollLeft = currentScrollLeft + panOffset;
         const viewportWidth = viewport.clientWidth || window.innerWidth;
 
-        const startVisiblePx = absoluteScrollLeft - (UI_CONSTANTS.CELL_WIDTH * 15);
-        const endVisiblePx = absoluteScrollLeft + viewportWidth + (UI_CONSTANTS.CELL_WIDTH * 15);
+        const startVisiblePx = absoluteScrollLeft - (currentCellWidth * 15);
+        const endVisiblePx = absoluteScrollLeft + viewportWidth + (currentCellWidth * 15);
 
-        const startDayOffset = Math.floor((startVisiblePx - UI_CONSTANTS.CENTER_PX) / UI_CONSTANTS.CELL_WIDTH);
-        const endDayOffset = Math.floor((endVisiblePx - UI_CONSTANTS.CENTER_PX) / UI_CONSTANTS.CELL_WIDTH);
+        const startDayOffset = Math.floor((startVisiblePx - UI_CONSTANTS.CENTER_PX) / currentCellWidth);
+        const endDayOffset = Math.floor((endVisiblePx - UI_CONSTANTS.CENTER_PX) / currentCellWidth);
 
         const fixedMaster = document.getElementById('timeline-fixed-master');
         if (fixedMaster) {
@@ -199,14 +509,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (todayIndicator) {
             todayIndicator.style.transform = translation;
-            todayIndicator.style.left = `${UI_CONSTANTS.CENTER_PX + 24}px`;
+            const todayLeft = UI_CONSTANTS.CENTER_PX + (0 * currentCellWidth); // Today is at 0 offset
+            todayIndicator.style.left = `${todayLeft}px`;
             todayIndicator.style.display = 'block';
             todayIndicator.style.zIndex = '5';
         }
 
         if (startDayOffset === lastRenderedStartDay) {
-             updateFloatingMonthLabels(floatingLabels, startDayOffset, endDayOffset, absoluteScrollLeft);
-             return;
+            updateFloatingMonthLabels(floatingLabels, startDayOffset, endDayOffset, absoluteScrollLeft);
+            return;
         }
         lastRenderedStartDay = startDayOffset;
 
@@ -214,16 +525,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let daysHtml = '';
         let gridHtml = '';
-        for (let i = startDayOffset; i <= endDayOffset; i++) {
-            const date = new Date(BASE_EPOCH);
-            date.setDate(date.getDate() + i);
-            const isToday = i === 0;
-            const leftPos = UI_CONSTANTS.CENTER_PX + (i * UI_CONSTANTS.CELL_WIDTH);
-            const dayOfWeek = date.getDay();
-            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-            daysHtml += `<div class="timeline-day-cell ${isToday ? 'today-marker' : ''}" style="position: absolute; left: ${leftPos}px; top: 0; padding:0; margin:0; justify-content:center; ${isWeekend ? 'color: var(--primitive-colors-gray-400);' : ''}">${date.getDate()}</div>`;
-            gridHtml += `<div class="timeline-grid-line ${isWeekend ? 'is-weekend' : ''}" style="position: absolute; left: ${leftPos}px; top: 0; bottom: 0; width:48px; border-right: 1px solid var(--primitive-colors-gray-100);"></div>`;
+        // 줌 레벨에 따른 렌더링 전략
+        // 1. Day View (Width >= 30)
+        // 2. Week View (10 < Width < 30)
+        // 3. Month View (Width <= 10)
+
+        if (currentCellWidth >= 30) {
+            for (let i = startDayOffset; i <= endDayOffset; i++) {
+                const date = new Date(BASE_EPOCH);
+                date.setDate(date.getDate() + i);
+                const isToday = i === 0;
+                const leftPos = UI_CONSTANTS.CENTER_PX + (i * currentCellWidth);
+                const dayOfWeek = date.getDay();
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+                daysHtml += `<div class="timeline-day-cell ${isToday ? 'today-marker' : ''}" style="position: absolute; left: ${leftPos}px; top: 0; width: ${currentCellWidth}px; ${isWeekend ? 'color: var(--primitive-colors-gray-400);' : ''}">${date.getDate()}</div>`;
+                gridHtml += `<div class="timeline-grid-line ${isWeekend ? 'is-weekend' : ''}" style="position: absolute; left: ${leftPos}px; top: 0; bottom: 0; width:${currentCellWidth}px; border-right: 1px solid var(--primitive-colors-gray-100);"></div>`;
+            }
+        } else if (currentCellWidth > 10) {
+            // Week View: 주차 표시
+            for (let i = startDayOffset; i <= endDayOffset; i++) {
+                const date = new Date(BASE_EPOCH);
+                date.setDate(date.getDate() + i);
+                const leftPos = UI_CONSTANTS.CENTER_PX + (i * currentCellWidth);
+
+                // 월요일에만 주차 레이블 표시
+                if (date.getDay() === 1) {
+                    const weekStr = (date.getMonth() + 1) + '/' + date.getDate();
+                    daysHtml += `<div class="timeline-day-cell" style="position: absolute; left: ${leftPos}px; top: 0; width: ${currentCellWidth * 7}px; font-size: 11px; justify-content: flex-start; padding-left: 4px;">${weekStr}</div>`;
+                    gridHtml += `<div class="timeline-grid-line" style="position: absolute; left: ${leftPos}px; top: 0; bottom: 0; width:${currentCellWidth * 7}px; border-left: 1px solid var(--primitive-colors-gray-200); opacity: 0.5;"></div>`;
+                }
+            }
+        } else {
+            // Month View: 월 경계만 표시
+            // (updateFloatingMonthLabels에서 이미 처리되지만, 그리드 라인은 여기서)
+            for (let i = startDayOffset; i <= endDayOffset; i++) {
+                const date = new Date(BASE_EPOCH);
+                date.setDate(date.getDate() + i);
+                const leftPos = UI_CONSTANTS.CENTER_PX + (i * currentCellWidth);
+                if (date.getDate() === 1) {
+                    gridHtml += `<div class="timeline-grid-line" style="position: absolute; left: ${leftPos}px; top: 0; bottom: 0; width:${currentCellWidth * 30}px; border-left: 1px solid var(--primitive-colors-gray-300);"></div>`;
+                }
+            }
         }
 
         daysHeader.innerHTML = daysHtml;
@@ -248,12 +592,12 @@ document.addEventListener('DOMContentLoaded', () => {
         while (iterDate <= endDate) {
             const monthStartMs = iterDate.getTime();
             const dayOffset = Math.round((monthStartMs - BASE_EPOCH.getTime()) / (24 * 60 * 60 * 1000));
-            const startPx = UI_CONSTANTS.CENTER_PX + (dayOffset * UI_CONSTANTS.CELL_WIDTH);
+            const startPx = UI_CONSTANTS.CENTER_PX + (dayOffset * currentCellWidth);
 
             // Get end of month
             const nextMonth = new Date(iterDate.getFullYear(), iterDate.getMonth() + 1, 1);
             const nextMonthDayOffset = Math.round((nextMonth.getTime() - BASE_EPOCH.getTime()) / (24 * 60 * 60 * 1000));
-            const endPx = UI_CONSTANTS.CENTER_PX + (nextMonthDayOffset * UI_CONSTANTS.CELL_WIDTH);
+            const endPx = UI_CONSTANTS.CENTER_PX + (nextMonthDayOffset * currentCellWidth);
 
             months.push({
                 label: `${iterDate.getMonth() + 1}월`,
@@ -266,9 +610,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let floatingHtml = '';
         months.forEach(m => {
-            const labelWidth = 100; 
+            const labelWidth = 100;
             let leftPos = m.start; // Purely absolute grid position
-            
+
             floatingHtml += `<div class="timeline-month-label-floating" style="left: ${leftPos}px; width: ${labelWidth}px;">${m.label}</div>`;
         });
 
@@ -407,7 +751,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function initViewToggle() {
+    function setView(viewType) {
         const listIcon = document.querySelector('.icon-list');
         const clockIcon = document.querySelector('.icon-clock');
         if (!listIcon || !clockIcon) return;
@@ -417,23 +761,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const timelineContainer = document.getElementById('data-grid-timeline');
         const fullGridContainer = document.getElementById('full-data-grid');
 
-        if (!listBtn || !clockBtn || !timelineContainer || !fullGridContainer) {
-            return;
-        }
+        if (!listBtn || !clockBtn || !timelineContainer || !fullGridContainer) return;
 
-        listBtn.onclick = () => {
+        if (viewType === 'list') {
             timelineContainer.style.setProperty('display', 'none', 'important');
             fullGridContainer.style.setProperty('display', 'flex', 'important');
             listBtn.classList.add('selected');
             clockBtn.classList.remove('selected');
-        };
-
-        clockBtn.onclick = () => {
+        } else {
             timelineContainer.style.setProperty('display', 'flex', 'important');
             fullGridContainer.style.setProperty('display', 'none', 'important');
             clockBtn.classList.add('selected');
             listBtn.classList.remove('selected');
-        };
+
+            // Ensure scroll is initialized exactly ONCE when the timeline safely becomes visible
+            if (!window.__tixupScrollInitialized) {
+                const viewport = document.querySelector('.timeline-view-viewport');
+                if (viewport) {
+                    const centerTarget = (UI_CONSTANTS.VIRTUAL_WIDTH / 2) - (viewport.clientWidth / 2) + 24;
+                    viewport.scrollLeft = centerTarget;
+                    window.__tixupScrollInitialized = true;
+                    // Force a full clean render now that it's visible and correctly centered
+                    if (typeof renderAll === 'function') renderAll();
+                }
+            }
+        }
+    }
+
+    function initViewToggle() {
+        const listIcon = document.querySelector('.icon-list');
+        const clockIcon = document.querySelector('.icon-clock');
+        if (!listIcon || !clockIcon) return;
+
+        const listBtn = listIcon.parentElement;
+        const clockBtn = clockIcon.parentElement;
+
+        listBtn.onclick = () => setView('list');
+        clockBtn.onclick = () => setView('timeline');
+
+        // Set default view to Data Grid (List)
+        setView('list');
     }
 
     function renderAll() {
@@ -443,8 +810,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!gB || !fGB || !tB) return;
         gB.innerHTML = ''; fGB.innerHTML = ''; tB.innerHTML = '';
 
-        tasks.filter(t => t.type === 'parent').forEach(t => renderTask(t));
-        tasks.filter(t => t.type === 'child').forEach(t => renderTask(t));
+        tasks.forEach(t => renderTask(t));
+
+        // Re-initialize Sortable after DOM update
+        if (window.tixupCore && typeof window.tixupCore.initSortable === 'function') {
+            window.tixupCore.initSortable();
+        }
     }
 
     function renderTask(task, animate = false) {
@@ -454,6 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Sidebar Grid Row
         const gRow = document.createElement('div');
         gRow.className = `data-grid-row ${task.type === 'child' ? 'grid-child-row' : 'level-0'}`;
+        if (task.collapsed) gRow.classList.add('collapsed');
         if (animate) gRow.classList.add('tix-anim-enter');
         gRow.setAttribute('data-group', task.id);
         gRow.setAttribute('data-type', task.type);
@@ -461,7 +833,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (task.parentId) gRow.setAttribute('data-parent', task.parentId);
 
         const expanderHtml = task.type === 'parent'
-            ? `<button class="tree-expander expanded ${hasChildren ? '' : 'empty'}"><div class="nav-icon icon-chevron-lg-bottom"></div></button>`
+            ? `<button class="tree-expander ${task.collapsed ? 'collapsed' : 'expanded'}"><div class="nav-icon icon-chevron-lg-bottom"></div></button>`
             : '';
 
         const iconHtml = task.type === 'parent'
@@ -506,13 +878,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 3. Timeline Row
         const tRow = document.createElement('div');
-        tRow.className = `timeline-row ${task.type === 'child' ? 'grid-child-row' : ''}`;
+        tRow.className = `timeline-row ${task.type === 'child' ? 'grid-child-row' : ''} ${animate ? 'tix-anim-enter' : ''}`;
+        if (task.collapsed) tRow.classList.add('collapsed');
         tRow.setAttribute('data-group', task.id);
         tRow.setAttribute('data-type', task.type);
         tRow.setAttribute('data-status', status); // Added for filtering
         if (task.parentId) tRow.setAttribute('data-parent', task.parentId);
+
+        // Calculate dynamic positioning based on zoom
+        const dayOffset = (task.start - UI_CONSTANTS.CENTER_PX) / 48; // Base scale is 48
+        const visualLeft = UI_CONSTANTS.CENTER_PX + (dayOffset * currentCellWidth);
+        const visualWidth = task.width * (currentCellWidth / 48);
+
         tRow.innerHTML = `
-            <div class="timeline-bar timeline-bar-${status} ${animate ? 'tix-anim-enter' : ''}" style="left: ${task.start}px; width: ${task.width}px;">
+            <div class="timeline-bar timeline-bar-${status} ${animate ? 'tix-anim-enter' : ''}" style="left: ${visualLeft}px; width: ${visualWidth}px;">
                 <div class="timeline-bar-resizer resizer-left"></div>
                 <span class="timeline-bar-label">${task.title}</span>
                 <div class="timeline-bar-resizer resizer-right"></div>
@@ -533,10 +912,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function insertRowToBody(body, row, task) {
         if (task.type === 'child' && task.parentId) {
-            const children = Array.from(body.querySelectorAll(`[data-parent="${task.parentId}"]`));
-            const targetInsert = children.length > 0 ? children[children.length - 1] : body.querySelector(`[data-group="${task.parentId}"]`);
-            if (targetInsert) targetInsert.insertAdjacentElement('afterend', row);
-            else body.appendChild(row);
+            // Find the last existing child of this parent, or the parent row itself
+            const siblings = body.querySelectorAll(`[data-parent="${task.parentId}"]`);
+            const parentRow = body.querySelector(`[data-group="${task.parentId}"]`);
+            if (siblings.length > 0) {
+                // Insert after last sibling
+                const lastSibling = siblings[siblings.length - 1];
+                lastSibling.insertAdjacentElement('afterend', row);
+            } else if (parentRow) {
+                // Insert right after parent
+                parentRow.insertAdjacentElement('afterend', row);
+            } else {
+                body.appendChild(row);
+            }
         } else {
             body.appendChild(row);
         }
@@ -544,10 +932,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function insertTimelineRow(tB, tRow, task) {
         if (task.type === 'child' && task.parentId) {
-            const children = Array.from(tB.querySelectorAll(`[data-parent="${task.parentId}"]`));
-            const targetInsert = children.length > 0 ? children[children.length - 1] : tB.querySelector(`[data-group="${task.parentId}"]`);
-            if (targetInsert) targetInsert.insertAdjacentElement('afterend', tRow);
-            else tB.appendChild(tRow);
+            const siblings = tB.querySelectorAll(`[data-parent="${task.parentId}"]`);
+            const parentRow = tB.querySelector(`[data-group="${task.parentId}"]`);
+            if (siblings.length > 0) {
+                const lastSibling = siblings[siblings.length - 1];
+                lastSibling.insertAdjacentElement('afterend', tRow);
+            } else if (parentRow) {
+                parentRow.insertAdjacentElement('afterend', tRow);
+            } else {
+                tB.appendChild(tRow);
+            }
         } else {
             tB.appendChild(tRow);
         }
@@ -558,11 +952,32 @@ document.addEventListener('DOMContentLoaded', () => {
             const cId = 'live-' + Date.now();
             const todayPos = UI_CONSTANTS.CENTER_PX;
             const task = { id: cId, title: '', status: 'pending', type: 'child', parentId: pId, start: todayPos, width: 96 };
+
+            // Auto-expand parent if collapsed before creating child
+            if (pRow.classList.contains('collapsed')) {
+                const expander = pRow.querySelector('.tree-expander');
+                if (expander && window.tixupCore) {
+                    window.tixupCore.handleToggle(expander);
+                }
+            }
+
             renderTask(task, true); // Animate creation
 
             const gRow = document.querySelector(`#grid-tbody [data-group="${cId}"]`);
             const fRow = document.querySelector(`#full-grid-tbody [data-group="${cId}"]`);
             const tRow = document.querySelector(`#timeline-tbody [data-group="${cId}"]`);
+
+            // Ensure child is visible (not collapsed)
+            [gRow, fRow, tRow].forEach(r => { if (r) r.classList.remove('collapsed'); });
+
+            // Clean up animation class after it finishes
+            [gRow, fRow].forEach(r => {
+                if (r) r.addEventListener('animationend', () => r.classList.remove('tix-anim-enter'), { once: true });
+            });
+            if (tRow) {
+                const bar = tRow.querySelector('.timeline-bar');
+                if (bar) bar.addEventListener('animationend', () => bar.classList.remove('tix-anim-enter'), { once: true });
+            }
 
             try {
                 if (window.tixupCore) window.tixupCore.syncTimelineOrder();
@@ -745,6 +1160,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const todayPos = UI_CONSTANTS.CENTER_PX;
                 const task = { id: 'live-' + Date.now(), title: name, status: 'pending', type: 'parent', start: todayPos, width: 96 };
                 renderTask(task, true); // Animate creation
+
+                // Clean up animation class after it finishes
+                document.querySelectorAll(`[data-group="${task.id}"]`).forEach(r => {
+                    r.addEventListener('animationend', () => r.classList.remove('tix-anim-enter'), { once: true });
+                    const bar = r.querySelector('.timeline-bar.tix-anim-enter');
+                    if (bar) bar.addEventListener('animationend', () => bar.classList.remove('tix-anim-enter'), { once: true });
+                });
+
                 saveData();
             }
         };
@@ -759,21 +1182,31 @@ document.addEventListener('DOMContentLoaded', () => {
             const bar = document.querySelector(`#timeline-tbody [data-group="${id}"] .timeline-bar`);
             if (!bar) return;
             const fRow = document.querySelector(`#full-grid-tbody [data-group="${id}"]`);
+            const visualLeft = parseSafePx(bar.style.left, UI_CONSTANTS.CENTER_PX);
+            const dayOffset = (visualLeft - UI_CONSTANTS.CENTER_PX) / currentCellWidth;
+            const normalizedStart = UI_CONSTANTS.CENTER_PX + (dayOffset * 48);
+
+            const visualWidth = parseSafePx(bar.style.width, currentCellWidth);
+            const normalizedWidth = visualWidth * (48 / currentCellWidth);
+
             res.push({
                 id, title: row.querySelector('.data-grid-text').innerText,
                 status: row.querySelector('.marker')?.classList[2]?.replace('marker-', '') || 'pending',
                 type: row.getAttribute('data-type'),
                 parentId: row.getAttribute('data-parent'),
-                start: parseSafePx(bar.style.left, UI_CONSTANTS.CENTER_PX),
-                width: parseSafePx(bar.style.width, 48),
+                start: normalizedStart,
+                width: normalizedWidth,
                 assignee: fRow ? fRow.querySelector('.data-grid-text-sm')?.innerText : '이대수',
                 dueDate: fRow ? fRow.querySelectorAll('.data-grid-text-sm')[1]?.innerText : '2025-08-09',
-                tag: fRow ? fRow.querySelector('.grid-tag')?.innerText : 'Design'
+                tag: fRow ? fRow.querySelector('.grid-tag')?.innerText : 'Design',
+                collapsed: row.classList.contains('collapsed')
             });
         });
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(res));
+        tasks = res; // CRITICAL: Update in-memory state so renderAll uses latest data
+        localStorage.setItem(getStorageKey(), JSON.stringify(res));
         if (window.tixupCore) window.tixupCore.syncTimelineOrder();
     }
+    window.tixupSaveData = saveData; // Expose for TixupCore
 
     function animateAndRemove(ids, callback) {
         const elements = [];
@@ -903,7 +1336,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const bar = document.querySelector(`#timeline-tbody [data-group="${id}"] .timeline-bar`);
                     if (bar) {
                         const newLeft = startPos + deltaX;
-                        const dayDelta = (deltaX / 48).toFixed(2);
+                        const dayDelta = (deltaX / currentCellWidth).toFixed(2);
                         console.log(`[Drag] ID: ${id}, deltaX: ${deltaX}px (~${dayDelta} days), newLeft: ${newLeft}`);
                         bar.style.left = `${newLeft}px`;
                     }
@@ -914,14 +1347,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 initialWidths.forEach((startWidth, id) => {
                     if (resizeSide === 'right') {
-                        // For right resize, deltaX shrinking is limited by width reaching 48
-                        if (startWidth + deltaX < 48) {
-                            allowedDeltaX = Math.min(allowedDeltaX, 48 - startWidth);
+                        // For right resize, deltaX shrinking is limited by width reaching currentCellWidth
+                        if (startWidth + deltaX < currentCellWidth) {
+                            allowedDeltaX = Math.min(allowedDeltaX, currentCellWidth - startWidth);
                         }
                     } else if (resizeSide === 'left') {
-                        // For left resize, deltaX growing is limited by width reaching 48 (since width = start - delta)
-                        if (startWidth - deltaX < 48) {
-                            allowedDeltaX = Math.max(allowedDeltaX, startWidth - 48);
+                        // For left resize, deltaX growing is limited by width reaching currentCellWidth (since width = start - delta)
+                        if (startWidth - deltaX < currentCellWidth) {
+                            allowedDeltaX = Math.max(allowedDeltaX, startWidth - currentCellWidth);
                         }
                     }
                 });
@@ -933,11 +1366,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const startWidth = initialWidths.get(id);
                     if (bar && startWidth) {
                         if (resizeSide === 'right') {
-                            const newWidth = Math.max(48, startWidth + deltaX);
+                            const newWidth = Math.max(currentCellWidth, startWidth + deltaX);
                             bar.style.width = `${newWidth}px`;
                         } else if (resizeSide === 'left') {
                             const newLeft = startPos + deltaX;
-                            const newWidth = Math.max(48, startWidth - deltaX);
+                            const newWidth = Math.max(currentCellWidth, startWidth - deltaX);
                             bar.style.left = `${newLeft}px`;
                             bar.style.width = `${newWidth}px`;
                         }
@@ -958,13 +1391,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (bar) {
                     // Snap Left safely using CENTER_PX basis
                     let finalLeft = parseSafePx(bar.style.left, UI_CONSTANTS.CENTER_PX);
-                    finalLeft = UI_CONSTANTS.CENTER_PX + Math.round((finalLeft - UI_CONSTANTS.CENTER_PX) / 48) * 48;
+                    finalLeft = UI_CONSTANTS.CENTER_PX + Math.round((finalLeft - UI_CONSTANTS.CENTER_PX) / currentCellWidth) * currentCellWidth;
                     bar.style.left = `${finalLeft}px`;
 
                     // Snap Width safely
-                    let finalWidth = parseSafePx(bar.style.width, 48);
-                    finalWidth = Math.round(finalWidth / 48) * 48;
-                    bar.style.width = `${Math.max(48, finalWidth)}px`;
+                    let finalWidth = parseSafePx(bar.style.width, currentCellWidth);
+                    finalWidth = Math.round(finalWidth / currentCellWidth) * currentCellWidth;
+                    bar.style.width = `${Math.max(currentCellWidth, finalWidth)}px`;
 
                     bar.classList.remove('is-dragging');
                 }
@@ -1038,7 +1471,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const bar = document.querySelector(`#timeline-tbody [data-group="${id}"] .timeline-bar`);
             if (bar) {
                 let sLeft = parseSafePx(bar.style.left, UI_CONSTANTS.CENTER_PX);
-                let sWidth = parseSafePx(bar.style.width, 48);
+                let sWidth = parseSafePx(bar.style.width, currentCellWidth);
 
                 initialPositions.set(id, sLeft);
                 initialWidths.set(id, sWidth);
