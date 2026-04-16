@@ -299,6 +299,8 @@
             /* Gradient mask to fade out edges (left/right) */
             -webkit-mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
             mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+            /* Force Safari to create a compositing layer for the mask */
+            transform: translateZ(0);
         }
 
         .hero-clients-logos {
@@ -309,6 +311,9 @@
             /* Needs to match gap for seamless loop */
             animation: marquee 12s linear infinite;
             width: max-content;
+            /* Hardware acceleration fix for Safari rendering artifacts */
+            transform: translateZ(0);
+            will-change: transform;
         }
 
         @keyframes marquee {
@@ -323,11 +328,16 @@
 
         .client-logo {
             height: 22px;
+            width: auto;
             object-fit: contain;
             opacity: 0.9;
             flex-shrink: 0;
             /* Make white */
             filter: brightness(0) invert(1);
+            /* Prevent Safari's filter glitch on nested transformed layers */
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
         }
 
         @media (max-width: 768px) {
