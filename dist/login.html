@@ -12,7 +12,11 @@
     <!-- Google Identity Services SDK -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             min-height: 100vh;
@@ -20,270 +24,418 @@
             align-items: center;
             justify-content: center;
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-            overflow: hidden;
-            position: relative;
+            background-color: #F8F9FA;
+            /* light modern background */
         }
 
-        /* Background animated gradient blobs */
-        .bg-blob {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(120px);
-            opacity: 0.4;
-            animation: blobFloat 20s ease-in-out infinite alternate;
-        }
-        .bg-blob-1 {
-            width: 600px; height: 600px;
-            background: #6C5CE7;
-            top: -200px; left: -100px;
-            animation-delay: 0s;
-        }
-        .bg-blob-2 {
-            width: 500px; height: 500px;
-            background: #00B894;
-            bottom: -200px; right: -100px;
-            animation-delay: -7s;
-        }
-        .bg-blob-3 {
-            width: 400px; height: 400px;
-            background: #E17055;
-            top: 30%; right: 10%;
-            animation-delay: -14s;
-        }
-
-        @keyframes blobFloat {
-            0% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(30px, -20px) scale(1.05); }
-            66% { transform: translate(-20px, 30px) scale(0.95); }
-            100% { transform: translate(10px, -10px) scale(1.02); }
-        }
-
-        /* Login Card */
-        .login-card {
-            position: relative;
-            z-index: 1;
-            width: 440px;
-            padding: 56px 48px;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 24px;
-            box-shadow:
-                0 32px 64px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        .login-wrapper {
+            width: 100%;
+            height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 36px;
-            animation: cardEnter 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .login-card {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            max-width: 900px;
+            height: 560px;
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            animation: cardEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             opacity: 0;
-            transform: translateY(30px);
+            transform: translateY(20px);
         }
 
         @keyframes cardEnter {
-            to { opacity: 1; transform: translateY(0); }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Left Column */
+        .login-left {
+            width: 50%;
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-logo-container {
+            margin-bottom: 32px;
         }
 
         .login-logo {
-            width: 140px;
-            filter: brightness(0) invert(1);
+            width: 100px;
+            /* Filter darkens the default white logo text if it's an SVG without explicit fills */
+            filter: invert(0.15) brightness(0.4);
         }
 
-        .login-title {
-            color: rgba(255, 255, 255, 0.95);
-            font-size: 22px;
-            font-weight: 600;
-            letter-spacing: -0.3px;
-        }
-
-        .login-subtitle {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 14px;
-            font-weight: 400;
-            margin-top: -20px;
-        }
-
-        /* Google Sign-In button container */
         .google-signin-container {
             width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
+            margin-bottom: 24px;
         }
 
-        /* Custom Google button (used before GIS loads or as fallback) */
-        .btn-google {
+        .btn-google-outline {
             width: 100%;
-            height: 52px;
+            height: 42px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
-            background: #fff;
-            border: none;
-            border-radius: 14px;
-            color: #333;
-            font-size: 15px;
+            background: #ffffff;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            color: #1E293B;
+            font-size: 13px;
             font-weight: 600;
-            font-family: inherit;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
         }
 
-        .btn-google:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        .btn-google-outline:hover {
+            background-color: #F8FAFC;
+            border-color: #CBD5E1;
         }
 
-        .btn-google:active { transform: translateY(0); }
-
-        .btn-google img {
-            width: 20px;
-            height: 20px;
+        .btn-google-outline img {
+            width: 16px;
+            height: 16px;
         }
 
         .divider-row {
-            width: 100%;
             display: flex;
             align-items: center;
-            gap: 16px;
-            margin: -8px 0;
+            text-align: center;
+            margin-bottom: 24px;
         }
 
         .divider-row::before,
         .divider-row::after {
             content: '';
             flex: 1;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid #F1F5F9;
         }
 
         .divider-row span {
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 12px;
+            padding: 0 12px;
+            color: #94A3B8;
+            font-size: 11px;
             font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
-        /* Demo Login Form */
-        .demo-form {
-            width: 100%;
+        /* Form */
+        .login-form {
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
 
-        .demo-form input {
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        .form-group label .required {
+            color: #EF4444;
+        }
+
+        .form-group input {
             width: 100%;
-            height: 48px;
+            height: 42px;
             padding: 0 16px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 12px;
-            color: #fff;
-            font-size: 15px;
-            font-family: inherit;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            color: #0F172A;
+            font-size: 13px;
             outline: none;
             transition: all 0.2s;
         }
 
-        .demo-form input::placeholder {
-            color: rgba(255, 255, 255, 0.35);
+        .form-group input::placeholder {
+            color: #94A3B8;
         }
 
-        .demo-form input:focus {
-            border-color: #6C5CE7;
-            background: rgba(108, 92, 231, 0.08);
-            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+        .form-group input:focus {
+            border-color: #18675A;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(24, 103, 90, 0.1);
         }
 
-        .btn-login {
+        /* Retain green border if pre-filled demo */
+        .form-group input:not(:placeholder-shown) {
+            border-color: #18675A;
+        }
+
+        .btn-primary {
             width: 100%;
-            height: 52px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%);
+            height: 42px;
+            margin-top: 8px;
+            background-color: #18675A;
+            /* Deep teal/green to match design */
             border: none;
-            border-radius: 14px;
-            color: #fff;
-            font-size: 16px;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 13px;
             font-weight: 600;
-            font-family: inherit;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 16px rgba(108, 92, 231, 0.3);
+            transition: background-color 0.2s;
         }
 
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.45);
+        .btn-primary:hover {
+            background-color: #135248;
         }
 
-        .btn-login:active { transform: translateY(0); }
-
-        .btn-login .material-icons-outlined { font-size: 22px; }
-
-        .btn-login:disabled {
+        .btn-primary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none !important;
+            background-color: #94A3B8;
         }
 
-        .login-footer {
-            color: rgba(255, 255, 255, 0.3);
+        .login-footer-text {
+            margin-top: 8px;
             font-size: 12px;
-            text-align: center;
+            color: #64748B;
         }
 
-        /* Error message */
+        .login-footer-text a {
+            color: #0F172A;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .login-footer-text a:hover {
+            text-decoration: underline;
+        }
+
         .login-error {
-            color: #E17055;
-            font-size: 13px;
+            color: #EF4444;
+            font-size: 12px;
+            margin-top: 8px;
             text-align: center;
             display: none;
+        }
+
+        /* Right Column */
+        .login-right {
+            width: 50%;
+            padding: 12px;
+            /* Small padding so the image has a white frame around it */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .login-hero {
+            flex: 1;
+            /* Refined to use the exact background image user provided */
+            background: url('assets/images/bg_account.png') center/cover no-repeat;
+            background-color: #18675A;
+            /* Fallback */
+            border-radius: 12px;
+            position: relative;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+            /* subtle inner border */
+        }
+
+        .hero-content {
+            color: #ffffff;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-content h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            letter-spacing: -0.3px;
+        }
+
+        .hero-content p {
+            font-size: 14px;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 90%;
+            font-weight: 400;
+        }
+
+        .hero-footer {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-clients-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 16px;
+        }
+
+        .hero-clients-wrapper {
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            /* Gradient mask to fade out edges (left/right) */
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+        }
+
+        .hero-clients-logos {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            padding-right: 32px;
+            /* Needs to match gap for seamless loop */
+            animation: marquee 12s linear infinite;
+            width: max-content;
+        }
+
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .client-logo {
+            height: 22px;
+            object-fit: contain;
+            opacity: 0.9;
+            flex-shrink: 0;
+            /* Make white */
+            filter: brightness(0) invert(1);
+        }
+
+        @media (max-width: 768px) {
+            .login-card {
+                flex-direction: column;
+                height: auto;
+                max-width: 440px;
+            }
+
+            .login-left,
+            .login-right {
+                width: 100%;
+            }
+
+            .login-right {
+                height: 300px;
+                padding-top: 0;
+            }
+
+            .login-left {
+                padding: 40px 32px;
+            }
+
+            .login-hero {
+                padding: 32px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="bg-blob bg-blob-1"></div>
-    <div class="bg-blob bg-blob-2"></div>
-    <div class="bg-blob bg-blob-3"></div>
+    <div class="login-wrapper">
+        <div class="login-card">
 
-    <div class="login-card">
-        <img src="assets/images/icons/tixup_logo.svg" alt="Tixup" class="login-logo">
-        <div class="login-title">Welcome to Tixup</div>
-        <div class="login-subtitle">Sign in to manage your issue tracker</div>
+            <!-- Left half: Auth Form -->
+            <div class="login-left">
+                <div class="login-logo-container">
+                    <!-- Replace with brand logo -->
+                    <img src="assets/images/icons/tixup_logo.svg" alt="TIXUP" class="login-logo">
+                </div>
 
-        <!-- Google Sign-In (primary) -->
-        <div class="google-signin-container">
-            <button class="btn-google" id="google-login-btn">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-                Continue with Google
-            </button>
-            <div class="login-error" id="login-error"></div>
+                <div class="google-signin-container">
+                    <button class="btn-google-outline" id="google-login-btn">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                        Sign in with Google
+                    </button>
+                    <div class="login-error" id="login-error"></div>
+                </div>
+
+                <div class="divider-row">
+                    <span>Or</span>
+                </div>
+
+                <div class="login-form">
+                    <div class="form-group">
+                        <label>Name <span class="required">*</span></label>
+                        <input type="text" id="login-name" placeholder="jy.choi" autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email <span class="required">*</span></label>
+                        <input type="email" id="login-email" placeholder="Enter your email" autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label>Password <span class="required">*</span></label>
+                        <input type="password" id="login-password" placeholder="Enter your password">
+                    </div>
+
+                    <button class="btn-primary" id="demo-login-btn" disabled>
+                        Create Account
+                    </button>
+
+                    <div class="login-footer-text">
+                        Already have an account? <a href="#">Sign in</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right half: Hero Information -->
+            <div class="login-right">
+                <div class="login-hero">
+                    <div class="hero-content">
+                        <h3>Secured Task Management</h3>
+                        <p>"Tix" means "Ticket" and refers to a single unit of task</p>
+                    </div>
+
+                    <div class="hero-footer">
+                        <div class="hero-clients-title">Our Clients</div>
+                        <div class="hero-clients-wrapper">
+                            <div class="hero-clients-logos">
+                                <!-- Set 1 -->
+                                <img src="assets/images/Samsung.svg" alt="Samsung" class="client-logo">
+                                <img src="assets/images/kakaopay.svg" alt="KakaoPay" class="client-logo">
+                                <img src="assets/images/cgv.svg" alt="CGV" class="client-logo">
+                                <img src="assets/images/hanabank.svg" alt="Hana Bank" class="client-logo">
+                                <img src="assets/images/doosan.svg" alt="Doosan" class="client-logo">
+                                <!-- Set 2 (Duplicated for seamless infinite loop) -->
+                                <img src="assets/images/Samsung.svg" alt="Samsung" class="client-logo">
+                                <img src="assets/images/kakaopay.svg" alt="KakaoPay" class="client-logo">
+                                <img src="assets/images/cgv.svg" alt="CGV" class="client-logo">
+                                <img src="assets/images/hanabank.svg" alt="Hana Bank" class="client-logo">
+                                <img src="assets/images/doosan.svg" alt="Doosan" class="client-logo">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
-
-        <div class="divider-row"><span>or</span></div>
-
-        <!-- Demo Login (fallback) -->
-        <div class="demo-form">
-            <input type="text" id="login-name" placeholder="Your name" autocomplete="name">
-            <input type="email" id="login-email" placeholder="Email address" autocomplete="email">
-            <button class="btn-login" id="demo-login-btn" disabled>
-                <span class="material-icons-outlined">login</span>
-                Sign In
-            </button>
-        </div>
-
-        <div class="login-footer">Your data is stored locally in your browser.</div>
     </div>
 
     <script src="assets/js/tixup-auth.js"></script>
@@ -315,7 +467,7 @@
                     return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
                 }).join(''));
                 const payload = JSON.parse(jsonPayload);
-                
+
                 const user = {
                     id: 'google-' + payload.sub,
                     name: payload.name || payload.email.split('@')[0],
@@ -386,7 +538,7 @@
                                                 headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
                                             });
                                             const payload = await res.json();
-                                            
+
                                             const user = {
                                                 id: 'google-' + payload.sub,
                                                 name: payload.name || payload.email.split('@')[0],
