@@ -4,175 +4,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tixup - Dashboard</title>
-    <link rel="stylesheet" href="assets/css/tokens.css">
-    <link rel="stylesheet" href="assets/css/app.css">
-    <link rel="stylesheet" href="assets/css/components.css">
-    <!-- Google Fonts -->
+    <title>Tixup - Data Test Drive (Final Master Pro)</title>
+    <link rel="stylesheet" href="assets/css/tokens.css?v=1776110243">
+    <link rel="stylesheet" href="assets/css/components.css?v=1776110243">
+    <link rel="stylesheet" href="assets/css/icons.css?v=1776110243">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
-    <!-- Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
-    <script src="assets/js/app.js" defer></script>
-</head>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <!-- Styles are now managed in assets/css/components.css -->
+<script src="assets/js/debug-mutations.js"></script></head>
 
 <body>
-    <div class="app-container">
-        <!-- Main Sidebar -->
-        <aside class="sub-sidebar">
-            <div class="sidebar-header">
-                <div class="logo-box"></div>
-                <h2>Space</h2>
-                <button class="icon-btn"><span class="material-icons-outlined">add</span></button>
+    <nav class="nav-sidebar">
+        <header class="nav-header">
+            <div class="nav-logo-container"><img src="assets/images/icons/tixup_logo.svg" alt="Tixup" class="nav-logo">
             </div>
-            <div class="sidebar-content">
-                <div class="nav-group">
-                    <div class="group-header">
-                        <span class="material-icons-outlined">expand_more</span>
-                        <span class="group-title">Box</span>
-                    </div>
-                    <ul class="nav-list">
-                        <li class="active">proj-kori</li>
-                        <li>internal-tools</li>
-                        <li>design-system</li>
-                    </ul>
-                </div>
-                <div class="nav-group">
-                    <div class="group-header">
-                        <span class="material-icons-outlined">chevron_right</span>
-                        <span class="group-title">Private</span>
-                    </div>
+        </header>
+        <div class="nav-section nav-section-spaces">
+            <div class="nav-section-title-wrapper">
+                <div class="nav-section-title-label">Space</div>
+                <button class="nav-space-add-btn" id="add-space-btn" title="New Space">
+                    <div class="nav-icon icon-add"></div>
+                </button>
+            </div>
+            <div id="space-list" class="space-list">
+                <!-- Spaces rendered by JS -->
+            </div>
+        </div>
+        <div class="nav-sidebar-spacer"></div>
+        <div class="nav-user-profile" id="nav-user-profile">
+            <!-- Rendered by JS -->
+        </div>
+    </nav>
+
+    <main class="guide-main">
+        <header class="tix-sticky-header">
+            <div class="header-left">
+                <div class="location-title">Development Lab</div>
+                <div class="header-action-group">
+                    <button class="icon-tool-btn selected"><i class="icon icon-list"></i></button>
+                    <button class="icon-tool-btn"><i class="icon icon-clock"></i></button>
                 </div>
             </div>
-        </aside>
+            <div class="header-right">
+                <button class="btn-primary-tix" id="top-tix-btn"><i class="icon icon-add"
+                        style="background-color: white;"></i> Tix</button>
+            </div>
+        </header>
 
-        <!-- Main Content Area -->
-        <main class="main-content">
-            <!-- Top Header -->
-            <header class="top-header">
-                <div class="header-left">
-                    <div class="breadcrumb">
-                        <span class="proj-name">Proj-doc-design</span>
-                        <span class="material-icons-outlined">search</span>
+        <section class="timeline-grid-container" id="data-grid-timeline">
+            <div class="timeline-grid-main">
+                <div class="timeline-sidebar" id="sidebar-container">
+                    <div class="data-grid-row data-grid-header">
+                        <div class="data-grid-cell center"><label class="checkbox-container"><input type="checkbox">
+                                <div class="checkbox-box"></div>
+                            </label></div>
+                        <div class="data-grid-cell" style="padding: 10px;">
+                            <div class="grid-filter-tabs">
+                                <button class="grid-filter-tab active">All</button>
+                                <button class="grid-filter-tab">Done</button>
+                                <button class="grid-filter-tab">Overdue</button>
+                            </div>
+                        </div>
+                        <div class="data-grid-cell" style="padding: 10px; font-weight: 600;"></div>
                     </div>
+                    <div id="grid-tbody"></div>
                 </div>
-                <div class="header-right">
-                    <div class="view-tools">
-                        <button class="tool-btn"><span class="material-icons-outlined">filter_list</span>
-                            Filter</button>
-                        <button class="tool-btn"><span class="material-icons-outlined">sort</span> Sort</button>
-                    </div>
-                    <div class="user-avatars">
-                        <img src="assets/images/avatar_male_1.png" alt="User 1" class="avatar-img">
-                        <img src="assets/images/avatar_female_1.png" alt="User 2" class="avatar-img">
-                        <div class="avatar-more">+4</div>
-                    </div>
-                    <button class="btn-primary"><span class="material-icons-outlined">add_circle</span> Tix</button>
-                </div>
-            </header>
-
-            <!-- Content Body -->
-            <div class="content-body">
-                <div class="status-tabs">
-                    <button class="tab active">All <span class="count">24</span></button>
-                    <button class="tab">Done <span class="count">12</span></button>
-                    <button class="tab">Overdue <span class="count">3</span></button>
-                </div>
-
-                <table class="tix-table">
-                    <thead>
-                        <tr>
-                            <th class="col-check"><input type="checkbox"></th>
-                            <th class="col-title">Title</th>
-                            <th class="col-status">Status</th>
-                            <th class="col-assignee">Assignee</th>
-                            <th class="col-due">Due Date</th>
-                            <th class="col-tags">Tags</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Row 1 -->
-                        <tr class="tix-row">
-                            <td><input type="checkbox"></td>
-                            <td><span class="tix-title">Proj-doc-design: Initial layout concepts</span></td>
-                            <td><span class="badge status-pending">In Progress</span></td>
-                            <td>
-                                <img src="assets/images/avatar_male_1.png" alt="Assignee" class="avatar-sm">
-                            </td>
-                            <td><span class="date">Mar 12, 2026</span></td>
-                            <td>
-                                <div class="tags"><span class="tag tag-design">Design</span><span
-                                        class="tag tag-high">High</span></div>
-                            </td>
-                        </tr>
-                        <!-- Row 2: IT/Dev (TIX-1024) -->
-                        <tr class="tix-row">
-                            <td><input type="checkbox"></td>
-                            <td><span class="tix-title">API Integration: Figma MCP Server setup</span></td>
-                            <td>
-                                <div class="marker marker-has-icon">
-                                    <div class="marker-icon icon-check"></div>
-                                    Done
+                <div class="timeline-view-viewport" id="viewport-container">
+                    <div class="timeline-grid-content" style="width: 2500px;">
+                        <div class="timeline-header">
+                            <!-- Fixed Left Master Header (Year + Month) -->
+                            <div id="timeline-fixed-master"></div>
+                            
+                            <!-- Floating Month Labels (Month only) -->
+                            <div id="timeline-floating-labels"></div>
+                            
+                            <!-- Today Button Container (Refined Navigation) -->
+                            <div class="timeline-nav-actions">
+                                <div class="timeline-nav-group">
+                                    <button class="nav-arrow-btn" id="nav-prev-2w">
+                                        <img src="assets/images/icons/chevron_left.svg" alt="이전">
+                                    </button>
+                                    <button class="nav-today-btn" id="go-today-btn">오늘</button>
+                                    <button class="nav-arrow-btn" id="nav-next-2w">
+                                        <img src="assets/images/icons/chevron_right.svg" alt="다음">
+                                    </button>
                                 </div>
-                            </td>
-                            <td>
-                                <img src="assets/images/avatar_female_1.png" alt="Assignee" class="avatar-sm">
-                            </td>
-                            <td><span class="date">Mar 05, 2026</span></td>
-                            <td>
-                                <div class="marker marker-dev">Dev</div>
-                            </td>
-                        </tr>
-                        <!-- Row 3: UX (TIX-1025) -->
-                        <tr class="tix-row">
-                            <td><input type="checkbox"></td>
-                            <td><span class="tix-title">User feedback: Dashboard navigation flow</span></td>
-                            <td>
-                                <div class="marker marker-has-icon">
-                                    <div class="marker-icon icon-play"></div>
-                                    In Progress
+                                
+                                <div class="timeline-zoom-group">
+                                    <button class="zoom-btn" id="zoom-out-btn">−</button>
+                                    <input type="range" class="zoom-slider" id="timeline-zoom-range" min="4" max="150" value="48">
+                                    <button class="zoom-btn" id="zoom-in-btn">+</button>
                                 </div>
-                            </td>
-                            <td>
-                                <div class="avatar-sm-placeholder">JD</div>
-                            </td>
-                            <td><span class="date">Mar 20, 2026</span></td>
-                            <td>
-                                <div class="marker marker-design">Design</div>
-                            </td>
-                        </tr>
-                        <!-- Row 4: Marketing (TIX-1026) -->
-                        <tr class="tix-row">
-                            <td><input type="checkbox"></td>
-                            <td><span class="tix-title">Marketing: New landing page copy review</span></td>
-                            <td>
-                                <div class="marker marker-has-icon">
-                                    <div class="marker-icon icon-skull"></div>
-                                    Overdue
-                                </div>
-                            </td>
-                            <td>
-                                <img src="assets/images/avatar_male_1.png" alt="Assignee" class="avatar-sm">
-                            </td>
-                            <td><span class="date">Feb 28, 2026</span></td>
-                            <td>
-                                <div class="marker marker-marketing">Marketing</div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                            </div>
 
-            <!-- Floating Action Bar -->
-            <div class="floating-bar">
-                <span class="selection-info"><span>2</span> items selected</span>
-                <div class="divider"></div>
-                <button class="action-btn"><span class="material-icons-outlined">edit</span> Edit</button>
-                <button class="action-btn"><span class="material-icons-outlined">swap_horiz</span> Change
-                    Status</button>
-                <button class="action-btn delete"><span class="material-icons-outlined">delete</span> Delete</button>
+                            <!-- Days Row (Numbers) -->
+                            <div class="timeline-days-row" id="timeline-days-header"></div>
+                        </div>
+                        <div class="timeline-body">
+                            <div class="timeline-grid-lines" id="timeline-grid-back"></div>
+                            <div class="timeline-today-line" id="timeline-today-indicator"></div>
+                            <div id="timeline-tbody"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </main>
+            <div class="timeline-footer-row">
+                <div class="timeline-footer-cell">
+                    <button class="grid-create-btn" id="footer-create-btn">
+                        <div class="nav-icon icon-add"></div><span class="data-grid-text">Create Tix</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Full Data Grid View Container -->
+        <section class="data-grid-container full-data-grid-container" id="full-data-grid">
+            <div class="data-grid-row data-grid-header">
+                <div class="data-grid-cell center"><label class="checkbox-container"><input type="checkbox">
+                        <div class="checkbox-box"></div>
+                    </label></div>
+                <div class="data-grid-cell" style="padding: 10px;">
+                    <div class="grid-filter-tabs">
+                        <button class="grid-filter-tab active">All</button>
+                        <button class="grid-filter-tab">Done</button>
+                        <button class="grid-filter-tab">Overdue</button>
+                    </div>
+                </div>
+                <div class="data-grid-cell" style="padding: 10px; font-weight: 600;"></div>
+                <div class="data-grid-cell" style="padding: 10px; font-weight: 600;">Assignee</div>
+                <div class="data-grid-cell" style="padding: 10px; font-weight: 600;">Due Date</div>
+                <div class="data-grid-cell" style="padding: 10px; font-weight: 600;">Tags</div>
+            </div>
+            <div id="full-grid-tbody" class="full-grid-tbody"></div>
+            <div class="data-grid-row full-grid-footer">
+                <div class="data-grid-cell full-grid-footer-cell">
+                    <button class="grid-create-btn" id="full-grid-create-btn">
+                        <div class="nav-icon icon-add"></div><span class="data-grid-text">Create Tix</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 우클릭 컨텍스트 메뉴 -->
+    <div id="context-menu" class="context-menu-container">
+        <div class="context-menu-item" id="delete-tix">
+            <span class="material-icons-outlined" style="font-size:16px;">delete</span>
+            Delete Task
+        </div>
     </div>
+
+    <!-- 상태 선택 드롭다운 메뉴 -->
+    <div id="status-menu" class="context-menu-container">
+        <div class="status-menu-item" data-status="pending">
+            <div class="marker marker-has-icon marker-pending">Pending</div>
+        </div>
+        <div class="status-menu-item" data-status="inprogress">
+            <div class="marker marker-has-icon marker-inprogress">in Progress</div>
+        </div>
+        <div class="status-menu-item" data-status="pause">
+            <div class="marker marker-has-icon marker-pause">Pause</div>
+        </div>
+        <div class="status-menu-item" data-status="done">
+            <div class="marker marker-has-icon marker-done">Done</div>
+        </div>
+        <div class="status-menu-item" data-status="overdue">
+            <div class="marker marker-has-icon marker-overdue">Overdue</div>
+        </div>
+    </div>
+
+    <!-- Floating Selection Bar -->
+    <div id="floating-selection-bar" class="floating-selection-bar">
+        <div class="selection-info">
+            <span class="count" id="selection-count">0</span>
+            <span class="label">Selected</span>
+            <span>items</span>
+        </div>
+        <div class="divider"></div>
+        <button class="action-btn" id="bulk-edit">
+            <span class="material-icons-outlined">edit</span> Edit
+        </button>
+        <button class="action-btn" id="bulk-status">
+            <span class="material-icons-outlined">swap_horiz</span> Change Status
+        </button>
+        <button class="action-btn delete" id="bulk-delete">
+            <span class="material-icons-outlined">delete</span> Delete
+        </button>
+    </div>
+
+    <script src="assets/js/tixup-auth.js"></script>
+    <script src="assets/js/tixup-constants.js"></script>
+    <script src="assets/js/tixup-storage.js"></script>
+    <script src="assets/js/tixup-common.js"></script>
+    <script src="assets/js/tixup-filters.js"></script>
+    <script src="assets/js/tixup-views.js"></script>
+    <script src="assets/js/tixup-task-render.js"></script>
+    <script src="assets/js/tixup-task-crud.js"></script>
+    <script src="assets/js/tixup-selection.js"></script>
+    <script src="assets/js/tixup-timeline-header.js"></script>
+    <script src="assets/js/tixup-timeline-drag.js"></script>
+    <script src="assets/js/tixup-spaces.js"></script>
+    <script src="assets/js/tixup-main.js"></script>
 </body>
 
 </html>

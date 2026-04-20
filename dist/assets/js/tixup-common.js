@@ -11,10 +11,11 @@ class TixupCore {
     }
 
     init() {
+        if (this._initialized) return;
+        this._initialized = true;
         this.createIndicatorLine();
         this.initEventListeners();
         this.initSortable();
-        // this.initTimelineInteraction(); // DISABLED: conflicts with test-drive-script
         this.syncScroll();
     }
 

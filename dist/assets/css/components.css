@@ -2580,7 +2580,7 @@ body.dragging-active *::-moz-selection {
     border: 1px solid var(--primitive-colors-gray-200);
     border-radius: var(--semantic-size-radius-md);
     overflow: hidden;
-    height: calc(100vh - 120px);
+    /* height: calc(100vh - 120px); */
     flex-direction: column;
     background-color: var(--primitive-colors-base-white);
 }

@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tixup - Dashboard</title>
+    <link rel="stylesheet" href="assets/css/tokens.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <style>
+        /* ─── Dashboard Layout ─────────────────────────────── */
+        .dashboard-main {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .dashboard-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .dashboard-panel {
+            overflow-y: auto;
+            padding: 0 24px 24px 24px;
+        }
+
+        .dashboard-panel:first-child {
+            border-right: 1px solid var(--semantic-color-colors-border-default);
+        }
+
+        /* ─── Dashboard Header ─────────────────────────────── */
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: var(--primitive-sizes-80);
+            padding: 0;
+            flex-shrink: 0;
+            background-color: var(--primitive-colors-gray-50);
+            border-bottom: 1px solid var(--semantic-color-colors-border-default);
+            padding: 0 24px;
+        }
+
+        .dashboard-header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--primitive-sizes-32);
+        }
+
+        .dashboard-title {
+            font-size: var(--semantic-font-font-size-font-size-xl);
+            font-weight: var(--semantic-font-font-weight-emphasis-low);
+            color: var(--semantic-color-colors-text-heading);
+        }
+
+        .dashboard-header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--primitive-sizes-24);
+        }
+
+        .header-team-group {
+            display: flex;
+            align-items: center;
+            gap: var(--primitive-sizes-8);
+        }
+
+        .header-team-label {
+            font-size: var(--semantic-font-font-size-font-size-md);
+            color: var(--semantic-color-colors-text-caption);
+        }
+
+        .avatar-stack {
+            display: flex;
+            align-items: center;
+        }
+
+        .avatar-stack .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--primitive-colors-base-white);
+            margin-left: -6px;
+            background: var(--primitive-colors-gray-300);
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .avatar-stack .avatar:first-child { margin-left: 0; }
+
+        .avatar-add-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px dashed var(--primitive-colors-gray-400);
+            background: transparent;
+            margin-left: -4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--semantic-color-colors-text-caption);
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .header-stat {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .header-stat-num {
+            font-size: var(--semantic-font-font-size-font-size-xl);
+            font-weight: var(--semantic-font-font-weight-emphasis-low);
+            color: var(--semantic-color-colors-text-heading);
+        }
+
+        .header-stat-label {
+            font-size: var(--semantic-font-font-size-font-size-md);
+            color: var(--semantic-color-colors-text-caption);
+        }
+
+        .header-divider {
+            width: 1px;
+            height: 20px;
+            background: var(--semantic-color-colors-border-default);
+        }
+
+        .btn-new-project {
+            display: flex;
+            align-items: center;
+            gap: var(--primitive-sizes-8);
+            height: var(--primitive-sizes-40);
+            padding: 0 var(--primitive-sizes-16) 0 var(--primitive-sizes-12);
+            background-color: var(--semantic-color-colors-primary);
+            color: var(--primitive-colors-base-white);
+            border: none;
+            border-radius: var(--primitive-sizes-12);
+            font-weight: var(--semantic-font-font-weight-default);
+            font-size: var(--semantic-font-font-size-font-size-md);
+            cursor: pointer;
+            font-family: var(--semantic-font-font-family-default);
+            box-shadow: 0 4px 12px rgba(24, 103, 90, 0.2);
+        }
+
+        .header-more-btn {
+            width: var(--primitive-sizes-40);
+            height: var(--primitive-sizes-40);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--primitive-sizes-12);
+            background-color: var(--primitive-colors-gray-100);
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--semantic-color-colors-text-body);
+        }
+
+        /* ─── Section Title Row ────────────────────────────── */
+        .section-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0 12px;
+        }
+
+        .section-title {
+            font-size: var(--semantic-font-font-size-font-size-lg);
+            font-weight: var(--semantic-font-font-weight-emphasis-low);
+            color: var(--semantic-color-colors-text-heading);
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: var(--primitive-colors-base-white);
+            border: 1px solid var(--semantic-color-colors-border-default);
+            border-radius: var(--primitive-sizes-8);
+            overflow: hidden;
+        }
+
+        .toggle-btn {
+            padding: 6px 14px;
+            background: transparent;
+            border: none;
+            font-size: var(--semantic-font-font-size-font-size-md);
+            color: var(--semantic-color-colors-text-caption);
+            cursor: pointer;
+            font-family: var(--semantic-font-font-family-default);
+            font-weight: var(--semantic-font-font-weight-default);
+            transition: all 0.15s;
+        }
+
+        .toggle-btn.active {
+            background: var(--primitive-colors-gray-800);
+            color: var(--primitive-colors-base-white);
+        }
+
+        /* ─── Stat Cards ────────────────────────────────────── */
+        .stat-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: var(--semantic-color-colors-border-default);
+            border-radius: var(--semantic-size-radius-xs);
+            overflow: hidden;
+            border: 1px solid var(--semantic-color-colors-border-default);
+        }
+
+        .stat-card {
+            background: var(--primitive-colors-base-white);
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stat-card-label {
+            font-size: var(--semantic-font-font-size-font-size-md);
+            color: var(--semantic-color-colors-text-caption);
+        }
+
+        .stat-card-value {
+            font-size: 36px;
+            font-weight: var(--semantic-font-font-weight-emphasis-low);
+            color: var(--semantic-color-colors-text-heading);
+            line-height: 1;
+        }
+
+        .stat-card-value .slash {
+            color: var(--primitive-colors-gray-400);
+            font-weight: 300;
+            margin: 0 4px;
+        }
+
+        .stat-card-value .secondary-num {
+            font-size: 28px;
+            color: var(--primitive-colors-gray-500);
+        }
+
+        .stat-critical {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .bug-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        /* ─── Keywords Section ──────────────────────────────── */
+        .keywords-section {
+            background: var(--primitive-colors-base-white);
+            border: 1px solid var(--semantic-color-colors-border-default);
+            border-radius: var(--semantic-size-radius-xs);
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .keywords-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 16px 10px;
+        }
+
+        .keywords-title {
+            font-size: var(--semantic-font-font-size-font-size-md);
+            font-weight: var(--semantic-font-font-weight-emphasis-low);
+            color: var(--semantic-color-colors-text-heading);
+        }
+
+        .ai-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            background: var(--primitive-colors-green-50);
+            color: var(--semantic-color-colors-primary);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .keywords-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-top: 1px solid var(--semantic-color-colors-border-default);
+        }
+
+        .keywords-spike {
+            padding: 14px 16px;
+            border-right: 1px solid var(--semantic-color-colors-border-default);
+        }
+
+        .keywords-frequent {
+            padding: 14px 16px;
+        }
+
+        .kw-sub-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--semantic-color-colors-text-caption);
+            margin-bottom: 10px;
+            letter-spacing: 0.04em;
+        }
+
+        .spike-bar-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 7px;
+        }
+
+        .spike-bar-label {
+            position: relative;
+            height: 22px;
+            flex: 1;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--primitive-colors-base-white);
+            overflow: hidden;
+        }
+
+        .spike-bar-1 { background: #7B2D4E; width: 100%; }
+        .spike-bar-2 { background: #4A3A6B; width: 70%; }
+        .spike-bar-3 { background: #8B7B8B; width: 45%; }
+
+        .spike-bar-count {
+            font-size: 12px;
+            color: var(--semantic-color-colors-text-caption);
+            min-width: 20px;
+            text-align: right;
+        }
+
+        .frequent-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .freq-tag {
+            font-size: 12px;
+            color: var(--primitive-colors-gray-400);
+            cursor: default;
+        }
+
+        .freq-tag.high { color: var(--primitive-colors-gray-600); font-weight: 500; }
+        .freq-tag.med  { color: var(--primitive-colors-gray-500); }
+
+        /* ─── Assignee Table ────────────────────────────────── */
+        .assignee-table {
+            background: var(--primitive-colors-base-white);
+            border: 1px solid var(--semantic-color-colors-border-default);
+            border-radius: var(--semantic-size-radius-xs);
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .assignee-table-header {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px 10px;
+        }
+
+        .assignee-table-title {
+            font-size: var(--semantic-font-font-size-font-size-md);
+            font-weight: var(--semantic-font-font-weight-emphasis-low);
+            color: var(--semantic-color-colors-text-heading);
+        }
+
+        .at-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .at-table thead tr {
+            border-top: 1px solid var(--semantic-color-colors-border-default);
+            border-bottom: 1px solid var(--semantic-color-colors-border-default);
+        }
+
+        .at-table th {
+            padding: 8px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--semantic-color-colors-text-caption);
+        }
+
+        .at-table th.right { text-align: right; }
+        .at-table th.sort {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .at-table td {
+            padding: 8px 16px;
+            vertical-align: middle;
+        }
+
+        .at-table tbody tr:not(:last-child) td {
+            border-bottom: 1px solid var(--semantic-color-colors-border-default);
+        }
+
+        .assignee-cell {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .assignee-bar {
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            min-width: 120px;
+        }
+
+        .ab-1 { background: #1F1F1F; color: #fff; }
+        .ab-2 { background: #5A5A5A; color: #fff; }
+        .ab-3 { background: #B0A8B0; color: #fff; }
+        .ab-4 { background: #C5BFC5; color: #4A4A4A; }
+
+        .ab-avatar {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            font-size: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .at-num {
+            text-align: right;
+            font-size: var(--semantic-font-font-size-font-size-md);
+            color: var(--semantic-color-colors-text-body);
+        }
+
+        .at-num.done {
+            color: var(--primitive-colors-lightgreen-700);
+            font-weight: 600;
+        }
+
+        /* ─── Distribution Section ──────────────────────────── */
+        .distribution-section {
+            background: var(--primitive-colors-base-white);
+            border: 1px solid var(--semantic-color-colors-border-default);
+            border-radius: var(--semantic-size-radius-xs);
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .distribution-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 16px 10px;
+            border-bottom: 1px solid var(--semantic-color-colors-border-default);
+        }
+
+        .distribution-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: var(--semantic-color-colors-border-default);
+        }
+
+        .dist-card {
+            background: var(--primitive-colors-base-white);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dist-label {
+            font-size: 12px;
+            color: var(--semantic-color-colors-text-caption);
+            align-self: flex-start;
+        }
+
+        .donut-wrap {
+            position: relative;
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .donut-wrap svg {
+            transform: rotate(-90deg);
+        }
+
+        .donut-num {
+            position: absolute;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--semantic-color-colors-text-heading);
+        }
+
+        /* ─── Timeline Panel ────────────────────────────────── */
+        .timeline-panel-inner {
+            display: flex;
+            gap: 0;
+            height: 100%;
+        }
+
+        .calendar-strip {
+            width: 80px;
+            flex-shrink: 0;
+            padding-top: 4px;
+        }
+
+        .cal-month {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--semantic-color-colors-text-heading);
+            padding: 8px 0 6px;
+            text-align: center;
+        }
+
+        .cal-day-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 4px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        .cal-day-row:hover {
+            background: var(--primitive-colors-gray-100);
+        }
+
+        .cal-day-row.today {
+            background: var(--semantic-color-colors-primary);
+        }
+
+        .cal-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--semantic-color-colors-primary);
+            flex-shrink: 0;
+        }
+
+        .cal-day-row.today .cal-dot {
+            background: rgba(255,255,255,0.7);
+        }
+
+        .cal-dot-empty {
+            width: 6px;
+            height: 6px;
+            flex-shrink: 0;
+        }
+
+        .cal-day-letter {
+            font-size: 10px;
+            color: var(--semantic-color-colors-text-caption);
+            width: 12px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .cal-day-row.today .cal-day-letter {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .cal-day-letter.weekend { color: var(--primitive-colors-red-400); }
+        .cal-day-row.today .cal-day-letter.weekend { color: rgba(255,255,255,0.8); }
+
+        .cal-day-num {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--semantic-color-colors-text-body);
+            width: 18px;
+            text-align: center;
+        }
+
+        .cal-day-row.today .cal-day-num { color: white; font-weight: 700; }
+        .cal-day-num.weekend { color: var(--primitive-colors-red-400); }
+
+        .cal-section-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--semantic-color-colors-text-caption);
+            padding: 10px 4px 4px;
+            letter-spacing: 0.04em;
+        }
+
+        /* ─── Task Cards ─────────────────────────────────────── */
+        .task-cards {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-left: 12px;
+            min-width: 0;
+        }
+
+        .task-card {
+            background: var(--primitive-colors-base-white);
+            border: 1px solid var(--semantic-color-colors-border-default);
+            border-radius: var(--semantic-size-radius-xs);
+            padding: 12px 14px;
+        }
+
+        .task-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .task-card-title {
+            font-size: var(--semantic-font-font-size-font-size-md);
+            font-weight: var(--semantic-font-font-weight-emphasis-low);
+            color: var(--semantic-color-colors-text-heading);
+        }
+
+        .task-card-time {
+            font-size: 11px;
+            color: var(--semantic-color-colors-text-caption);
+            flex-shrink: 0;
+        }
+
+        .task-card-project {
+            font-size: 11px;
+            color: var(--semantic-color-colors-text-caption);
+            margin-bottom: 10px;
+        }
+
+        .task-card-row {
+            display: flex;
+            align-items: center;
+            padding: 6px 0;
+            border-top: 1px solid var(--semantic-color-colors-border-default);
+            gap: 8px;
+        }
+
+        .task-row-key {
+            font-size: 12px;
+            color: var(--semantic-color-colors-text-caption);
+            min-width: 70px;
+        }
+
+        .task-row-val {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--semantic-color-colors-text-body);
+        }
+
+        .date-range {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--semantic-color-colors-text-body);
+        }
+
+        .date-arrow {
+            color: var(--semantic-color-colors-text-caption);
+        }
+
+        .assignee-chip {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--semantic-color-colors-text-body);
+        }
+
+        .assignee-chip .mini-avatar {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primitive-colors-teal-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: 700;
+            color: var(--primitive-colors-teal-800);
+        }
+
+        /* Status badge overdue in task card */
+        .status-overdue-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: var(--primitive-colors-red-50);
+            color: var(--primitive-colors-red-500);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .status-drop-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            background: var(--primitive-colors-gray-100);
+            color: var(--semantic-color-colors-text-caption);
+            border-radius: 20px;
+            font-size: 11px;
+        }
+
+        .tag-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .tag-hr {
+            background: var(--primitive-colors-indigo-50);
+            color: var(--primitive-colors-indigo-600);
+        }
+
+        .tag-marketing {
+            background: var(--primitive-colors-yellow-50);
+            color: var(--primitive-colors-amber-700);
+        }
+
+        .tag-consulting {
+            background: var(--primitive-colors-lightgreen-50);
+            color: var(--primitive-colors-lightgreen-800);
+        }
+
+        /* ─── Nav sidebar tweaks ─────────────────────────────── */
+        .nav-space-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            cursor: pointer;
+            font-size: var(--semantic-font-font-size-font-size-md);
+            color: var(--semantic-color-colors-text-body);
+            border-radius: 6px;
+            margin: 0 8px;
+        }
+
+        .nav-space-item:hover { background: var(--primitive-colors-gray-100); }
+
+        .nav-space-item.active {
+            background: var(--primitive-colors-gray-200);
+            font-weight: 600;
+        }
+
+        .space-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .space-badge {
+            margin-left: auto;
+            min-width: 18px;
+            height: 18px;
+            background: var(--primitive-colors-base-white);
+            border: 1px solid var(--primitive-colors-gray-300);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--semantic-color-colors-text-caption);
+            padding: 0 4px;
+        }
+
+        .space-folder-icon {
+            width: 14px;
+            height: 14px;
+            background: var(--semantic-color-colors-primary);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .nav-section-divider {
+            height: 1px;
+            background: var(--semantic-color-colors-border-default);
+            margin: 6px 0;
+        }
+
+        .nav-section-header {
+            padding: 8px 20px 4px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--semantic-color-colors-text-caption);
+            letter-spacing: 0.04em;
+        }
+
+        /* chevron */
+        .chevron-icon {
+            margin-left: auto;
+            font-size: 14px;
+            color: var(--semantic-color-colors-text-caption);
+        }
+
+        .dashboard-scroll-area {
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- ── Sidebar ─────────────────────────────────────────── -->
+    <nav class="nav-sidebar">
+        <header class="nav-header">
+            <div class="nav-logo-container">
+                <img src="assets/images/icons/tixup_logo.svg" alt="Tixup" class="nav-logo">
+            </div>
+            <div class="nav-controls">
+                <button class="nav-icon-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                </button>
+                <button class="nav-icon-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="nav-section-header">Space</div>
+        <div class="nav-space-item">
+            <span class="space-dot" style="background:var(--primitive-colors-gray-400)"></span>
+            제노임팩트
+            <span class="chevron-icon">›</span>
+        </div>
+
+        <div class="nav-space-item active" style="margin-top:2px;">
+            <span class="space-folder-icon"></span>
+            My Tasks
+            <span class="space-badge">3</span>
+        </div>
+
+        <div class="nav-section-divider"></div>
+        <div class="nav-section-header">Box</div>
+
+        <div class="nav-space-item">
+            <span class="space-dot" style="background:var(--primitive-colors-gray-400)"></span>
+            Maru
+        </div>
+        <div class="nav-space-item">
+            <span class="space-dot" style="background:var(--primitive-colors-blue-400)"></span>
+            proj-kori
+            <span class="space-badge">3</span>
+        </div>
+        <div class="nav-space-item">
+            <span class="space-dot" style="background:var(--primitive-colors-teal-400)"></span>
+            proj-autoload
+        </div>
+        <div class="nav-space-item">
+            <span class="space-dot" style="background:var(--primitive-colors-purple-300)"></span>
+            proj-doczip-design
+        </div>
+        <div class="nav-space-item">
+            <span class="space-dot" style="background:var(--primitive-colors-orange-300)"></span>
+            proj-mobis-gai
+        </div>
+        <div class="nav-space-item">
+            <span class="space-dot" style="background:var(--primitive-colors-blue-400)"></span>
+            proj-kori
+            <span class="space-badge">3</span>
+        </div>
+        <div class="nav-space-item">
+            <span class="space-dot" style="background:var(--primitive-colors-pink-300)"></span>
+            proj-vrix
+            <span class="space-badge">3</span>
+        </div>
+        <div class="nav-space-item">
+            <span class="space-dot" style="background:var(--primitive-colors-gray-400)"></span>
+            신규사업 검토
+        </div>
+
+        <div class="nav-sidebar-spacer"></div>
+        <div style="padding:12px 16px;display:flex;gap:16px;align-items:center;">
+            <button style="background:none;border:none;cursor:pointer;padding:4px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+            </button>
+            <button style="background:none;border:none;cursor:pointer;padding:4px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M2 12h2m16 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            </button>
+            <button style="background:none;border:none;cursor:pointer;padding:4px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6m4-6v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ── Main ───────────────────────────────────────────── -->
+    <main class="guide-main dashboard-main">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="dashboard-header-left">
+                <span class="dashboard-title">Dashboard</span>
+            </div>
+            <div class="dashboard-header-right">
+                <div class="header-team-group">
+                    <span class="header-team-label">My Team</span>
+                    <div class="avatar-stack">
+                        <div class="avatar" style="background:#219d86">JC</div>
+                        <div class="avatar" style="background:#5c6bc0">LD</div>
+                        <div class="avatar" style="background:#ec407a">HK</div>
+                        <div class="avatar" style="background:#ff7043">HL</div>
+                    </div>
+                    <button class="avatar-add-btn">+</button>
+                </div>
+
+                <div class="header-divider"></div>
+                <div class="header-stat">
+                    <span class="header-stat-num">7</span>
+                    <span class="header-stat-label">Projects</span>
+                </div>
+                <div class="header-stat">
+                    <span class="header-stat-num">45</span>
+                    <span class="header-stat-label">Tixs</span>
+                </div>
+                <div class="header-stat">
+                    <span class="header-stat-num">23</span>
+                    <span class="header-stat-label">Files</span>
+                </div>
+                <div class="header-divider"></div>
+
+                <button class="btn-new-project">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    New Project
+                </button>
+                <button class="header-more-btn">⋮</button>
+            </div>
+        </div>
+
+        <!-- Two-column body -->
+        <div class="dashboard-body">
+
+            <!-- ── LEFT: Overview ──────────────────────────── -->
+            <div class="dashboard-panel dashboard-scroll-area">
+                <div class="section-title-row">
+                    <span class="section-title">Overview</span>
+                    <div class="toggle-group">
+                        <button class="toggle-btn active">This Week</button>
+                        <button class="toggle-btn">This Month</button>
+                    </div>
+                </div>
+
+                <!-- Stat Cards -->
+                <div class="stat-cards">
+                    <div class="stat-card">
+                        <div class="stat-card-label">Total Issues</div>
+                        <div class="stat-card-value">108</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Completed &amp; Unresolved</div>
+                        <div class="stat-card-value">
+                            12
+                            <span class="slash">/</span>
+                            <span class="secondary-num">39</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Critical issue</div>
+                        <div class="stat-critical">
+                            <div class="stat-card-value">3</div>
+                            <div class="bug-icon">🐛</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keywords -->
+                <div class="keywords-section">
+                    <div class="keywords-header">
+                        <span class="keywords-title">Keywords</span>
+                        <span class="ai-badge">Ai</span>
+                    </div>
+                    <div class="keywords-body">
+                        <div class="keywords-spike">
+                            <div class="kw-sub-title">Spike</div>
+                            <div class="spike-bar-item">
+                                <div class="spike-bar-label spike-bar-1">Login Error</div>
+                                <span class="spike-bar-count">28</span>
+                            </div>
+                            <div class="spike-bar-item">
+                                <div class="spike-bar-label spike-bar-2" style="max-width:72%;">Invite</div>
+                                <span class="spike-bar-count">12</span>
+                            </div>
+                            <div class="spike-bar-item">
+                                <div class="spike-bar-label spike-bar-3" style="max-width:48%;">Server</div>
+                                <span class="spike-bar-count">9</span>
+                            </div>
+                        </div>
+                        <div class="keywords-frequent">
+                            <div class="kw-sub-title">Frequent</div>
+                            <div class="frequent-tags">
+                                <span class="freq-tag high">API</span>
+                                <span class="freq-tag med">UI</span>
+                                <span class="freq-tag med">UX</span>
+                                <span class="freq-tag high">Frontend</span>
+                                <span class="freq-tag high">Backend</span>
+                                <span class="freq-tag">Database</span>
+                                <span class="freq-tag">Git</span>
+                                <span class="freq-tag med">Branch</span>
+                                <span class="freq-tag">Merge</span>
+                                <span class="freq-tag med">Conflict</span>
+                                <span class="freq-tag high">Deploy</span>
+                                <span class="freq-tag">LG전자</span>
+                                <span class="freq-tag">Error</span>
+                                <span class="freq-tag">DevOps</span>
+                                <span class="freq-tag">Git</span>
+                                <span class="freq-tag">Branch</span>
+                                <span class="freq-tag">AWS</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Issue Status by Assignee -->
+                <div class="assignee-table">
+                    <div class="assignee-table-header">
+                        <span class="assignee-table-title">Issue status by Assignee</span>
+                    </div>
+                    <table class="at-table">
+                        <thead>
+                            <tr>
+                                <th>Assignee</th>
+                                <th class="right" style="width:60px;">↑ Issues</th>
+                                <th class="right" style="width:60px;color:var(--primitive-colors-lightgreen-700)">Done</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="assignee-bar ab-1">
+                                        <div class="ab-avatar">🎨</div>
+                                        Jy.chol
+                                    </div>
+                                </td>
+                                <td class="at-num">29</td>
+                                <td class="at-num done">12</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="assignee-bar ab-2" style="max-width:60%;">
+                                        <div class="ab-avatar">👤</div>
+                                        LEE DAE SOO
+                                    </div>
+                                </td>
+                                <td class="at-num">2</td>
+                                <td class="at-num done">7</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="assignee-bar ab-3" style="max-width:45%;">
+                                        <div class="ab-avatar">🌸</div>
+                                        Hana.kim
+                                    </div>
+                                </td>
+                                <td class="at-num">4</td>
+                                <td class="at-num done">9</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="assignee-bar ab-4" style="max-width:42%;">
+                                        <div class="ab-avatar">🎮</div>
+                                        HyounKyuLee
+                                    </div>
+                                </td>
+                                <td class="at-num">4</td>
+                                <td class="at-num done">3</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Issue Status Distribution -->
+                <div class="distribution-section">
+                    <div class="distribution-header">
+                        <span class="keywords-title">Issue status Distribution</span>
+                        <span class="ai-badge">Ai</span>
+                    </div>
+                    <div class="distribution-grid">
+                        <!-- Done -->
+                        <div class="dist-card">
+                            <div class="dist-label">Done</div>
+                            <div class="donut-wrap">
+                                <svg width="64" height="64" viewBox="0 0 64 64">
+                                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--primitive-colors-gray-100)" stroke-width="8"/>
+                                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--primitive-colors-green-500)" stroke-width="8"
+                                        stroke-dasharray="41 122" stroke-linecap="round"/>
+                                </svg>
+                                <span class="donut-num">45</span>
+                            </div>
+                        </div>
+                        <!-- In Progress -->
+                        <div class="dist-card">
+                            <div class="dist-label">In Progress</div>
+                            <div class="donut-wrap">
+                                <svg width="64" height="64" viewBox="0 0 64 64">
+                                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--primitive-colors-gray-100)" stroke-width="8"/>
+                                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--primitive-colors-blue-500)" stroke-width="8"
+                                        stroke-dasharray="98 65" stroke-linecap="round"/>
+                                </svg>
+                                <span class="donut-num">113</span>
+                            </div>
+                        </div>
+                        <!-- Overdue -->
+                        <div class="dist-card">
+                            <div class="dist-label">Overdue</div>
+                            <div class="donut-wrap">
+                                <svg width="64" height="64" viewBox="0 0 64 64">
+                                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--primitive-colors-gray-100)" stroke-width="8"/>
+                                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--primitive-colors-pink-400)" stroke-width="8"
+                                        stroke-dasharray="20 143" stroke-linecap="round"/>
+                                </svg>
+                                <span class="donut-num">22</span>
+                            </div>
+                        </div>
+                        <!-- Pending -->
+                        <div class="dist-card">
+                            <div class="dist-label">Pending</div>
+                            <div class="donut-wrap">
+                                <svg width="64" height="64" viewBox="0 0 64 64">
+                                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--primitive-colors-gray-100)" stroke-width="8"/>
+                                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--primitive-colors-lime-500)" stroke-width="8"
+                                        stroke-dasharray="7 156" stroke-linecap="round"/>
+                                </svg>
+                                <span class="donut-num">8</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Issue Status Distribution (2nd) -->
+                <div class="distribution-section" style="margin-bottom:8px;">
+                    <div class="distribution-header">
+                        <span class="keywords-title">Issue status Distribution</span>
+                        <span class="ai-badge">Ai</span>
+                    </div>
+                    <div class="distribution-grid">
+                        <div class="dist-card">
+                            <div class="dist-label">Done</div>
+                            <div class="donut-wrap">
+                                <svg width="64" height="64" viewBox="0 0 64 64">
+                                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--primitive-colors-gray-100)" stroke-width="8"/>
+                                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--primitive-colors-green-500)" stroke-width="8"
+                                        stroke-dasharray="41 122" stroke-linecap="round"/>
+                                </svg>
+                                <span class="donut-num">45</span>
+                            </div>
+                        </div>
+                        <div class="dist-card">
+                            <div class="dist-label">In Progress</div>
+                            <div class="donut-wrap">
+                                <svg width="64" height="64" viewBox="0 0 64 64">
+                                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--primitive-colors-gray-100)" stroke-width="8"/>
+                                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--primitive-colors-blue-500)" stroke-width="8"
+                                        stroke-dasharray="98 65" stroke-linecap="round"/>
+                                </svg>
+                                <span class="donut-num">113</span>
+                            </div>
+                        </div>
+                        <div class="dist-card">
+                            <div class="dist-label">Overdue</div>
+                            <div class="donut-wrap">
+                                <svg width="64" height="64" viewBox="0 0 64 64">
+                                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--primitive-colors-gray-100)" stroke-width="8"/>
+                                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--primitive-colors-pink-400)" stroke-width="8"
+                                        stroke-dasharray="20 143" stroke-linecap="round"/>
+                                </svg>
+                                <span class="donut-num">22</span>
+                            </div>
+                        </div>
+                        <div class="dist-card">
+                            <div class="dist-label">Pending</div>
+                            <div class="donut-wrap">
+                                <svg width="64" height="64" viewBox="0 0 64 64">
+                                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--primitive-colors-gray-100)" stroke-width="8"/>
+                                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--primitive-colors-lime-500)" stroke-width="8"
+                                        stroke-dasharray="7 156" stroke-linecap="round"/>
+                                </svg>
+                                <span class="donut-num">8</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── RIGHT: Timeline ─────────────────────────── -->
+            <div class="dashboard-panel dashboard-scroll-area">
+                <div class="section-title-row">
+                    <span class="section-title">Timeline</span>
+                    <div class="toggle-group">
+                        <button class="toggle-btn active">Day</button>
+                        <button class="toggle-btn">Week</button>
+                    </div>
+                </div>
+
+                <div class="timeline-panel-inner">
+                    <!-- Mini Calendar Strip -->
+                    <div class="calendar-strip">
+                        <!-- May tail -->
+                        <div class="cal-day-row">
+                            <span class="cal-dot-empty"></span>
+                            <span class="cal-day-letter weekend">F</span>
+                            <span class="cal-day-num">28</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot"></span>
+                            <span class="cal-day-letter weekend" style="color:var(--primitive-colors-red-400)">S</span>
+                            <span class="cal-day-num weekend">29</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot-empty"></span>
+                            <span class="cal-day-letter weekend">S</span>
+                            <span class="cal-day-num">30</span>
+                        </div>
+                        <!-- Today -->
+                        <div class="cal-day-row today">
+                            <span class="cal-dot"></span>
+                            <span class="cal-day-letter">S</span>
+                            <span class="cal-day-num">31</span>
+                        </div>
+                        <div class="cal-section-label">June 2025</div>
+                        <!-- June -->
+                        <div class="cal-day-row">
+                            <span class="cal-dot"></span>
+                            <span class="cal-day-letter">M</span>
+                            <span class="cal-day-num">1</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot-empty"></span>
+                            <span class="cal-day-letter">T</span>
+                            <span class="cal-day-num">2</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot"></span>
+                            <span class="cal-day-letter">W</span>
+                            <span class="cal-day-num">3</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot-empty"></span>
+                            <span class="cal-day-letter">T</span>
+                            <span class="cal-day-num">4</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot-empty"></span>
+                            <span class="cal-day-letter">F</span>
+                            <span class="cal-day-num">5</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot-empty"></span>
+                            <span class="cal-day-letter weekend">S</span>
+                            <span class="cal-day-num weekend">6</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot-empty"></span>
+                            <span class="cal-day-letter weekend">S</span>
+                            <span class="cal-day-num weekend">7</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot"></span>
+                            <span class="cal-day-letter">M</span>
+                            <span class="cal-day-num">8</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot-empty"></span>
+                            <span class="cal-day-letter">T</span>
+                            <span class="cal-day-num">9</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot-empty"></span>
+                            <span class="cal-day-letter">W</span>
+                            <span class="cal-day-num">10</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot-empty"></span>
+                            <span class="cal-day-letter">T</span>
+                            <span class="cal-day-num">11</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot-empty"></span>
+                            <span class="cal-day-letter">F</span>
+                            <span class="cal-day-num">12</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot"></span>
+                            <span class="cal-day-letter weekend">S</span>
+                            <span class="cal-day-num weekend">13</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot-empty"></span>
+                            <span class="cal-day-letter weekend">S</span>
+                            <span class="cal-day-num weekend">14</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot"></span>
+                            <span class="cal-day-letter">M</span>
+                            <span class="cal-day-num">15</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot-empty"></span>
+                            <span class="cal-day-letter">T</span>
+                            <span class="cal-day-num">16</span>
+                        </div>
+                        <div class="cal-day-row">
+                            <span class="cal-dot-empty"></span>
+                            <span class="cal-day-letter">W</span>
+                            <span class="cal-day-num">17</span>
+                        </div>
+                    </div>
+
+                    <!-- Task Cards -->
+                    <div class="task-cards">
+                        <!-- Card 1 -->
+                        <div class="task-card">
+                            <div class="task-card-header">
+                                <span class="task-card-title">Design Reference</span>
+                                <span class="task-card-time">20:31:14</span>
+                            </div>
+                            <div class="task-card-project">Tixup Toy Project</div>
+                            <div class="task-card-row">
+                                <span class="task-row-key">Change</span>
+                                <div class="date-range">
+                                    <span>17 Feb</span>
+                                    <span class="date-arrow">›</span>
+                                    <span>25 Feb</span>
+                                </div>
+                            </div>
+                            <div class="task-card-row">
+                                <span class="task-row-key">Tix to</span>
+                                <div class="assignee-chip">
+                                    <div class="mini-avatar">JC</div>
+                                    jy.chol
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2 -->
+                        <div class="task-card">
+                            <div class="task-card-header">
+                                <span class="task-card-title">KeyScreen Design</span>
+                                <span class="task-card-time">11:31:14</span>
+                            </div>
+                            <div class="task-card-project">Tixup Toy Project</div>
+                            <div class="task-card-row">
+                                <span class="task-row-key">Due date</span>
+                                <div class="date-range">
+                                    <span>17 Feb</span>
+                                    <span class="date-arrow">›</span>
+                                    <span>25 Feb</span>
+                                </div>
+                            </div>
+                            <div class="task-card-row">
+                                <span class="task-row-key">Status</span>
+                                <span class="status-drop-chip">○ Drop</span>
+                            </div>
+                            <div class="task-card-row">
+                                <span class="task-row-key">Tags</span>
+                                <div class="task-row-val">
+                                    <span class="tag-chip tag-hr">HR</span>
+                                    <span class="tag-chip tag-marketing">Marketing</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3 -->
+                        <div class="task-card">
+                            <div class="task-card-header">
+                                <span class="task-card-title">Design Scale up</span>
+                            </div>
+                            <div class="task-card-project">Tixup Toy Project</div>
+                            <div class="task-card-row">
+                                <span class="task-row-key">Status</span>
+                                <span class="status-overdue-chip">● Overdue</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 4 -->
+                        <div class="task-card">
+                            <div class="task-card-header">
+                                <span class="task-card-title">Design Scale up</span>
+                            </div>
+                            <div class="task-card-project">Tixup Toy Project</div>
+                            <div class="task-card-row">
+                                <span class="task-row-key">Tags</span>
+                                <span class="tag-chip tag-consulting">Consulting</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 5 -->
+                        <div class="task-card">
+                            <div class="task-card-header">
+                                <span class="task-card-title">Design Scale up</span>
+                            </div>
+                            <div class="task-card-project">Tixup Toy Project</div>
+                            <div class="task-card-row">
+                                <span class="task-row-key">Due date</span>
+                                <div class="date-range">
+                                    <span>17 Feb</span>
+                                    <span class="date-arrow">›</span>
+                                    <span>25 Feb</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 6 -->
+                        <div class="task-card">
+                            <div class="task-card-header">
+                                <span class="task-card-title">Design Scale up</span>
+                            </div>
+                            <div class="task-card-project">Tixup Toy Project</div>
+                            <div class="task-card-row">
+                                <span class="task-row-key">Due date</span>
+                                <div class="date-range">
+                                    <span>17 Feb</span>
+                                    <span class="date-arrow">›</span>
+                                    <span>25 Feb</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /dashboard-body -->
+    </main>
+</body>
+</html>
