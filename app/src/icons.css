@@ -1,0 +1,102 @@
+/* icons.css - SVG Icon Path Variables and Mappings */
+
+:root {
+    /* Icon Path Definitions */
+    --icon-url-deployed: url('../images/icons/deployed_code.svg');
+    --icon-url-planet: url('../images/icons/planet.svg');
+    --icon-url-work: url('../images/icons/work_filled.svg');
+    --icon-url-add: url('../images/icons/add.svg');
+    --icon-url-check: url('../images/icons/check.svg');
+    --icon-url-minus: url('../images/icons/minus.svg');
+    --icon-url-chevron-lg-bottom: url('../images/icons/chevron_lg_bottom.svg');
+    --icon-url-tix: url('../images/icons/tix.svg');
+    --icon-url-stat: url('../images/icons/stat.svg');
+    --icon-url-filter: url('../images/icons/filter.svg');
+    --icon-url-sort: url('../images/icons/sort.svg');
+    --icon-url-visibility-off: url('../images/icons/visibility_off.svg');
+    --icon-url-calendar: url('../images/icons/calendar.svg');
+    --icon-url-clock: url('../images/icons/clock.svg');
+    --icon-url-list: url('../images/icons/list_left.svg');
+    --icon-url-visibility: url('../images/icons/visibility.svg');
+}
+
+/* Class Mappings */
+.icon-deployed {
+    -webkit-mask-image: var(--icon-url-deployed);
+    mask-image: var(--icon-url-deployed);
+}
+
+.icon-planet {
+    -webkit-mask-image: var(--icon-url-planet);
+    mask-image: var(--icon-url-planet);
+}
+
+.icon-work {
+    -webkit-mask-image: var(--icon-url-work);
+    mask-image: var(--icon-url-work);
+}
+
+.icon-add {
+    -webkit-mask-image: var(--icon-url-add);
+    mask-image: var(--icon-url-add);
+}
+
+.icon-check {
+    -webkit-mask-image: var(--icon-url-check);
+    mask-image: var(--icon-url-check);
+}
+
+.icon-minus {
+    -webkit-mask-image: var(--icon-url-minus);
+    mask-image: var(--icon-url-minus);
+}
+
+.icon-chevron-lg-bottom {
+    -webkit-mask-image: var(--icon-url-chevron-lg-bottom);
+    mask-image: var(--icon-url-chevron-lg-bottom);
+}
+
+.icon-tix {
+    -webkit-mask-image: var(--icon-url-tix);
+    mask-image: var(--icon-url-tix);
+}
+
+.icon-stat {
+    -webkit-mask-image: var(--icon-url-stat);
+    mask-image: var(--icon-url-stat);
+}
+
+.icon-filter {
+    -webkit-mask-image: var(--icon-url-filter);
+    mask-image: var(--icon-url-filter);
+}
+
+.icon-sort {
+    -webkit-mask-image: var(--icon-url-sort);
+    mask-image: var(--icon-url-sort);
+}
+
+.icon-visibility-off {
+    -webkit-mask-image: var(--icon-url-visibility-off);
+    mask-image: var(--icon-url-visibility-off);
+}
+
+.icon-calendar {
+    -webkit-mask-image: var(--icon-url-calendar);
+    mask-image: var(--icon-url-calendar);
+}
+
+.icon-clock {
+    -webkit-mask-image: var(--icon-url-clock);
+    mask-image: var(--icon-url-clock);
+}
+
+.icon-list {
+    -webkit-mask-image: var(--icon-url-list);
+    mask-image: var(--icon-url-list);
+}
+
+.icon-visibility {
+    -webkit-mask-image: var(--icon-url-visibility);
+    mask-image: var(--icon-url-visibility);
+}
