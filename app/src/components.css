@@ -929,8 +929,6 @@ body.dragging-active *::-moz-selection {
 .full-grid-tbody,
 #grid-tbody,
 #timeline-tbody {
-    padding-bottom: 80px;
-    /* Essential for bottom-sorting area */
 }
 
 /* Checkbox Component (SVG Mask Method) */
@@ -1195,13 +1193,15 @@ body.dragging-active *::-moz-selection {
 
 
 .grid-child-row.collapsed {
+    height: 0 !important;
     max-height: 0 !important;
     min-height: 0 !important;
     opacity: 0 !important;
-    border-bottom: 0 !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+    border: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
     pointer-events: none !important;
+    overflow: hidden !important;
 }
 
 
@@ -1823,6 +1823,7 @@ body.dragging-active *::-moz-selection {
     border: 1px solid var(--primitive-colors-gray-200);
     position: relative;
     box-sizing: border-box;
+    margin-bottom: 30px;
 }
 
 .timeline-grid-main {
@@ -1882,7 +1883,6 @@ body.dragging-active *::-moz-selection {
     width: 100% !important;
     height: 48px !important;
     background-color: var(--primitive-colors-base-white) !important;
-    border-top: 1px solid var(--primitive-colors-gray-200) !important;
     display: flex !important;
     align-items: center !important;
     box-sizing: border-box !important;
@@ -2802,6 +2802,7 @@ body.dragging-active *::-moz-selection {
 
 .tix-anim-exit {
     animation: tix-exit 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
+    transition: none !important;
     pointer-events: none !important;
     overflow: hidden !important;
 }
@@ -2812,7 +2813,13 @@ body.dragging-active *::-moz-selection {
 
 /* Hierarchy Toggle Animations */
 .tix-collapsing {
-    animation: tix-exit 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    opacity: 0 !important;
+    border: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
     pointer-events: none !important;
 }
 

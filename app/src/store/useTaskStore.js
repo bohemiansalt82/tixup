@@ -17,6 +17,8 @@ export function useTaskStore() {
   const [tasks, setTasks] = useState(() => load());
   const [exitingIds, setExitingIds] = useState(new Set());
   const [newIds, setNewIds] = useState(new Set());
+  const [collapsingParentIds, setCollapsingParentIds] = useState(new Set());
+  const [expandingParentIds, setExpandingParentIds] = useState(new Set());
 
   const updateTasks = useCallback((updater) => {
     setTasks(prev => {
@@ -52,7 +54,7 @@ export function useTaskStore() {
     setTimeout(() => {
       setExitingIds(prev => { const s = new Set(prev); s.delete(id); return s; });
       updateTasks(prev => prev.filter(t => t.id !== id && t.parentId !== id));
-    }, 320);
+    }, 420);
   }, [updateTasks]);
 
   const updateTask = useCallback((id, patch) => {
@@ -60,8 +62,25 @@ export function useTaskStore() {
   }, [updateTasks]);
 
   const toggleCollapse = useCallback((id) => {
-    updateTasks(prev => prev.map(t => t.id === id ? { ...t, collapsed: !t.collapsed } : t));
-  }, [updateTasks]);
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+
+    if (!task.collapsed) {
+      // 접기: 자식 exit 애니메이션 후 실제 collapse
+      setCollapsingParentIds(s => new Set([...s, id]));
+      setTimeout(() => {
+        updateTasks(p => p.map(t => t.id === id ? { ...t, collapsed: true } : t));
+        setCollapsingParentIds(s => { const ns = new Set(s); ns.delete(id); return ns; });
+      }, 420);
+    } else {
+      // 펼치기: 자식 enter 애니메이션
+      setExpandingParentIds(s => new Set([...s, id]));
+      updateTasks(p => p.map(t => t.id === id ? { ...t, collapsed: false } : t));
+      setTimeout(() => {
+        setExpandingParentIds(s => { const ns = new Set(s); ns.delete(id); return ns; });
+      }, 500);
+    }
+  }, [tasks, updateTasks]);
 
   const moveTask = useCallback((dragId, targetId, position) => {
     // position: 'before' | 'after' | 'into'
@@ -110,5 +129,5 @@ export function useTaskStore() {
     });
   }, [updateTasks]);
 
-  return { tasks, exitingIds, newIds, addTask, addChild, removeTask, updateTask, toggleCollapse, moveTask };
+  return { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, addTask, addChild, removeTask, updateTask, toggleCollapse, moveTask };
 }

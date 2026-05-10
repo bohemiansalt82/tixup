@@ -8,7 +8,7 @@ const VIEW_PRESETS = { month: 20, week: 48, day: 80 };
 
 const SIDEBAR_WIDTH = 400;
 
-export function TimelineView({ tasks, exitingIds, newIds, onSaveBarPositions }) {
+export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, onSaveBarPositions }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const viewportRef = useRef(null);
   const tbodyRef = useRef(null);
@@ -197,16 +197,26 @@ export function TimelineView({ tasks, exitingIds, newIds, onSaveBarPositions }) 
             />
             <div className="timeline-today-line" id="timeline-today-indicator" ref={todayRef} />
             <div id="timeline-tbody" ref={tbodyRef} onMouseDown={handleTbodyMouseDown} onDoubleClick={handleDblClick}>
-              {tasks.map(task => (
-                <TimelineRow
-                  key={task.id}
-                  task={task}
-                  cellWidth={cellWidth}
-                  isExiting={exitingIds.has(task.id)}
-                  isNew={newIds.has(task.id)}
-                  isSelected={selectedIds.has(task.id)}
-                />
-              ))}
+              {(() => {
+                const collapsedParentIds = new Set(tasks.filter(t => t.collapsed).map(t => t.id));
+                return tasks
+                  .filter(t => {
+                    if (t.type !== 'child') return true;
+                    const fullyCollapsed = collapsedParentIds.has(t.parentId) && !collapsingParentIds?.has(t.parentId);
+                    return !fullyCollapsed;
+                  })
+                  .map(task => (
+                    <TimelineRow
+                      key={task.id}
+                      task={task}
+                      cellWidth={cellWidth}
+                      isExiting={exitingIds.has(task.id)}
+                      isCollapsing={task.type === 'child' && collapsingParentIds?.has(task.parentId)}
+                      isNew={newIds.has(task.id) || (task.type === 'child' && expandingParentIds?.has(task.parentId))}
+                      isSelected={selectedIds.has(task.id)}
+                    />
+                  ));
+              })()}
             </div>
           </div>
 
@@ -216,16 +226,18 @@ export function TimelineView({ tasks, exitingIds, newIds, onSaveBarPositions }) 
   );
 }
 
-const TimelineRow = memo(function TimelineRow({ task, cellWidth, isExiting, isNew, isSelected }) {
+const TimelineRow = memo(function TimelineRow({ task, cellWidth, isExiting, isCollapsing, isNew, isSelected }) {
   const isParent = task.type === 'parent';
   const visualLeft = toVisualLeft(task.start, cellWidth);
   const visualWidth = toVisualWidth(task.width, cellWidth);
+
+  const animClass = isExiting ? 'tix-anim-exit' : isCollapsing ? 'tix-collapsing' : isNew ? 'tix-anim-enter' : '';
 
   const rowCls = [
     'timeline-row',
     !isParent ? 'grid-child-row' : '',
     task.collapsed ? 'collapsed' : '',
-    isExiting ? 'tix-anim-exit' : isNew ? 'tix-anim-enter' : '',
+    animClass,
   ].filter(Boolean).join(' ');
 
   const barCls = [

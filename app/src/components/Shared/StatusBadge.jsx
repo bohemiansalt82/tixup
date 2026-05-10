@@ -8,11 +8,15 @@ export function StatusBadge({ status, onChange }) {
   const [open, setOpen] = useState(false);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const triggerRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     if (!open) return;
     const handler = (e) => {
-      if (!triggerRef.current?.contains(e.target)) setOpen(false);
+      if (
+        !triggerRef.current?.contains(e.target) &&
+        !dropdownRef.current?.contains(e.target)
+      ) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -41,6 +45,7 @@ export function StatusBadge({ status, onChange }) {
 
       {open && createPortal(
         <div
+          ref={dropdownRef}
           className="status-dropdown status-dropdown--row"
           style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, zIndex: 99999 }}
         >

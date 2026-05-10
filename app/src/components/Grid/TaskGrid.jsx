@@ -1,16 +1,14 @@
-import { useState, useRef, useCallback, Fragment, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { TaskRow } from './TaskRow';
 
 const FILTERS = ['All', 'Done', 'Overdue'];
 
-export function TaskGrid({ tasks, exitingIds, newIds, selectedIds, onSelect, onToggle, onAddChild, onRename, onStatusChange, onCreateTix, onMoveTask }) {
+export function TaskGrid({ tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, selectedIds, onSelect, onSelectAll, onToggle, onAddChild, onRename, onStatusChange, onCreateTix, onMoveTask }) {
   const [filter, setFilter] = useState('all');
-  const [creating, setCreating] = useState(false);
-  const createInputRef = useRef(null);
 
   const [dragId, setDragId] = useState(null);
   const [dropTarget, setDropTarget] = useState(null);
-  const [ghostInfo, setGhostInfo] = useState(null);   // { top, left, width, height, task }
+  const [ghostInfo, setGhostInfo] = useState(null);
   const [indicatorTop, setIndicatorTop] = useState(null);
 
   const dragIdRef = useRef(null);
@@ -22,21 +20,31 @@ export function TaskGrid({ tasks, exitingIds, newIds, selectedIds, onSelect, onT
   const collapsedParentIds = new Set(tasks.filter(t => t.collapsed).map(t => t.id));
 
   const visible = tasks.filter(t => {
+    if (t.type === 'child') {
+      const fullyCollapsed = collapsedParentIds.has(t.parentId) && !collapsingParentIds?.has(t.parentId);
+      if (fullyCollapsed) return false;
+    }
     if (filter === 'done') return t.status === 'done';
     if (filter === 'overdue') return t.status === 'overdue';
     return true;
   });
 
-  const handleCreateFocus = () => {
-    setCreating(true);
-    setTimeout(() => createInputRef.current?.focus(), 10);
-  };
+  // 부모+자식 그룹으로 묶기
+  const groups = [];
+  const parentMap = new Map();
+  for (const task of visible) {
+    if (task.type === 'parent') {
+      const group = { parent: task, children: [] };
+      groups.push(group);
+      parentMap.set(task.id, group);
+    } else {
+      parentMap.get(task.parentId)?.children.push(task);
+    }
+  }
 
-  const handleCreateFinish = (e) => {
-    const name = e.target.value.trim();
-    if (name) onCreateTix(name);
-    setCreating(false);
-    e.target.value = '';
+  const allSelected = visible.length > 0 && visible.every(t => selectedIds.has(t.id));
+  const handleSelectAll = () => {
+    onSelectAll(allSelected ? [] : visible.map(t => t.id));
   };
 
   const endDrag = useCallback(() => {
@@ -81,10 +89,8 @@ export function TaskGrid({ tasks, exitingIds, newIds, selectedIds, onSelect, onT
       const container = containerRef.current;
       if (!container) return;
 
-      // ghost 위치 업데이트
       setGhostInfo(prev => prev ? { ...prev, top: e.clientY - dragOffsetY.current } : null);
 
-      // 드롭 타겟 계산
       const rows = container.querySelectorAll('[data-row-id]');
       let found = null;
       for (const row of rows) {
@@ -104,7 +110,6 @@ export function TaskGrid({ tasks, exitingIds, newIds, selectedIds, onSelect, onT
               : { id: taskId, position: isTopHalf ? 'before' : 'after' };
           }
 
-          // indicator 위치 계산 (absolute, container 기준)
           if (found && found.position !== 'into') {
             const containerRect = container.getBoundingClientRect();
             const top = found.position === 'before'
@@ -136,7 +141,7 @@ export function TaskGrid({ tasks, exitingIds, newIds, selectedIds, onSelect, onT
       <div className="data-grid-row data-grid-header">
         <div className="data-grid-cell center">
           <label className="checkbox-container">
-            <input type="checkbox" />
+            <input type="checkbox" checked={allSelected} onChange={handleSelectAll} />
             <div className="checkbox-box" />
           </label>
         </div>
@@ -155,16 +160,18 @@ export function TaskGrid({ tasks, exitingIds, newIds, selectedIds, onSelect, onT
       </div>
 
       <div id="grid-tbody">
-        {visible.map(task => (
-          <TaskRow
-            key={task.id}
-            task={task}
-            isExiting={exitingIds.has(task.id)}
-            isNew={newIds?.has(task.id)}
-            isSelected={selectedIds.has(task.id)}
-            isDragging={task.id === dragId || task.parentId === dragId}
-            isCollapsed={task.type === 'child' && collapsedParentIds.has(task.parentId)}
-            isDropInto={dropTarget?.id === task.id && dropTarget.position === 'into'}
+        {groups.map(({ parent, children }) => (
+          <TaskGroup
+            key={parent.id}
+            parent={parent}
+            children={children}
+            isCollapsing={collapsingParentIds?.has(parent.id)}
+            isExpanding={expandingParentIds?.has(parent.id)}
+            exitingIds={exitingIds}
+            newIds={newIds}
+            selectedIds={selectedIds}
+            dragId={dragId}
+            dropTarget={dropTarget}
             onSelect={onSelect}
             onToggle={onToggle}
             onAddChild={onAddChild}
@@ -175,7 +182,6 @@ export function TaskGrid({ tasks, exitingIds, newIds, selectedIds, onSelect, onT
         ))}
       </div>
 
-      {/* 절대 위치 drop indicator — 레이아웃에 영향 없음 */}
       {dragId && indicatorTop !== null && (
         <div
           className="drop-indicator"
@@ -183,7 +189,6 @@ export function TaskGrid({ tasks, exitingIds, newIds, selectedIds, onSelect, onT
         />
       )}
 
-      {/* 마우스 따라다니는 ghost */}
       {ghostInfo && (
         <div
           className="drag-ghost"
@@ -214,31 +219,99 @@ export function TaskGrid({ tasks, exitingIds, newIds, selectedIds, onSelect, onT
         </div>
       )}
 
-      <div className="timeline-footer-row">
-        <div className="timeline-footer-cell">
-          {creating ? (
-            <div className="grid-create-input-form">
-              <div className="nav-icon icon-add" />
-              <input
-                ref={createInputRef}
-                type="text"
-                className="grid-create-input"
-                placeholder="Tix name..."
-                onKeyDown={e => {
-                  if (e.key === 'Enter') handleCreateFinish(e);
-                  if (e.key === 'Escape') setCreating(false);
-                }}
-                onBlur={handleCreateFinish}
-              />
-            </div>
-          ) : (
-            <button className="grid-create-btn" onClick={handleCreateFocus}>
+      {onCreateTix && (
+        <div className="timeline-footer-row">
+          <div className="timeline-footer-cell">
+            <button className="grid-create-btn" onClick={onCreateTix}>
               <div className="nav-icon icon-add" />
               <span className="data-grid-text">Create Tix</span>
             </button>
-          )}
+          </div>
         </div>
-      </div>
+      )}
+    </div>
+  );
+}
+
+const ANIM = 'height 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+
+function animateTo(el, targetHeight) {
+  const full = el.scrollHeight;
+  el.style.height = `${full}px`;
+  el.style.overflow = 'hidden';
+  el.style.transition = ANIM;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    el.style.height = `${targetHeight}px`;
+  }));
+}
+
+function TaskGroup({ parent, children, isCollapsing, isExpanding, exitingIds, newIds, selectedIds, dragId, dropTarget, onSelect, onToggle, onAddChild, onRename, onStatusChange, onRowMouseDown }) {
+  const groupRef = useRef(null);
+  const isExiting = exitingIds.has(parent.id);
+
+  useEffect(() => {
+    const el = groupRef.current;
+    if (!el) return;
+
+    if (isExiting) {
+      animateTo(el, 0);
+    } else if (isCollapsing) {
+      const parentHeight = el.firstElementChild?.offsetHeight ?? 48;
+      animateTo(el, parentHeight);
+    } else {
+      el.style.height = '';
+      el.style.overflow = '';
+      el.style.transition = '';
+    }
+  }, [isExiting, isCollapsing]);
+
+  const sharedProps = { onSelect, onToggle, onAddChild, onRename, onStatusChange, onRowMouseDown };
+
+  return (
+    <div ref={groupRef}>
+      <TaskRow
+        task={parent}
+        isExiting={false}
+        isNew={newIds?.has(parent.id)}
+        isSelected={selectedIds.has(parent.id)}
+        isDragging={parent.id === dragId}
+        isCollapsed={false}
+        isDropInto={dropTarget?.id === parent.id && dropTarget?.position === 'into'}
+        {...sharedProps}
+      />
+      {children.map(child => (
+        <AnimatedChildRow
+          key={child.id}
+          child={child}
+          isExiting={exitingIds.has(child.id)}
+          isNew={newIds?.has(child.id) || isExpanding}
+          isSelected={selectedIds.has(child.id)}
+          isDragging={child.id === dragId || child.parentId === dragId}
+          isDropInto={dropTarget?.id === child.id && dropTarget?.position === 'into'}
+          {...sharedProps}
+        />
+      ))}
+    </div>
+  );
+}
+
+function AnimatedChildRow({ child, isExiting, ...props }) {
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || !isExiting) return;
+    animateTo(el, 0);
+  }, [isExiting]);
+
+  return (
+    <div ref={wrapRef}>
+      <TaskRow
+        task={child}
+        isExiting={false}
+        isCollapsing={false}
+        {...props}
+      />
     </div>
   );
 }

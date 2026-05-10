@@ -1,15 +1,17 @@
 import { useRef, useState, useEffect } from 'react';
 import { StatusBadge } from '../Shared/StatusBadge';
 
-export function TaskRow({ task, isExiting, isNew, isSelected, isDragging, isCollapsed, isDropInto, onSelect, onToggle, onAddChild, onRename, onStatusChange, onRowMouseDown }) {
+export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDragging, isCollapsed, isDropInto, onSelect, onToggle, onAddChild, onRename, onStatusChange, onRowMouseDown }) {
   const isParent = task.type === 'parent';
   const hasNoTitle = !task.title;
+
+  const animClass = isExiting ? 'tix-anim-exit' : isCollapsing ? 'tix-collapsing' : isNew ? 'tix-anim-enter' : '';
 
   const cls = [
     'data-grid-row',
     isParent ? 'level-0' : 'grid-child-row',
     task.collapsed ? 'collapsed' : '',
-    isExiting ? 'tix-anim-exit' : isNew ? 'tix-anim-enter' : '',
+    animClass,
     isDragging ? 'row-dragging' : '',
     isCollapsed ? 'collapsed' : '',
     isDropInto ? 'row-drop-into' : '',
@@ -24,6 +26,7 @@ export function TaskRow({ task, isExiting, isNew, isSelected, isDragging, isColl
       data-status={task.status}
       data-parent={task.parentId || undefined}
       onMouseDown={e => {
+        if (e.button !== 0) return;
         if (e.target.closest('button, input, label, .marker')) return;
         onRowMouseDown(e, task);
       }}
@@ -46,7 +49,7 @@ export function TaskRow({ task, isExiting, isNew, isSelected, isDragging, isColl
             </button>
           )}
           <div className={`nav-icon ${isParent ? 'icon-tix' : 'icon-stat'}`} />
-          <EditableTitle task={task} onRename={onRename} autoEdit={hasNoTitle} />
+          <EditableTitle task={task} onRename={onRename} autoEdit={hasNoTitle} isParent={isParent} />
           {isParent && (
             <button className="add-child-btn" onClick={() => onAddChild(task.id)}>
               <div className="nav-icon icon-add" />
@@ -61,22 +64,25 @@ export function TaskRow({ task, isExiting, isNew, isSelected, isDragging, isColl
   );
 }
 
-function EditableTitle({ task, onRename, autoEdit }) {
+function EditableTitle({ task, onRename, autoEdit, isParent }) {
   const [editing, setEditing] = useState(autoEdit);
   const [value, setValue] = useState(task.title);
   const inputRef = useRef(null);
 
   useEffect(() => {
-    if (editing) inputRef.current?.focus();
+    if (editing) inputRef.current?.focus({ preventScroll: true });
   }, [editing]);
 
   const finish = (cancel = false) => {
     const name = value.trim();
     if (!cancel && name) {
       onRename(task.id, name);
+    } else if (autoEdit) {
+      const defaultName = isParent ? 'New Tix' : 'New Sub Tix';
+      onRename(task.id, defaultName);
+      setValue(defaultName);
     } else {
-      if (autoEdit) onRename(task.id, null);
-      else setValue(task.title);
+      setValue(task.title);
     }
     setEditing(false);
   };
@@ -87,7 +93,7 @@ function EditableTitle({ task, onRename, autoEdit }) {
         ref={inputRef}
         className="grid-create-input"
         value={value}
-        placeholder={autoEdit ? 'sub tix' : ''}
+        placeholder={autoEdit ? (isParent ? 'Tix name...' : 'Sub tix name...') : ''}
         onChange={e => setValue(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') finish(); if (e.key === 'Escape') finish(true); }}
         onBlur={() => finish()}
