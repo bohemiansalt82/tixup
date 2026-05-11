@@ -2827,6 +2827,44 @@ body.dragging-active *::-moz-selection {
     animation: tix-entry 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
 }
 
-.tix-expanding {
-    animation: tix-entry 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
+/* Context Menu */
+.ctx-menu {
+    background: var(--primitive-colors-gray-0, #fff);
+    border: 1px solid var(--primitive-colors-gray-200, #e5e7eb);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    padding: 4px;
+    min-width: 140px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ctx-menu__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--semantic-color-colors-text-body, #111);
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    transition: background 0.1s;
+}
+
+.ctx-menu__item:hover {
+    background: var(--primitive-colors-gray-100, #f3f4f6);
+}
+
+.ctx-menu__item--danger {
+    color: #e03e3e;
+}
+
+.ctx-menu__item--danger:hover {
+    background: #fff1f1;
 }

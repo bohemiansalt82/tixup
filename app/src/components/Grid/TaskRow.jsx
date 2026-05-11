@@ -1,9 +1,14 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { createPortal } from 'react-dom';
 import { StatusBadge } from '../Shared/StatusBadge';
 
 export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDragging, isCollapsed, isDropInto, onSelect, onToggle, onAddChild, onRename, onStatusChange, onRowMouseDown }) {
   const isParent = task.type === 'parent';
   const hasNoTitle = !task.title;
+
+  const [contextMenu, setContextMenu] = useState(null);
+  const editRef = useRef(null);
+  const menuRef = useRef(null);
 
   const animClass = isExiting ? 'tix-anim-exit' : isCollapsing ? 'tix-collapsing' : isNew ? 'tix-anim-enter' : '';
 
@@ -16,6 +21,21 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
     isCollapsed ? 'collapsed' : '',
     isDropInto ? 'row-drop-into' : '',
   ].filter(Boolean).join(' ');
+
+  const handleContextMenu = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  useEffect(() => {
+    if (!contextMenu) return;
+    const handler = (e) => {
+      if (!menuRef.current?.contains(e.target)) setContextMenu(null);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [contextMenu]);
 
   return (
     <div
@@ -30,6 +50,7 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
         if (e.target.closest('button, input, label, .marker')) return;
         onRowMouseDown(e, task);
       }}
+      onContextMenu={handleContextMenu}
       style={{ cursor: 'grab' }}
     >
       <div className="data-grid-cell center">
@@ -49,7 +70,7 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
             </button>
           )}
           <div className={`nav-icon ${isParent ? 'icon-tix' : 'icon-stat'}`} />
-          <EditableTitle task={task} onRename={onRename} autoEdit={hasNoTitle} isParent={isParent} />
+          <EditableTitle ref={editRef} task={task} onRename={onRename} autoEdit={hasNoTitle} isParent={isParent} />
           {isParent && (
             <button className="add-child-btn" onClick={() => onAddChild(task.id)}>
               <div className="nav-icon icon-add" />
@@ -60,14 +81,40 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
       <div className="data-grid-cell">
         <StatusBadge status={task.status} onChange={status => onStatusChange(task.id, status)} />
       </div>
+
+      {contextMenu && createPortal(
+        <div
+          ref={menuRef}
+          className="ctx-menu"
+          style={{ position: 'fixed', top: contextMenu.y, left: contextMenu.x, zIndex: 99999 }}
+        >
+          <button
+            className="ctx-menu__item"
+            onClick={() => { setContextMenu(null); editRef.current?.startEdit(); }}
+          >
+            이름 변경
+          </button>
+          <button
+            className="ctx-menu__item ctx-menu__item--danger"
+            onClick={() => { setContextMenu(null); onRename(task.id, null); }}
+          >
+            삭제하기
+          </button>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
 
-function EditableTitle({ task, onRename, autoEdit, isParent }) {
+const EditableTitle = forwardRef(function EditableTitle({ task, onRename, autoEdit, isParent }, ref) {
   const [editing, setEditing] = useState(autoEdit);
   const [value, setValue] = useState(task.title);
   const inputRef = useRef(null);
+
+  useImperativeHandle(ref, () => ({
+    startEdit: () => { setValue(task.title); setEditing(true); },
+  }));
 
   useEffect(() => {
     if (editing) inputRef.current?.focus({ preventScroll: true });
@@ -107,4 +154,4 @@ function EditableTitle({ task, onRename, autoEdit, isParent }) {
       {task.title}
     </span>
   );
-}
+});
