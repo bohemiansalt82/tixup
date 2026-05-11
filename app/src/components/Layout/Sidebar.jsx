@@ -3,7 +3,7 @@ export function Sidebar() {
     <nav className="nav-sidebar">
       <header className="nav-header">
         <div className="nav-logo-container">
-          <img src="/images/icons/tixup_logo.svg" alt="Tixup" className="nav-logo" />
+          <img src={`${import.meta.env.BASE_URL}images/icons/tixup_logo.svg`} alt="Tixup" className="nav-logo" />
         </div>
       </header>
       <div className="nav-section nav-section-spaces">

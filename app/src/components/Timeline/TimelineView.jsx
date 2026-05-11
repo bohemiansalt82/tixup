@@ -167,11 +167,11 @@ export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, e
           </select>
           <div className="timeline-nav-group">
             <button className="nav-arrow-btn" onClick={scrollPrev}>
-              <img src="/images/icons/chevron_left.svg" alt="이전" />
+              <img src={`${import.meta.env.BASE_URL}images/icons/chevron_left.svg`} alt="이전" />
             </button>
             <button className="nav-today-btn" id="go-today-btn" onClick={scrollToToday}>Today</button>
             <button className="nav-arrow-btn" onClick={scrollNext}>
-              <img src="/images/icons/chevron_right.svg" alt="다음" />
+              <img src={`${import.meta.env.BASE_URL}images/icons/chevron_right.svg`} alt="다음" />
             </button>
           </div>
         </div>
