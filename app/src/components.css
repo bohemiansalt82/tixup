@@ -1984,7 +1984,7 @@ body.dragging-active *::-moz-selection {
     top: 0;
     background: var(--primitive-colors-base-white);
     border-bottom: 1px solid var(--primitive-colors-gray-200);
-    box-sizing: content-box;
+    box-sizing: border-box; /* border included in the 34px so rows stay aligned with the grid */
     z-index: 151 !important;
 }
 
@@ -2152,7 +2152,7 @@ body.dragging-active *::-moz-selection {
     position: absolute;
     left: 50%;
     top: calc(50% + 12px);
-    bottom: -1px;
+    bottom: 0;
     width: 1px;
     margin-left: -0.5px;
     background-color: var(--primitive-colors-red-500, #f44336);
