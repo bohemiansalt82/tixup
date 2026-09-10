@@ -1,6 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { CENTER_PX } from '../constants';
 import { uid } from '../utils/timeline';
+import { canSync, loadRemoteSpace, saveRemoteSpace, beaconSaveRemoteSpace } from './remote';
+
+const PUSH_DEBOUNCE_MS = 700;
+const POLL_MS = 15000;
 
 const tasksKey = (spaceId) => `tixup-tasks-${spaceId}`;
 
@@ -17,13 +21,112 @@ function save(spaceId, tasks) {
   localStorage.setItem(tasksKey(spaceId), JSON.stringify(tasks));
 }
 
-/** Tasks for one space. Mount with a `key` of the space id so state reloads on switch. */
-export function useTaskStore(spaceId) {
+/**
+ * Tasks for one space. Mount with a `key` of the space id so state reloads on switch.
+ * localStorage is the immediate store; when a backend endpoint is configured the list is
+ * also mirrored to the shared space document (see store/remote.js) so invitees see it:
+ *  - mount / focus / every POLL_MS: pull the remote list if its revision changed
+ *  - every local change: debounced push (last write wins)
+ * `space` / `user` are only used to label the remote document.
+ */
+export function useTaskStore(spaceId, { space = null, user = null } = {}) {
   const [tasks, setTasks] = useState(() => load(spaceId));
   const [exitingIds, setExitingIds] = useState(new Set());
   const [newIds, setNewIds] = useState(new Set());
   const [collapsingParentIds, setCollapsingParentIds] = useState(new Set());
   const [expandingParentIds, setExpandingParentIds] = useState(new Set());
+
+  // ---- remote sync (refs so callbacks stay stable) ----
+  const syncRef = useRef({ rev: null, dirty: false, pushing: false, timer: null, unmounted: false });
+  const metaRef = useRef({ space, user });
+  useEffect(() => { metaRef.current = { space, user }; }, [space, user]);
+  const pushRef = useRef(() => {}); // latest push(), for retries scheduled from inside push()
+  const spaceMeta = useCallback(() => {
+    const m = metaRef.current.space;
+    return { id: spaceId, name: m?.name, visibility: m?.visibility };
+  }, [spaceId]);
+
+  const push = useCallback(async () => {
+    const s = syncRef.current;
+    if (!spaceId || !canSync()) return;
+    if (s.pushing) { s.dirty = true; return; }
+    s.dirty = false;
+    s.pushing = true;
+    try {
+      // localStorage always holds the latest list (save() runs inside every update).
+      const r = await saveRemoteSpace(spaceMeta(), load(spaceId), metaRef.current.user);
+      s.rev = r.rev;
+    } catch (err) {
+      console.warn('Tixup sync: push failed', err);
+      s.dirty = true;
+    } finally {
+      s.pushing = false;
+      if (s.dirty && !s.unmounted) {
+        clearTimeout(s.timer);
+        s.timer = setTimeout(() => pushRef.current(), PUSH_DEBOUNCE_MS * 4);
+      }
+    }
+  }, [spaceId, spaceMeta]);
+  useEffect(() => { pushRef.current = push; }, [push]);
+
+  const schedulePush = useCallback(() => {
+    const s = syncRef.current;
+    if (!spaceId || !canSync()) return;
+    s.dirty = true;
+    clearTimeout(s.timer);
+    s.timer = setTimeout(push, PUSH_DEBOUNCE_MS);
+  }, [spaceId, push]);
+
+  const pull = useCallback(async () => {
+    const s = syncRef.current;
+    if (!spaceId || !canSync() || s.dirty || s.pushing) return;
+    try {
+      const r = await loadRemoteSpace(spaceId, metaRef.current.user);
+      if (s.unmounted || s.dirty || s.pushing) return; // local edits happened meanwhile
+      if (!r.found) {
+        // Nothing on the server yet: publish what this browser has (the owner's list).
+        if (s.rev === null && load(spaceId).length > 0) push();
+        else s.rev = 0;
+        return;
+      }
+      if (r.rev === s.rev) return;
+      s.rev = r.rev;
+      const remote = Array.isArray(r.tasks) ? r.tasks : [];
+      save(spaceId, remote);
+      setTasks(remote);
+    } catch (err) {
+      console.warn('Tixup sync: pull failed', err);
+    }
+  }, [spaceId, push]);
+
+  useEffect(() => {
+    if (!spaceId || !canSync()) return undefined;
+    const s = syncRef.current;
+    s.unmounted = false;
+    pull();
+    const onVisible = () => { if (document.visibilityState === 'visible') pull(); };
+    const onHide = () => {
+      if (!s.dirty) return;
+      if (beaconSaveRemoteSpace(spaceMeta(), load(spaceId), metaRef.current.user)) s.dirty = false;
+    };
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') pull();
+    }, POLL_MS);
+    window.addEventListener('focus', onVisible);
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('online', onVisible);
+    window.addEventListener('pagehide', onHide);
+    return () => {
+      s.unmounted = true;
+      clearInterval(interval);
+      clearTimeout(s.timer);
+      window.removeEventListener('focus', onVisible);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('online', onVisible);
+      window.removeEventListener('pagehide', onHide);
+      if (s.dirty && !s.pushing) push(); // flush before the space switches away
+    };
+  }, [spaceId, pull, push, spaceMeta]);
 
   const updateTasks = useCallback((updater) => {
     setTasks(prev => {
@@ -31,7 +134,8 @@ export function useTaskStore(spaceId) {
       save(spaceId, next);
       return next;
     });
-  }, [spaceId]);
+    schedulePush();
+  }, [spaceId, schedulePush]);
 
   const addTask = useCallback((title, boxId = null) => {
     const task = { id: uid(), title, status: 'pending', type: 'parent', boxId, start: CENTER_PX, width: 96 };

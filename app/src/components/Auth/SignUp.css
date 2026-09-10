@@ -44,6 +44,21 @@
 .signup-brand-mark { height: 24px; width: auto; }
 .signup-brand-wordmark { height: 16px; width: auto; }
 
+.signup-invite {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--primitive-colors-blue-50, #eef4ff);
+  border: 1px solid var(--primitive-colors-blue-100, #d6e4ff);
+  border-radius: 12px;
+  font-size: var(--semantic-font-font-size-font-size-md, 14px);
+  line-height: 1.5;
+  color: var(--semantic-color-colors-text-heading, #212121);
+}
+.signup-invite-desc { color: var(--semantic-color-colors-text-caption, #757575); font-size: 13px; }
+
 .signup-google-btn {
   display: flex;
   align-items: center;

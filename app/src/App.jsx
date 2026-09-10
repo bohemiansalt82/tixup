@@ -8,8 +8,8 @@ import { TaskGrid } from './components/Grid/TaskGrid';
 import { TimelineView } from './components/Timeline/TimelineView';
 import { SelectionBar } from './components/Shared/SelectionBar';
 import { useTaskStore } from './store/useTaskStore';
-import { useSpaces } from './store/useSpaces';
-import { parseInviteHash, stashPendingInvite, takePendingInvite } from './store/invites';
+import { useSpaces, joinSpace as joinSpaceForUser } from './store/useSpaces';
+import { parseInviteHash, resolveInvite, stashPendingInvite, takePendingInvite } from './store/invites';
 import './tokens.css';
 import './components.css';
 import './icons.css';
@@ -22,10 +22,11 @@ function subscribeHash(callback) {
 export default function App() {
   const hash = useSyncExternalStore(subscribeHash, () => window.location.hash);
   const user = useAuth();
-  const { activeSpace, joinSpace } = useSpaces();
+  const { activeSpace } = useSpaces();
 
-  // Invite links (#invite=...): stash on arrival so the login flow can clear the hash,
-  // then join once a user is signed in.
+  // Invite links (#join=<id> / legacy #invite=...): stash on arrival so the login flow can
+  // clear the hash, then join once a user is signed in. One effect so a link opened in an
+  // already signed-in tab (hash change, no reload) joins immediately too.
   useEffect(() => {
     const invite = parseInviteHash(hash);
     if (invite) {
@@ -33,20 +34,21 @@ export default function App() {
       history.replaceState(null, '', window.location.pathname + window.location.search);
       window.dispatchEvent(new HashChangeEvent('hashchange'));
     }
-  }, [hash]);
-  useEffect(() => {
     if (!user) return;
     const pending = takePendingInvite();
-    if (pending) joinSpace(pending);
-  }, [user, joinSpace]);
+    if (!pending) return;
+    const userId = user.id;
+    resolveInvite(pending).then((resolved) => { if (resolved) joinSpaceForUser(userId, resolved); });
+  }, [hash, user]);
   if (!user) return hash === '#signup' ? <SignUp /> : <Login />;
   // Keyed by space so task state reloads when the active space changes.
   return <Dashboard key={activeSpace?.id ?? 'none'} spaceId={activeSpace?.id ?? null} />;
 }
 
 function Dashboard({ spaceId }) {
-  const { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, addTask, addChild, removeTask, updateTask, toggleCollapse, moveTask } = useTaskStore(spaceId);
+  const user = useAuth();
   const { activeSpace, activeBox } = useSpaces();
+  const { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, addTask, addChild, removeTask, updateTask, toggleCollapse, moveTask } = useTaskStore(spaceId, { space: activeSpace, user });
   // My Tasks shows every task in the space; a selected box narrows it down.
   const visibleTasks = activeBox ? tasks.filter(t => t.boxId === activeBox.id) : tasks;
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -163,7 +165,6 @@ function Dashboard({ spaceId }) {
           currentView={currentView}
           onViewChange={setCurrentView}
           taskCount={visibleTasks.length}
-          onCreateTix={handleCreateTix}
         />
 
         <section
