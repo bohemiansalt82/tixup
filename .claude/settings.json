@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.figma.com)",
+      "Bash(npm create *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:3001)",
+      "Bash(npx vite *)",
+      "Bash(sed -n '322,340p' \"/Volumes/AI Lab/tixup/app/src/components.css\")",
+      "Bash(sed -n '858,868p' \"/Volumes/AI Lab/tixup/app/src/components.css\")",
+      "Bash(git add *)"
+    ]
+  },
+  "mcpServers": {
+    "figma": {
+      "type": "sse",
+      "url": "http://127.0.0.1:3845/sse"
+    }
+  }
+}

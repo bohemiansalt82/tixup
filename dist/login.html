@@ -458,7 +458,7 @@
 
         // If already logged in, redirect
         if (TixupAuth.getUser()) {
-            window.location.href = 'test_drive.html';
+            window.location.href = 'index.html';
         }
 
         const nameInput = document.getElementById('login-name');
@@ -494,7 +494,7 @@
                     TixupAuth.setActiveSpaceId(space.id);
                 }
 
-                window.location.href = 'test_drive.html';
+                window.location.href = 'index.html';
             } catch (err) {
                 console.error('Google login error:', err);
                 showError('Login failed. Please try again.');
@@ -564,7 +564,7 @@
                                                 TixupAuth.setActiveSpaceId(space.id);
                                             }
 
-                                            window.location.href = 'test_drive.html';
+                                            window.location.href = 'index.html';
                                         } catch (err) {
                                             console.error('Google userinfo error:', err);
                                             showError('Failed to get user info. Please try again.');
@@ -610,7 +610,7 @@
             if (!name || !email) return;
 
             TixupAuth.demoLogin(name, email);
-            window.location.href = 'test_drive.html';
+            window.location.href = 'index.html';
         });
 
         // Enter key submits

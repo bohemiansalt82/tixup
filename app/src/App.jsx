@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useSyncExternalStore } from 'react';
+import { SignUp } from './components/Auth/SignUp';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AppHeader } from './components/Layout/AppHeader';
 import { TaskGrid } from './components/Grid/TaskGrid';
@@ -9,7 +10,18 @@ import './tokens.css';
 import './components.css';
 import './icons.css';
 
+function subscribeHash(callback) {
+  window.addEventListener('hashchange', callback);
+  return () => window.removeEventListener('hashchange', callback);
+}
+
 export default function App() {
+  const hash = useSyncExternalStore(subscribeHash, () => window.location.hash);
+  if (hash === '#signup') return <SignUp />;
+  return <Dashboard />;
+}
+
+function Dashboard() {
   const { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, addTask, addChild, removeTask, updateTask, toggleCollapse, moveTask } = useTaskStore();
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [currentView, setCurrentView] = useState('timeline');

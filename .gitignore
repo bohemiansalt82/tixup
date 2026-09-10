@@ -14,3 +14,9 @@ node_modules
 target/
 src-tauri/target/
 test_rust_proj/target/
+
+# Claude Code local state
+.claude/worktrees/
+.claude/settings.local.json
+.claude/launch.json
+app/.claude/
