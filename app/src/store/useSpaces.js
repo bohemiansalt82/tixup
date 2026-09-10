@@ -35,11 +35,14 @@ function readStr(key) {
   try { return localStorage.getItem(key); } catch { return null; }
 }
 
+// Stable empty snapshot: useSyncExternalStore must get the same reference each call.
+const EMPTY = Object.freeze([]);
+
 const uid = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 
 // ---- Spaces ----
 export function getSpaces(userId) {
-  return userId ? readJson(spacesKey(userId), []) : [];
+  return userId ? readJson(spacesKey(userId), EMPTY) : EMPTY;
 }
 export function createSpace(userId, input) {
   const data = typeof input === 'string' ? { name: input } : (input || {});
@@ -75,7 +78,7 @@ export function setActiveSpaceId(spaceId) {
 
 // ---- Boxes (per space) ----
 export function getBoxes(spaceId) {
-  return spaceId ? readJson(boxesKey(spaceId), []) : [];
+  return spaceId ? readJson(boxesKey(spaceId), EMPTY) : EMPTY;
 }
 export function createBox(spaceId, input) {
   const data = typeof input === 'string' ? { name: input } : (input || {});
