@@ -18,12 +18,16 @@ export function useTimelineScroll({
     if (daysHeaderRef.current) daysHeaderRef.current.style.transform = t;
     if (gridBackRef.current) gridBackRef.current.style.transform = t;
     if (tbodyRef.current) tbodyRef.current.style.transform = t;
-    if (floatingLabelsRef.current) floatingLabelsRef.current.style.transform = t;
+    if (floatingLabelsRef.current) {
+      // The nav bar is outside the scrolling viewport, so include scrollLeft as well as the pan.
+      const sl = viewportRef.current?.scrollLeft ?? 0;
+      floatingLabelsRef.current.style.transform = `translateX(${-(pan + sl)}px)`;
+    }
     if (todayRef.current) {
       todayRef.current.style.transform = t;
       todayRef.current.style.left = `${CENTER_PX}px`;
     }
-  }, [panOffsetRef, daysHeaderRef, gridBackRef, tbodyRef, floatingLabelsRef, todayRef]);
+  }, [panOffsetRef, viewportRef, daysHeaderRef, gridBackRef, tbodyRef, floatingLabelsRef, todayRef]);
 
   const renderHeader = useCallback(() => {
     const viewport = viewportRef.current;

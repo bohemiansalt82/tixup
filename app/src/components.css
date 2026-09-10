@@ -20,7 +20,8 @@ body {
 }
 
 .guide-main {
-    padding: 0;
+    /* 24px gutter between the GNB and the content card (Figma MainArea → TableArea x=24). */
+    padding: 0 24px 24px;
     flex: 1;
     width: 100%;
     min-width: 0;
