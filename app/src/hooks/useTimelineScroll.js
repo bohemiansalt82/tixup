@@ -25,7 +25,8 @@ export function useTimelineScroll({
     }
     if (todayRef.current) {
       todayRef.current.style.transform = t;
-      todayRef.current.style.left = `${CENTER_PX}px`;
+      // Centre the line under the "today" circle in the day header (Figma 37635:4541).
+      todayRef.current.style.left = `${CENTER_PX + cellWidthRef.current / 2 - 0.5}px`;
     }
   }, [panOffsetRef, viewportRef, daysHeaderRef, gridBackRef, tbodyRef, floatingLabelsRef, todayRef]);
 

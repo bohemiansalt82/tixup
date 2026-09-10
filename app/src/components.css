@@ -2207,8 +2207,10 @@ body.dragging-active *::-moz-selection {
     top: 0;
     bottom: 0;
     width: 1px;
-    background-color: var(--primitive-colors-red-500);
+    background-color: var(--primitive-colors-red-500, #f44336);
+    opacity: 0.85;
     z-index: 5;
+    pointer-events: none;
 }
 
 .timeline-bar {
