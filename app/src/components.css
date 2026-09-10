@@ -930,6 +930,22 @@ body.dragging-active *::-moz-selection {
 .full-grid-tbody,
 #grid-tbody,
 #timeline-tbody {
+    position: relative; /* anchors the marquee selection rectangle */
+}
+
+/* Rubber-band selection on the timeline (drag on empty area) */
+.timeline-marquee {
+    display: none;
+    position: absolute;
+    z-index: 30;
+    border: 1px solid var(--semantic-color-colors-primary, #18675a);
+    background: rgba(24, 103, 90, 0.12);
+    border-radius: 4px;
+    pointer-events: none;
+}
+body.marquee-active, body.marquee-active * {
+    user-select: none;
+    cursor: crosshair;
 }
 
 /* Checkbox Component (SVG Mask Method) */

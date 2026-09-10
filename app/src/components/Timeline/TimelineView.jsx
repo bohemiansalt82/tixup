@@ -22,6 +22,8 @@ export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, e
   const isDraggingRef = useRef(false);
   const isResizingRef = useRef(false);
   const initializedRef = useRef(false);
+  const marqueeRef = useRef(null);      // rubber-band selection rectangle
+  const marqueeAbortRef = useRef(null);
 
   const [cellWidth, setCellWidth] = useState(CELL_WIDTH);
   const [viewMode, setViewMode] = useState('week');
@@ -103,8 +105,62 @@ export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, e
     }
 
     if (!bar) {
+      // Empty area: rubber-band (marquee) selection. Shift/Cmd adds to the current selection.
       e.stopPropagation();
-      if (!e.shiftKey && !e.metaKey) setSelectedIds(new Set());
+      e.preventDefault();
+      const tbody = tbodyRef.current;
+      const marquee = marqueeRef.current;
+      if (!tbody || !marquee) return;
+      const additive = e.shiftKey || e.metaKey;
+      const base = additive ? new Set(selectedIds) : new Set();
+      if (!additive) setSelectedIds(new Set());
+
+      // tbody is translated, not scaled, so client offsets map 1:1 onto its local coordinates.
+      const rect = tbody.getBoundingClientRect();
+      const x0 = e.clientX - rect.left;
+      const y0 = e.clientY - rect.top;
+      let moved = false;
+
+      marqueeAbortRef.current?.abort();
+      const ac = new AbortController();
+      marqueeAbortRef.current = ac;
+
+      const onMove = (ev) => {
+        const r = tbody.getBoundingClientRect();
+        const x1 = ev.clientX - r.left;
+        const y1 = ev.clientY - r.top;
+        if (!moved && Math.abs(x1 - x0) < 3 && Math.abs(y1 - y0) < 3) return;
+        moved = true;
+        const left = Math.min(x0, x1), top = Math.min(y0, y1);
+        const width = Math.abs(x1 - x0), height = Math.abs(y1 - y0);
+        marquee.style.display = 'block';
+        marquee.style.left = `${left}px`;
+        marquee.style.top = `${top}px`;
+        marquee.style.width = `${width}px`;
+        marquee.style.height = `${height}px`;
+
+        const hits = new Set(base);
+        tbody.querySelectorAll('.timeline-row').forEach((row) => {
+          const b = row.querySelector('.timeline-bar');
+          if (!b) return;
+          const bl = parseSafePx(b.style.left, 0);
+          const bw = parseSafePx(b.style.width, 0) || b.offsetWidth;
+          const bt = row.offsetTop;
+          const bh = row.offsetHeight;
+          const overlap = bl < left + width && bl + bw > left && bt < top + height && bt + bh > top;
+          if (overlap) hits.add(row.getAttribute('data-group'));
+        });
+        setSelectedIds(hits);
+      };
+      const onUp = () => {
+        ac.abort();
+        marqueeAbortRef.current = null;
+        marquee.style.display = 'none';
+        document.body.classList.remove('marquee-active');
+      };
+      document.body.classList.add('marquee-active');
+      window.addEventListener('mousemove', onMove, { signal: ac.signal });
+      window.addEventListener('mouseup', onUp, { signal: ac.signal });
       return;
     }
 
@@ -197,6 +253,7 @@ export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, e
             />
             <div className="timeline-today-line" id="timeline-today-indicator" ref={todayRef} />
             <div id="timeline-tbody" ref={tbodyRef} onMouseDown={handleTbodyMouseDown} onDoubleClick={handleDblClick}>
+              <div className="timeline-marquee" ref={marqueeRef} aria-hidden="true" />
               {(() => {
                 const collapsedParentIds = new Set(tasks.filter(t => t.collapsed).map(t => t.id));
                 return tasks
