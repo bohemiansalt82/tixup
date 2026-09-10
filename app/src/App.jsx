@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useSyncExternalStore } from 'react';
 import { SignUp } from './components/Auth/SignUp';
 import { Login } from './components/Auth/Login';
 import { useAuth } from './store/useAuth';
-import { Sidebar } from './components/Layout/Sidebar';
+import { Gnb } from './components/Layout/Gnb';
 import { AppHeader } from './components/Layout/AppHeader';
 import { TaskGrid } from './components/Grid/TaskGrid';
 import { TimelineView } from './components/Timeline/TimelineView';
@@ -133,7 +133,7 @@ function Dashboard() {
 
   return (
     <div className="tixup-root" style={{ display: 'flex', width: '100%', height: '100vh', overflow: 'hidden' }}>
-      <Sidebar />
+      <Gnb taskCount={tasks.length} />
       <main className="guide-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
         <AppHeader currentView={currentView} onViewChange={setCurrentView} />
 

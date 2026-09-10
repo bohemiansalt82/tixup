@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { STORAGE_KEY, CENTER_PX } from '../constants';
 import { uid } from '../utils/timeline';
 

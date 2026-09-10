@@ -71,7 +71,8 @@ Statuses: `pending | inprogress | done | overdue | pause | drop` (legacy `onhold
 - The timeline is **imperative inside React**: `TimelineView` holds refs and `useTimelineScroll` / `useTimelineDrag` mutate `style.transform`, `style.left/width` directly for performance. Bar positions are committed back to the store via `onSaveBarPositions` after drag ends. Do not try to make drag fully declarative without reading both hooks first.
 - Routing is hash-based in `App.jsx`: `#signup` → SignUp, no user → Login, otherwise `Dashboard`. `finishLogin()` in `Auth/AuthShared.jsx` clears the hash after login.
 - `vite.config.js` sets `base: "/tixup/"` for GitHub Pages. Any image path written in JSX must be prefixed with `import.meta.env.BASE_URL` (see `Sidebar.jsx`); a bare `/images/...` breaks on Pages.
-- Class names deliberately mirror the vanilla app so `components.css` works unchanged.
+- Class names deliberately mirror the vanilla app so `components.css` works unchanged. Exception: the left nav is `components/Layout/Gnb.jsx` + `Gnb.css` (own `gnb-*` classes, icons in `public/images/gnb/`), built from Figma Tixup-V2.0 `GNB_V5` (node 39523:13759, file 4K5p818MM8IKRboMUeDjv6).
+- Spaces/boxes: `store/useSpaces.js` (localStorage `tixup-spaces-<userId>`, `tixup-active-space`, `tixup-boxes-<spaceId>`, `tixup-active-box`). A default "My Space" is created on first use. Task data is NOT yet per-space in the React app.
 
 ## Design system & CSS
 
