@@ -9,6 +9,7 @@ import { TimelineView } from './components/Timeline/TimelineView';
 import { SelectionBar } from './components/Shared/SelectionBar';
 import { useTaskStore } from './store/useTaskStore';
 import { useSpaces } from './store/useSpaces';
+import { parseInviteHash, stashPendingInvite, takePendingInvite } from './store/invites';
 import './tokens.css';
 import './components.css';
 import './icons.css';
@@ -21,7 +22,23 @@ function subscribeHash(callback) {
 export default function App() {
   const hash = useSyncExternalStore(subscribeHash, () => window.location.hash);
   const user = useAuth();
-  const { activeSpace } = useSpaces();
+  const { activeSpace, joinSpace } = useSpaces();
+
+  // Invite links (#invite=...): stash on arrival so the login flow can clear the hash,
+  // then join once a user is signed in.
+  useEffect(() => {
+    const invite = parseInviteHash(hash);
+    if (invite) {
+      stashPendingInvite(invite);
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    }
+  }, [hash]);
+  useEffect(() => {
+    if (!user) return;
+    const pending = takePendingInvite();
+    if (pending) joinSpace(pending);
+  }, [user, joinSpace]);
   if (!user) return hash === '#signup' ? <SignUp /> : <Login />;
   // Keyed by space so task state reloads when the active space changes.
   return <Dashboard key={activeSpace?.id ?? 'none'} spaceId={activeSpace?.id ?? null} />;

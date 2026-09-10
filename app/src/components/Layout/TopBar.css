@@ -140,3 +140,12 @@
   background: var(--primitive-colors-gray-200, #eee);
 }
 .topbar-more:hover { background: #e3e3e3; }
+
+.topbar-avatar-member { background: #e0e0e0; }
+.topbar-avatar-more {
+  background: var(--primitive-colors-fairway-600, #1b8a75);
+  border-radius: 18px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}

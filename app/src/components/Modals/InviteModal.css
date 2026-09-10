@@ -1,0 +1,70 @@
+/* Invite Friends modal — centred variant of the Make modal (Figma 39528:14464) */
+.inv-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(34, 34, 34, 0.2);
+  font-family: var(--semantic-font-font-family-default, Pretendard), sans-serif;
+  box-sizing: border-box;
+  animation: mk-fade-in 200ms ease-out both;
+}
+.inv-overlay *, .inv-overlay *::before, .inv-overlay *::after { box-sizing: inherit; }
+
+.inv-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 551px;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 32px 24px;
+  background: #f4f4f4;
+  border-radius: 20px;
+  box-shadow: 0 0 210px rgba(0, 0, 0, 0.48);
+  animation: inv-pop-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) 100ms both;
+}
+@keyframes inv-pop-in {
+  from { transform: translateY(12px) scale(0.98); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .inv-overlay, .inv-panel { animation-duration: 1ms; animation-delay: 0ms; }
+}
+
+.inv-hint {
+  margin: 0;
+  font-size: 12px;
+  color: #ff5656;
+}
+
+.inv-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 66px; /* keeps the 298px design height with an empty input */
+}
+.inv-actions { display: flex; align-items: center; gap: 10px; }
+
+.inv-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  margin-left: -6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  font-size: var(--semantic-font-font-size-font-size-sm, 10px);
+  font-weight: var(--semantic-font-font-weight-emphasis-low, 600);
+  line-height: 1.6;
+  color: var(--semantic-color-colors-step-2, #1976d2);
+  cursor: pointer;
+}
+.inv-copy:hover { background: rgba(25, 118, 210, 0.08); }
+.inv-copy img { display: block; }

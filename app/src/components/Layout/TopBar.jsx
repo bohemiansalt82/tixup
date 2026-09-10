@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import { useAuth, avatarFor } from '../../store/useAuth';
+import { useSpaces } from '../../store/useSpaces';
+import { InviteModal } from '../Modals/InviteModal';
 import './TopBar.css';
 
 const icon = (name) => `${import.meta.env.BASE_URL}images/header/${name}.svg`;
@@ -16,6 +19,22 @@ const VIEWS = [
  */
 export function TopBar({ title, currentView, onViewChange, taskCount = 0, onCreateTix }) {
   const user = useAuth();
+  const { activeSpace, addMembers } = useSpaces();
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const members = activeSpace?.members ?? [];
+  const shownMembers = members.slice(0, 4);
+  const overflow = members.length - shownMembers.length;
+
+  const handleInvite = (emails, link) => {
+    if (activeSpace) addMembers(activeSpace.id, emails);
+    setInviteOpen(false);
+    // No mail backend yet: hand the invite to the user's mail client.
+    const subject = encodeURIComponent(`You're invited to "${activeSpace?.name ?? 'a space'}" on Tixup`);
+    const body = encodeURIComponent(
+      `${user?.name ?? 'A teammate'} invited you to the Tixup space "${activeSpace?.name ?? ''}".\n\nOpen this link to join:\n${link}\n\n— Tixup`,
+    );
+    window.location.href = `mailto:${emails.join(',')}?subject=${subject}&body=${body}`;
+  };
 
   return (
     <header className="topbar">
@@ -64,7 +83,13 @@ export function TopBar({ title, currentView, onViewChange, taskCount = 0, onCrea
               <img className="topbar-avatar-crown" src={icon('crown')} alt="" width={12} height={12} />
             </span>
           )}
-          <button type="button" className="topbar-avatar topbar-avatar-add" title="Invite member (coming soon)">
+          {shownMembers.map((email) => (
+            <span key={email} className="topbar-avatar topbar-avatar-member" title={email}>
+              <img src={avatarFor(email.split('@')[0])} alt={email} referrerPolicy="no-referrer" />
+            </span>
+          ))}
+          {overflow > 0 && <span className="topbar-avatar topbar-avatar-more" title={members.slice(4).join(', ')}>{overflow > 9 ? '9+' : `+${overflow}`}</span>}
+          <button type="button" className="topbar-avatar topbar-avatar-add" title="Invite member" onClick={() => setInviteOpen(true)} disabled={!activeSpace}>
             <img src={icon('add')} alt="" width={24} height={24} />
           </button>
         </div>
@@ -83,6 +108,10 @@ export function TopBar({ title, currentView, onViewChange, taskCount = 0, onCrea
           <img src={icon('more_vert_32')} alt="" width={32} height={32} />
         </button>
       </div>
+
+      {inviteOpen && activeSpace && (
+        <InviteModal space={activeSpace} inviter={user} onClose={() => setInviteOpen(false)} onInvite={handleInvite} />
+      )}
     </header>
   );
 }

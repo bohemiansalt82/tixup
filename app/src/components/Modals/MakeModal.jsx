@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { TokenEmailInput } from './TokenEmailInput';
 import './MakeModal.css';
 
 const icon = (name) => `${import.meta.env.BASE_URL}images/gnb/${name}.svg`;
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const COPY = {
   space: { title: 'Make a New Space', nameLabel: 'Space Name', namePlaceholder: 'Enter space name', icon: 'planet_32' },
@@ -20,9 +20,7 @@ export function MakeModal({ kind = 'space', onClose, onSave }) {
   const [visibility, setVisibility] = useState('private');
   const [name, setName] = useState('');
   const [members, setMembers] = useState([]);
-  const [draft, setDraft] = useState('');
   const nameRef = useRef(null);
-  const tokenInputRef = useRef(null);
 
   useEffect(() => {
     nameRef.current?.focus();
@@ -30,26 +28,6 @@ export function MakeModal({ kind = 'space', onClose, onSave }) {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
-
-  const commitDraft = () => {
-    const value = draft.trim().replace(/,$/, '');
-    if (!value) return;
-    if (!members.some((m) => m.email === value)) {
-      setMembers((prev) => [...prev, { email: value, valid: EMAIL_RE.test(value) }]);
-    }
-    setDraft('');
-  };
-
-  const onTokenKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
-      e.preventDefault();
-      commitDraft();
-    } else if (e.key === 'Backspace' && draft === '' && members.length) {
-      setMembers((prev) => prev.slice(0, -1));
-    }
-  };
-
-  const removeMember = (email) => setMembers((prev) => prev.filter((m) => m.email !== email));
 
   const canSave = name.trim().length > 0;
   const handleSave = (e) => {
@@ -106,27 +84,7 @@ export function MakeModal({ kind = 'space', onClose, onSave }) {
 
         <section className="mk-section">
           <label className="mk-label" htmlFor="mk-invite">Invite Space Member</label>
-          <div className="mk-token-input" onClick={() => tokenInputRef.current?.focus()}>
-            {members.map((m) => (
-              <span key={m.email} className={`mk-token${m.valid ? '' : ' invalid'}`}>
-                {m.email}
-                <button type="button" className="mk-token-remove" onClick={() => removeMember(m.email)} title="Remove">
-                  <img src={icon(m.valid ? 'token_remove' : 'token_remove_white')} alt="" width={16} height={16} />
-                </button>
-              </span>
-            ))}
-            <input
-              id="mk-invite"
-              ref={tokenInputRef}
-              className="mk-token-field"
-              placeholder={members.length ? '' : 'Enter email and press Enter'}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={onTokenKeyDown}
-              onBlur={commitDraft}
-              autoComplete="off"
-            />
-          </div>
+          <TokenEmailInput id="mk-invite" members={members} onChange={setMembers} placeholder="Enter email and press Enter" />
         </section>
 
         <footer className="mk-footer">

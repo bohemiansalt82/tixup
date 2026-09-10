@@ -60,6 +60,33 @@ export function createSpace(userId, input) {
 export function renameSpace(userId, spaceId, name) {
   writeJson(spacesKey(userId), getSpaces(userId).map((s) => (s.id === spaceId ? { ...s, name } : s)));
 }
+/** Adds invited emails to a space (UI-level membership; nothing is sent). */
+export function addMembers(userId, spaceId, emails) {
+  writeJson(spacesKey(userId), getSpaces(userId).map((s) => {
+    if (s.id !== spaceId) return s;
+    const members = [...(s.members || [])];
+    emails.forEach((e) => { if (!members.includes(e)) members.push(e); });
+    return { ...s, members };
+  }));
+}
+
+/** Accepts an invite payload: adds the space (if missing) to this user and makes it active. */
+export function joinSpace(userId, invite) {
+  const spaces = getSpaces(userId);
+  if (!spaces.some((s) => s.id === invite.id)) {
+    const space = {
+      id: invite.id,
+      name: invite.name,
+      visibility: invite.visibility || 'private',
+      members: [],
+      invitedBy: invite.by || null,
+      createdAt: new Date().toISOString(),
+    };
+    writeJson(spacesKey(userId), [...spaces, space]);
+  }
+  setActiveSpaceId(invite.id);
+}
+
 export function deleteSpace(userId, spaceId) {
   const rest = getSpaces(userId).filter((s) => s.id !== spaceId);
   writeJson(spacesKey(userId), rest);
@@ -139,6 +166,8 @@ export function useSpaces() {
     createSpace: (data) => createSpace(userId, data),
     renameSpace: (id, name) => renameSpace(userId, id, name),
     deleteSpace: (id) => deleteSpace(userId, id),
+    addMembers: (spaceId, emails) => addMembers(userId, spaceId, emails),
+    joinSpace: (invite) => joinSpace(userId, invite),
     switchSpace: setActiveSpaceId,
     createBox: (data) => (activeSpaceId ? createBox(activeSpaceId, data) : null),
     deleteBox: (id) => (activeSpaceId ? deleteBox(activeSpaceId, id) : null),
