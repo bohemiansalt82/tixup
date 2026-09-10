@@ -1983,6 +1983,8 @@ body.dragging-active *::-moz-selection {
     position: sticky;
     top: 0;
     background: var(--primitive-colors-base-white);
+    border-bottom: 1px solid var(--primitive-colors-gray-200);
+    box-sizing: content-box;
     z-index: 151 !important;
 }
 
@@ -2141,6 +2143,21 @@ body.dragging-active *::-moz-selection {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+
+/* Stub of the today line from the bottom of the circle down to the header border,
+   so it joins the .timeline-today-line in the body (Figma 37635:4541). */
+.timeline-day-cell.today-marker::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: calc(50% + 12px);
+    bottom: -1px;
+    width: 1px;
+    margin-left: -0.5px;
+    background-color: var(--primitive-colors-red-500, #f44336);
+    opacity: 0.85;
+    z-index: -1;
 }
 
 .timeline-body {
