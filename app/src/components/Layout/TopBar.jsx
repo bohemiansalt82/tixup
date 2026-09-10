@@ -15,10 +15,10 @@ const VIEWS = [
 
 /**
  * Top bar — Figma Tixup-V2.0 node 39519:9833.
- * Wired: title, view switcher, Tix count, Create Tix. Visual only for now:
+ * Wired: title, view switcher, Tix count. Visual only for now:
  * Filter / Sort / Hide, member invite, overflow menus.
  */
-export function TopBar({ title, currentView, onViewChange, taskCount = 0, onCreateTix }) {
+export function TopBar({ title, currentView, onViewChange, taskCount = 0 }) {
   const user = useAuth();
   const { activeSpace, addMembers } = useSpaces();
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -118,11 +118,6 @@ export function TopBar({ title, currentView, onViewChange, taskCount = 0, onCrea
           <span className="topbar-count-value">{taskCount}</span>
           <span className="topbar-count-label">Tix</span>
         </div>
-
-        <button type="button" className="topbar-primary" onClick={onCreateTix}>
-          <img src={icon('add_circle_white')} alt="" width={24} height={24} />
-          <span>Tix</span>
-        </button>
 
         <button type="button" className="topbar-more" title="More (coming soon)">
           <img src={icon('more_vert_32')} alt="" width={32} height={32} />

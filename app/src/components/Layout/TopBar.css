@@ -111,22 +111,6 @@
   color: var(--semantic-color-colors-text-caption, #757575);
 }
 
-.topbar-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 40px;
-  padding: 0 18px 0 10px;
-  border: 0;
-  border-radius: 12px;
-  background: var(--semantic-color-colors-primary, #18675a);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.6;
-}
-.topbar-primary:hover { filter: brightness(1.08); }
 
 .topbar-more {
   display: inline-flex;
