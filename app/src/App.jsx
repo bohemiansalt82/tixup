@@ -3,7 +3,7 @@ import { SignUp } from './components/Auth/SignUp';
 import { Login } from './components/Auth/Login';
 import { useAuth } from './store/useAuth';
 import { Gnb } from './components/Layout/Gnb';
-import { AppHeader } from './components/Layout/AppHeader';
+import { TopBar } from './components/Layout/TopBar';
 import { TaskGrid } from './components/Grid/TaskGrid';
 import { TimelineView } from './components/Timeline/TimelineView';
 import { SelectionBar } from './components/Shared/SelectionBar';
@@ -29,7 +29,7 @@ export default function App() {
 
 function Dashboard({ spaceId }) {
   const { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, addTask, addChild, removeTask, updateTask, toggleCollapse, moveTask } = useTaskStore(spaceId);
-  const { activeBox } = useSpaces();
+  const { activeSpace, activeBox } = useSpaces();
   // My Tasks shows every task in the space; a selected box narrows it down.
   const visibleTasks = activeBox ? tasks.filter(t => t.boxId === activeBox.id) : tasks;
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -141,7 +141,13 @@ function Dashboard({ spaceId }) {
     <div className="tixup-root" style={{ display: 'flex', width: '100%', height: '100vh', overflow: 'hidden' }}>
       <Gnb tasks={tasks} />
       <main className="guide-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-        <AppHeader currentView={currentView} onViewChange={setCurrentView} />
+        <TopBar
+          title={activeBox?.name ?? activeSpace?.name ?? 'My Space'}
+          currentView={currentView}
+          onViewChange={setCurrentView}
+          taskCount={visibleTasks.length}
+          onCreateTix={handleCreateTix}
+        />
 
         <section
           className="timeline-grid-container"

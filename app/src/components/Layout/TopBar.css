@@ -1,0 +1,142 @@
+/* TopBar — Figma Tixup-V2.0 39519:9833 */
+.topbar {
+  display: flex;
+  align-items: center;
+  height: 80px;
+  padding: 20px 24px;
+  flex-shrink: 0;
+  font-family: var(--semantic-font-font-family-default, Pretendard), sans-serif;
+  box-sizing: border-box;
+}
+.topbar *, .topbar *::before, .topbar *::after { box-sizing: inherit; }
+.topbar img { display: block; }
+.topbar button { font: inherit; color: inherit; cursor: pointer; }
+.topbar button:disabled { cursor: default; }
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+.topbar-title {
+  margin: 0;
+  padding: 0 32px 0 16px;
+  font-size: var(--semantic-font-font-size-font-size-xl, 24px);
+  font-weight: var(--semantic-font-font-weight-emphasis-low, 600);
+  line-height: normal;
+  color: var(--semantic-color-colors-text-heading, #212121);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+/* View switcher */
+.topbar-views { display: flex; align-items: center; gap: 8px; padding: 0 32px; flex-shrink: 0; }
+.topbar-view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+}
+.topbar-view-btn:hover:not(:disabled) { background: rgba(0, 0, 0, 0.04); }
+.topbar-view-btn.active { background: #fff; border-color: #e6e6e6; border-radius: 12px; }
+.topbar-view-btn:disabled { opacity: 0.45; }
+.topbar-plain-btn {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+}
+.topbar-plain-btn:hover { background: rgba(0, 0, 0, 0.04); }
+
+/* Filter / Sort / Hide */
+.topbar-controls { display: flex; align-items: center; gap: 24px; height: 40px; padding: 0 32px; flex-shrink: 0; }
+.topbar-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-size: var(--semantic-font-font-size-font-size-lg, 16px);
+  font-weight: 500;
+  line-height: 13px;
+  color: var(--semantic-color-colors-text-body, #424242);
+  white-space: nowrap;
+}
+.topbar-control:hover { background: rgba(0, 0, 0, 0.04); }
+
+/* Right cluster */
+.topbar-right { display: flex; align-items: center; gap: 24px; height: 100%; padding-left: 32px; flex-shrink: 0; }
+
+.topbar-members { display: flex; align-items: center; gap: 4px; padding-right: 16px; }
+.topbar-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  background: #2945ab;
+  overflow: visible;
+  flex-shrink: 0;
+}
+.topbar-avatar > img:first-child { width: 32px; height: 32px; border-radius: 16px; object-fit: cover; }
+.topbar-avatar-crown { position: absolute; top: -3px; right: -1px; width: 12px; height: 12px; }
+.topbar-avatar-add { padding: 0; border: 1px solid #e6e6e6; border-radius: 18px; background: #fff; }
+.topbar-avatar-add > img:first-child { width: 24px; height: 24px; border-radius: 0; }
+.topbar-avatar-add:hover { background: #f5f5f5; }
+
+.topbar-count { display: flex; align-items: center; gap: 10px; padding-right: 16px; white-space: nowrap; }
+.topbar-count-value {
+  font-size: var(--semantic-font-font-size-font-size-xl, 24px);
+  font-weight: 600;
+  color: var(--semantic-color-colors-text-heading, #212121);
+}
+.topbar-count-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--semantic-color-colors-text-caption, #757575);
+}
+
+.topbar-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 18px 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--semantic-color-colors-primary, #18675a);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.topbar-primary:hover { filter: brightness(1.08); }
+
+.topbar-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: var(--primitive-colors-gray-200, #eee);
+}
+.topbar-more:hover { background: #e3e3e3; }
