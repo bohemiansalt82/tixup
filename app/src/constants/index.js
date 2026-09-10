@@ -18,7 +18,6 @@ export const STATUS_LABELS = {
   drop: 'Drop',
 };
 
-export const STORAGE_KEY = 'tixup_master_v1';
 
 // Google OAuth (Google Identity Services). Override with VITE_GOOGLE_CLIENT_ID in .env.
 export const GOOGLE_CLIENT_ID =

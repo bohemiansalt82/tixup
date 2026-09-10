@@ -1,20 +1,25 @@
 import { useState, useCallback } from 'react';
-import { STORAGE_KEY, CENTER_PX } from '../constants';
+import { CENTER_PX } from '../constants';
 import { uid } from '../utils/timeline';
 
-function load() {
+const tasksKey = (spaceId) => `tixup-tasks-${spaceId}`;
+
+function load(spaceId) {
+  if (!spaceId) return [];
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(tasksKey(spaceId));
     return raw ? JSON.parse(raw) : [];
   } catch { return []; }
 }
 
-function save(tasks) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+function save(spaceId, tasks) {
+  if (!spaceId) return;
+  localStorage.setItem(tasksKey(spaceId), JSON.stringify(tasks));
 }
 
-export function useTaskStore() {
-  const [tasks, setTasks] = useState(() => load());
+/** Tasks for one space. Mount with a `key` of the space id so state reloads on switch. */
+export function useTaskStore(spaceId) {
+  const [tasks, setTasks] = useState(() => load(spaceId));
   const [exitingIds, setExitingIds] = useState(new Set());
   const [newIds, setNewIds] = useState(new Set());
   const [collapsingParentIds, setCollapsingParentIds] = useState(new Set());
@@ -23,13 +28,13 @@ export function useTaskStore() {
   const updateTasks = useCallback((updater) => {
     setTasks(prev => {
       const next = typeof updater === 'function' ? updater(prev) : updater;
-      save(next);
+      save(spaceId, next);
       return next;
     });
-  }, []);
+  }, [spaceId]);
 
-  const addTask = useCallback((title) => {
-    const task = { id: uid(), title, status: 'pending', type: 'parent', start: CENTER_PX, width: 96 };
+  const addTask = useCallback((title, boxId = null) => {
+    const task = { id: uid(), title, status: 'pending', type: 'parent', boxId, start: CENTER_PX, width: 96 };
     updateTasks(prev => [...prev, task]);
     setNewIds(prev => new Set([...prev, task.id]));
     setTimeout(() => setNewIds(prev => { const s = new Set(prev); s.delete(task.id); return s; }), 500);
@@ -39,10 +44,12 @@ export function useTaskStore() {
   const addChild = useCallback((parentId) => {
     const task = { id: uid(), title: '', status: 'pending', type: 'child', parentId, start: CENTER_PX, width: 96 };
     updateTasks(prev => {
+      const parent = prev.find(t => t.id === parentId);
+      const child = { ...task, boxId: parent?.boxId ?? null };
       const siblings = prev.filter(t => t.parentId === parentId);
       const insertAfter = siblings.length > 0 ? siblings[siblings.length - 1].id : parentId;
       const idx = prev.findIndex(t => t.id === insertAfter);
-      return [...prev.slice(0, idx + 1), task, ...prev.slice(idx + 1)];
+      return [...prev.slice(0, idx + 1), child, ...prev.slice(idx + 1)];
     });
     setNewIds(prev => new Set([...prev, task.id]));
     setTimeout(() => setNewIds(prev => { const s = new Set(prev); s.delete(task.id); return s; }), 500);

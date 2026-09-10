@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth, logout } from '../../store/useAuth';
 import { useSpaces } from '../../store/useSpaces';
+import { MakeModal } from '../Modals/MakeModal';
 import './Gnb.css';
 
 const icon = (name) => `${import.meta.env.BASE_URL}images/gnb/${name}.svg`;
@@ -41,22 +42,23 @@ function useOutsideClose(open, onClose) {
   return ref;
 }
 
-export function Gnb({ taskCount = 0 }) {
+export function Gnb({ tasks = [] }) {
   const user = useAuth();
   const { spaces, activeSpace, boxes, activeBox, createSpace, switchSpace, deleteSpace, createBox, selectBox } = useSpaces();
   const [spaceMenuOpen, setSpaceMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [modal, setModal] = useState(null); // 'space' | 'box' | null
+  const countInBox = (boxId) => tasks.filter((t) => t.boxId === boxId).length;
 
   const spaceMenuRef = useOutsideClose(spaceMenuOpen, () => setSpaceMenuOpen(false));
   const userMenuRef = useOutsideClose(userMenuOpen, () => setUserMenuOpen(false));
 
-  const handleCreateSpace = () => {
-    const name = prompt('새 스페이스 이름');
-    if (name && name.trim()) createSpace(name.trim());
-  };
-  const handleCreateBox = () => {
-    const name = prompt('새 박스 이름');
-    if (name && name.trim()) createBox(name.trim());
+  const handleCreateSpace = () => setModal('space');
+  const handleCreateBox = () => setModal('box');
+  const handleModalSave = (data) => {
+    if (modal === 'space') createSpace(data);
+    else if (modal === 'box') createBox(data);
+    setModal(null);
   };
   const handleDeleteSpace = () => {
     if (!activeSpace) return;
@@ -122,7 +124,7 @@ export function Gnb({ taskCount = 0 }) {
           >
             <GnbIcon name="work_filled" />
             <span className="gnb-item-label">My Tasks</span>
-            <CountBadge value={taskCount} />
+            <CountBadge value={tasks.length} />
           </button>
         </div>
       </section>
@@ -138,6 +140,7 @@ export function Gnb({ taskCount = 0 }) {
             >
               <GnbIcon name="deployed_code" />
               <span className="gnb-item-label">{b.name}</span>
+              {countInBox(b.id) > 0 && <CountBadge value={countInBox(b.id)} />}
             </button>
           </div>
         ))}
@@ -168,6 +171,8 @@ export function Gnb({ taskCount = 0 }) {
           <GnbIcon name="delete" size={24} />
         </button>
       </footer>
+
+      {modal && <MakeModal kind={modal} onClose={() => setModal(null)} onSave={handleModalSave} />}
     </nav>
   );
 }

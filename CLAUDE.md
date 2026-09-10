@@ -66,13 +66,14 @@ Statuses: `pending | inprogress | done | overdue | pause | drop` (legacy `onhold
 
 ## Architecture: React app (`app/`)
 
-- Task state lives in `useTaskStore` (`useState` + localStorage under `tixup_master_v1`, no spaces yet).
+- Task state lives in `useTaskStore(spaceId)`: one localStorage list per space under `tixup-tasks-<spaceId>`. `App.jsx` mounts `Dashboard` with `key={activeSpace.id}` so switching spaces remounts and reloads. Each task carries `boxId` (null = no box); children inherit the parent's `boxId`. "My Tasks" shows all tasks in the space, a selected box filters by `boxId`.
+- `store/storage.js` holds `SCHEMA_VERSION`; on mismatch every `tixup*` key except `tixup-user` is wiped at startup (`resetLegacyStorage()` in `main.jsx`). Bump it when the stored shape changes incompatibly.
 - Auth: `store/useAuth.js` keeps the user in localStorage under `tixup-user` (same key as the vanilla app) and exposes `useAuth()` via `useSyncExternalStore`. `App.jsx` renders `Login` (or `SignUp` at `#signup`) until a user exists. Google login is `utils/googleAuth.js` (GIS token popup + userinfo fetch); the client ID is in `constants/index.js` and can be overridden with `VITE_GOOGLE_CLIENT_ID`. Demo login (name + email) needs no backend. The deployed origin `https://bohemiansalt82.github.io` must be an authorized JavaScript origin for the client ID. `exitingIds`/`newIds` drive enter/exit animations.
 - The timeline is **imperative inside React**: `TimelineView` holds refs and `useTimelineScroll` / `useTimelineDrag` mutate `style.transform`, `style.left/width` directly for performance. Bar positions are committed back to the store via `onSaveBarPositions` after drag ends. Do not try to make drag fully declarative without reading both hooks first.
 - Routing is hash-based in `App.jsx`: `#signup` → SignUp, no user → Login, otherwise `Dashboard`. `finishLogin()` in `Auth/AuthShared.jsx` clears the hash after login.
 - `vite.config.js` sets `base: "/tixup/"` for GitHub Pages. Any image path written in JSX must be prefixed with `import.meta.env.BASE_URL` (see `Sidebar.jsx`); a bare `/images/...` breaks on Pages.
 - Class names deliberately mirror the vanilla app so `components.css` works unchanged. Exception: the left nav is `components/Layout/Gnb.jsx` + `Gnb.css` (own `gnb-*` classes, icons in `public/images/gnb/`), built from Figma Tixup-V2.0 `GNB_V5` (node 39523:13759, file 4K5p818MM8IKRboMUeDjv6).
-- Spaces/boxes: `store/useSpaces.js` (localStorage `tixup-spaces-<userId>`, `tixup-active-space`, `tixup-boxes-<spaceId>`, `tixup-active-box`). A default "My Space" is created on first use. Task data is NOT yet per-space in the React app.
+- Spaces/boxes: `store/useSpaces.js` (localStorage `tixup-spaces-<userId>`, `tixup-active-space`, `tixup-boxes-<spaceId>`, `tixup-active-box`). Shape: `{ id, name, visibility: "private"|"public", members: string[] }`; `members` (invited emails) is UI-only, nothing is sent. A default "My Space" is created on first use. Creation goes through `components/Modals/MakeModal.jsx` (Figma 39521:11825 / 39523:13450), rendered via a portal because the GNB's `backdrop-filter` would trap `position: fixed`.
 
 ## Design system & CSS
 

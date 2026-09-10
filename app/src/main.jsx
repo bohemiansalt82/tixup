@@ -1,6 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
+import { resetLegacyStorage } from './store/storage'
+
+resetLegacyStorage()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

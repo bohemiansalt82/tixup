@@ -8,6 +8,7 @@ import { TaskGrid } from './components/Grid/TaskGrid';
 import { TimelineView } from './components/Timeline/TimelineView';
 import { SelectionBar } from './components/Shared/SelectionBar';
 import { useTaskStore } from './store/useTaskStore';
+import { useSpaces } from './store/useSpaces';
 import './tokens.css';
 import './components.css';
 import './icons.css';
@@ -20,12 +21,17 @@ function subscribeHash(callback) {
 export default function App() {
   const hash = useSyncExternalStore(subscribeHash, () => window.location.hash);
   const user = useAuth();
+  const { activeSpace } = useSpaces();
   if (!user) return hash === '#signup' ? <SignUp /> : <Login />;
-  return <Dashboard />;
+  // Keyed by space so task state reloads when the active space changes.
+  return <Dashboard key={activeSpace?.id ?? 'none'} spaceId={activeSpace?.id ?? null} />;
 }
 
-function Dashboard() {
-  const { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, addTask, addChild, removeTask, updateTask, toggleCollapse, moveTask } = useTaskStore();
+function Dashboard({ spaceId }) {
+  const { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, addTask, addChild, removeTask, updateTask, toggleCollapse, moveTask } = useTaskStore(spaceId);
+  const { activeBox } = useSpaces();
+  // My Tasks shows every task in the space; a selected box narrows it down.
+  const visibleTasks = activeBox ? tasks.filter(t => t.boxId === activeBox.id) : tasks;
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [currentView, setCurrentView] = useState('timeline');
   const [sidebarOverflow, setSidebarOverflow] = useState(false);
@@ -113,12 +119,12 @@ function Dashboard() {
   }, [selectedIds, updateTask]);
 
   const handleCreateTix = useCallback(() => {
-    addTask('');
+    addTask('', activeBox?.id ?? null);
     setTimeout(() => {
       const sidebar = document.getElementById('sidebar-container');
       if (sidebar) sidebar.scrollTop = sidebar.scrollHeight;
     }, 50);
-  }, [addTask]);
+  }, [addTask, activeBox]);
 
   const footer = (
     <div className="timeline-footer-row">
@@ -133,7 +139,7 @@ function Dashboard() {
 
   return (
     <div className="tixup-root" style={{ display: 'flex', width: '100%', height: '100vh', overflow: 'hidden' }}>
-      <Gnb taskCount={tasks.length} />
+      <Gnb tasks={tasks} />
       <main className="guide-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
         <AppHeader currentView={currentView} onViewChange={setCurrentView} />
 
@@ -144,7 +150,7 @@ function Dashboard() {
         >
           <div className="timeline-grid-main" style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
             <TaskGrid
-              tasks={tasks}
+              tasks={visibleTasks}
               exitingIds={exitingIds}
               newIds={newIds}
               collapsingParentIds={collapsingParentIds}
@@ -160,7 +166,7 @@ function Dashboard() {
               onMoveTask={moveTask}
             />
             <TimelineView
-              tasks={tasks}
+              tasks={visibleTasks}
               exitingIds={exitingIds}
               newIds={newIds}
               collapsingParentIds={collapsingParentIds}

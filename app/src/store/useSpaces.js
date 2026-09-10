@@ -41,8 +41,15 @@ const uid = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).sl
 export function getSpaces(userId) {
   return userId ? readJson(spacesKey(userId), []) : [];
 }
-export function createSpace(userId, name) {
-  const space = { id: uid('space'), name: name || 'New Space', createdAt: new Date().toISOString() };
+export function createSpace(userId, input) {
+  const data = typeof input === 'string' ? { name: input } : (input || {});
+  const space = {
+    id: uid('space'),
+    name: data.name || 'New Space',
+    visibility: data.visibility || 'private',
+    members: data.members || [], // invited emails (UI only for now)
+    createdAt: new Date().toISOString(),
+  };
   writeJson(spacesKey(userId), [...getSpaces(userId), space]);
   setActiveSpaceId(space.id);
   return space;
@@ -70,8 +77,16 @@ export function setActiveSpaceId(spaceId) {
 export function getBoxes(spaceId) {
   return spaceId ? readJson(boxesKey(spaceId), []) : [];
 }
-export function createBox(spaceId, name) {
-  const box = { id: uid('box'), name: name || 'New Box', createdAt: new Date().toISOString() };
+export function createBox(spaceId, input) {
+  const data = typeof input === 'string' ? { name: input } : (input || {});
+  const box = {
+    id: uid('box'),
+    spaceId,
+    name: data.name || 'New Box',
+    visibility: data.visibility || 'private',
+    members: data.members || [], // invited emails (UI only for now)
+    createdAt: new Date().toISOString(),
+  };
   writeJson(boxesKey(spaceId), [...getBoxes(spaceId), box]);
   return box;
 }
@@ -118,11 +133,11 @@ export function useSpaces() {
     activeSpace: spaces.find((s) => s.id === activeSpaceId) ?? spaces[0] ?? null,
     boxes,
     activeBox: boxes.find((b) => b.id === activeBoxId) ?? null,
-    createSpace: (name) => createSpace(userId, name),
+    createSpace: (data) => createSpace(userId, data),
     renameSpace: (id, name) => renameSpace(userId, id, name),
     deleteSpace: (id) => deleteSpace(userId, id),
     switchSpace: setActiveSpaceId,
-    createBox: (name) => (activeSpaceId ? createBox(activeSpaceId, name) : null),
+    createBox: (data) => (activeSpaceId ? createBox(activeSpaceId, data) : null),
     deleteBox: (id) => (activeSpaceId ? deleteBox(activeSpaceId, id) : null),
     selectBox: setActiveBoxId,
   }), [spaces, boxes, activeSpaceId, activeBoxId, userId]);
