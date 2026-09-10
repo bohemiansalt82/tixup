@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth, avatarFor } from '../../store/useAuth';
 import { useSpaces } from '../../store/useSpaces';
 import { InviteModal } from '../Modals/InviteModal';
+import { canSendMail, sendInviteMail } from '../../utils/inviteMail';
 import './TopBar.css';
 
 const icon = (name) => `${import.meta.env.BASE_URL}images/header/${name}.svg`;
@@ -21,14 +22,33 @@ export function TopBar({ title, currentView, onViewChange, taskCount = 0, onCrea
   const user = useAuth();
   const { activeSpace, addMembers } = useSpaces();
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [toast, setToast] = useState(null); // { kind: 'info'|'ok'|'error', text }
+  const showToast = (kind, text, ms = 3200) => {
+    setToast({ kind, text });
+    if (ms) setTimeout(() => setToast(null), ms);
+  };
   const members = activeSpace?.members ?? [];
   const shownMembers = members.slice(0, 4);
   const overflow = members.length - shownMembers.length;
 
-  const handleInvite = (emails, link) => {
-    if (activeSpace) addMembers(activeSpace.id, emails);
+  const handleInvite = async (emails, link) => {
+    if (!activeSpace) return;
+    addMembers(activeSpace.id, emails);
     setInviteOpen(false);
-    // No mail backend yet: hand the invite to the user's mail client.
+
+    if (canSendMail()) {
+      showToast('info', `Sending ${emails.length} invite${emails.length > 1 ? 's' : ''}…`, 0);
+      try {
+        const res = await sendInviteMail({ to: emails, space: activeSpace, inviter: user, link });
+        showToast('ok', `Invite sent to ${res.sent} ${res.sent > 1 ? 'people' : 'person'}.`);
+      } catch (err) {
+        console.error('Invite mail failed:', err);
+        showToast('error', `Could not send: ${err.message}`, 6000);
+      }
+      return;
+    }
+
+    // No mail endpoint configured: hand the invite to the user's mail client.
     const subject = encodeURIComponent(`You're invited to "${activeSpace?.name ?? 'a space'}" on Tixup`);
     const body = encodeURIComponent(
       `${user?.name ?? 'A teammate'} invited you to the Tixup space "${activeSpace?.name ?? ''}".\n\nOpen this link to join:\n${link}\n\n— Tixup`,
@@ -108,6 +128,8 @@ export function TopBar({ title, currentView, onViewChange, taskCount = 0, onCrea
           <img src={icon('more_vert_32')} alt="" width={32} height={32} />
         </button>
       </div>
+
+      {toast && <div className={`topbar-toast ${toast.kind}`} role="status">{toast.text}</div>}
 
       {inviteOpen && activeSpace && (
         <InviteModal space={activeSpace} inviter={user} onClose={() => setInviteOpen(false)} onInvite={handleInvite} />
