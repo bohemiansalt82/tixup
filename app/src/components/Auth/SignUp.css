@@ -223,3 +223,9 @@
   filter: brightness(0) invert(1);
   opacity: 0.9;
 }
+
+.signup-error {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--primitive-colors-red-500, #f44336);
+}

@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect, useSyncExternalStore } from 'react';
 import { SignUp } from './components/Auth/SignUp';
+import { Login } from './components/Auth/Login';
+import { useAuth } from './store/useAuth';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AppHeader } from './components/Layout/AppHeader';
 import { TaskGrid } from './components/Grid/TaskGrid';
@@ -17,7 +19,8 @@ function subscribeHash(callback) {
 
 export default function App() {
   const hash = useSyncExternalStore(subscribeHash, () => window.location.hash);
-  if (hash === '#signup') return <SignUp />;
+  const user = useAuth();
+  if (!user) return hash === '#signup' ? <SignUp /> : <Login />;
   return <Dashboard />;
 }
 

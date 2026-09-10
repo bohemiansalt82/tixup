@@ -66,9 +66,10 @@ Statuses: `pending | inprogress | done | overdue | pause | drop` (legacy `onhold
 
 ## Architecture: React app (`app/`)
 
-- State lives in `useTaskStore` (`useState` + localStorage under `tixup_master_v1`, no spaces/auth yet). `exitingIds`/`newIds` drive enter/exit animations.
+- Task state lives in `useTaskStore` (`useState` + localStorage under `tixup_master_v1`, no spaces yet).
+- Auth: `store/useAuth.js` keeps the user in localStorage under `tixup-user` (same key as the vanilla app) and exposes `useAuth()` via `useSyncExternalStore`. `App.jsx` renders `Login` (or `SignUp` at `#signup`) until a user exists. Google login is `utils/googleAuth.js` (GIS token popup + userinfo fetch); the client ID is in `constants/index.js` and can be overridden with `VITE_GOOGLE_CLIENT_ID`. Demo login (name + email) needs no backend. The deployed origin `https://bohemiansalt82.github.io` must be an authorized JavaScript origin for the client ID. `exitingIds`/`newIds` drive enter/exit animations.
 - The timeline is **imperative inside React**: `TimelineView` holds refs and `useTimelineScroll` / `useTimelineDrag` mutate `style.transform`, `style.left/width` directly for performance. Bar positions are committed back to the store via `onSaveBarPositions` after drag ends. Do not try to make drag fully declarative without reading both hooks first.
-- Routing is a `#signup` hash check in `App.jsx` (renders `components/Auth/SignUp`); everything else renders `Dashboard`.
+- Routing is hash-based in `App.jsx`: `#signup` → SignUp, no user → Login, otherwise `Dashboard`. `finishLogin()` in `Auth/AuthShared.jsx` clears the hash after login.
 - `vite.config.js` sets `base: "/tixup/"` for GitHub Pages. Any image path written in JSX must be prefixed with `import.meta.env.BASE_URL` (see `Sidebar.jsx`); a bare `/images/...` breaks on Pages.
 - Class names deliberately mirror the vanilla app so `components.css` works unchanged.
 

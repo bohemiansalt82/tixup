@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { demoLogin, finishLogin } from '../../store/useAuth';
 import { AuthCard, AuthDivider, Field, GoogleButton } from './AuthShared';
 
-export function SignUp() {
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+export function Login() {
+  const [form, setForm] = useState({ name: '', email: '' });
   const [error, setError] = useState('');
   const setField = (key) => (val) => setForm((f) => ({ ...f, [key]: val }));
 
@@ -15,7 +15,6 @@ export function SignUp() {
       setError('이름과 올바른 이메일을 입력해 주세요.');
       return;
     }
-    // No backend yet: accounts live in localStorage, password is not stored.
     finishLogin(demoLogin(name, email));
   };
 
@@ -26,15 +25,14 @@ export function SignUp() {
 
       <Field label="Name" placeholder="jy.choi" value={form.name} onChange={setField('name')} autoComplete="name" />
       <Field label="Email" type="email" placeholder="Enter your email" value={form.email} onChange={setField('email')} autoComplete="email" />
-      <Field label="Password" type="password" placeholder="Enter your password" value={form.password} onChange={setField('password')} autoComplete="new-password" />
 
       {error && <p className="signup-error" role="alert">{error}</p>}
 
-      <button type="submit" className="signup-submit">Create Account</button>
+      <button type="submit" className="signup-submit">Sign in</button>
 
       <div className="signup-footer">
-        <span className="signup-footer-muted">Already have an account?</span>
-        <a className="signup-footer-link" href="#login">Sign in</a>
+        <span className="signup-footer-muted">Don't have an account?</span>
+        <a className="signup-footer-link" href="#signup">Create account</a>
       </div>
     </AuthCard>
   );
