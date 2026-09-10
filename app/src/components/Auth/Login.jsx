@@ -23,7 +23,7 @@ export function Login() {
       <GoogleButton onError={setError} />
       <AuthDivider />
 
-      <Field label="Name" placeholder="jy.choi" value={form.name} onChange={setField('name')} autoComplete="name" />
+      <Field label="Name" placeholder="Enter your name" value={form.name} onChange={setField('name')} autoComplete="name" />
       <Field label="Email" type="email" placeholder="Enter your email" value={form.email} onChange={setField('email')} autoComplete="email" />
 
       {error && <p className="signup-error" role="alert">{error}</p>}

@@ -6,8 +6,8 @@ const icon = (name) => `${import.meta.env.BASE_URL}images/gnb/${name}.svg`;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const COPY = {
-  space: { title: 'Make a New Space', nameLabel: 'Space Name', icon: 'planet_32' },
-  box: { title: 'Make a New Box', nameLabel: 'Box Name', icon: 'deployed_code_32' },
+  space: { title: 'Make a New Space', nameLabel: 'Space Name', namePlaceholder: 'Enter space name', icon: 'planet_32' },
+  box: { title: 'Make a New Box', nameLabel: 'Box Name', namePlaceholder: 'Enter box name', icon: 'deployed_code_32' },
 };
 
 /**
@@ -97,7 +97,7 @@ export function MakeModal({ kind = 'space', onClose, onSave }) {
             id="mk-name"
             ref={nameRef}
             className="mk-input"
-            placeholder="Jy.choi"
+            placeholder={copy.namePlaceholder}
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoComplete="off"
@@ -119,7 +119,7 @@ export function MakeModal({ kind = 'space', onClose, onSave }) {
               id="mk-invite"
               ref={tokenInputRef}
               className="mk-token-field"
-              placeholder={members.length ? '' : 'abc@gmail.com'}
+              placeholder={members.length ? '' : 'Enter email and press Enter'}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={onTokenKeyDown}

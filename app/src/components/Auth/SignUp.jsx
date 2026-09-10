@@ -24,7 +24,7 @@ export function SignUp() {
       <GoogleButton onError={setError} />
       <AuthDivider />
 
-      <Field label="Name" placeholder="jy.choi" value={form.name} onChange={setField('name')} autoComplete="name" />
+      <Field label="Name" placeholder="Enter your name" value={form.name} onChange={setField('name')} autoComplete="name" />
       <Field label="Email" type="email" placeholder="Enter your email" value={form.email} onChange={setField('email')} autoComplete="email" />
       <Field label="Password" type="password" placeholder="Enter your password" value={form.password} onChange={setField('password')} autoComplete="new-password" />
 
