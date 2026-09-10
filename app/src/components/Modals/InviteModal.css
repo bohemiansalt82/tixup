@@ -60,7 +60,7 @@
   border-radius: 6px;
   background: transparent;
   font: inherit;
-  font-size: var(--semantic-font-font-size-font-size-sm, 10px);
+  font-size: var(--semantic-font-font-size-font-size-md, 14px);
   font-weight: var(--semantic-font-font-weight-emphasis-low, 600);
   line-height: 1.6;
   color: var(--semantic-color-colors-step-2, #1976d2);
