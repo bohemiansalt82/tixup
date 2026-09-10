@@ -2890,3 +2890,9 @@ body.dragging-active *::-moz-selection {
 .ctx-menu__item--danger:hover {
     background: #fff1f1;
 }
+/* Parent rows without sub-tix keep the expander's width so titles stay aligned. */
+.tree-expander-placeholder {
+    visibility: hidden;
+    pointer-events: none;
+    cursor: default;
+}

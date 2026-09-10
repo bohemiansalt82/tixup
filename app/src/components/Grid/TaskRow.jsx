@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useCallback, forwardRef, useImperativeHand
 import { createPortal } from 'react-dom';
 import { StatusBadge } from '../Shared/StatusBadge';
 
-export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDragging, isCollapsed, isDropInto, onSelect, onToggle, onAddChild, onRename, onStatusChange, onRowMouseDown }) {
+export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDragging, isCollapsed, isDropInto, hasChildren = false, onSelect, onToggle, onAddChild, onRename, onStatusChange, onRowMouseDown }) {
   const isParent = task.type === 'parent';
   const hasNoTitle = !task.title;
 
@@ -61,7 +61,7 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
       </div>
       <div className="data-grid-cell">
         <div className={`row-title-container ${!isParent ? 'depth-2' : ''}`}>
-          {isParent && (
+          {isParent && hasChildren && (
             <button
               className={`tree-expander ${task.collapsed ? 'collapsed' : 'expanded'}`}
               onClick={() => onToggle(task.id)}
@@ -69,6 +69,7 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
               <div className="nav-icon icon-chevron-lg-bottom" />
             </button>
           )}
+          {isParent && !hasChildren && <span className="tree-expander tree-expander-placeholder" aria-hidden="true" />}
           <div className={`nav-icon ${isParent ? 'icon-tix' : 'icon-stat'}`} />
           <EditableTitle ref={editRef} task={task} onRename={onRename} autoEdit={hasNoTitle} isParent={isParent} />
           {isParent && (

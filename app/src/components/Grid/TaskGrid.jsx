@@ -277,6 +277,7 @@ function TaskGroup({ parent, children, isCollapsing, isExpanding, exitingIds, ne
         isDragging={parent.id === dragId}
         isCollapsed={false}
         isDropInto={dropTarget?.id === parent.id && dropTarget?.position === 'into'}
+        hasChildren={children.length > 0}
         {...sharedProps}
       />
       {children.map(child => (
