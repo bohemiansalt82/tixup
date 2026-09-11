@@ -61,10 +61,13 @@
   background: transparent;
   font: inherit;
   font-size: var(--semantic-font-font-size-font-size-md, 14px);
-  font-weight: var(--semantic-font-font-weight-emphasis-low, 600);
+  font-weight: var(--semantic-font-font-weight-default, 500);
   line-height: 1.6;
   color: var(--semantic-color-colors-step-2, #1976d2);
   cursor: pointer;
 }
 .inv-copy:hover { background: rgba(25, 118, 210, 0.08); }
 .inv-copy img { display: block; }
+/* Figma 39529:15292 — after copying: filled check + "Link copied" in primary */
+.inv-copy.copied { color: var(--semantic-color-colors-primary, #18675a); }
+.inv-copy.copied:hover { background: rgba(24, 103, 90, 0.08); }

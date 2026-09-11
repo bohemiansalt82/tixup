@@ -67,9 +67,9 @@ export function InviteModal({ space, inviter, onClose, onInvite }) {
         </section>
 
         <footer className="inv-footer">
-          <button type="button" className="inv-copy" onClick={copyLink} title={link}>
-            <img src={icon('link_16')} alt="" width={16} height={16} />
-            <span>{copied ? 'Link copied!' : 'Copy Link'}</span>
+          <button type="button" className={`inv-copy${copied ? ' copied' : ''}`} onClick={copyLink} title={link}>
+            <img src={icon(copied ? 'check_circle_20' : 'link_2_20')} alt="" width={20} height={20} />
+            <span>{copied ? 'Link copied' : 'Copy Link'}</span>
           </button>
           <div className="inv-actions">
             <button type="button" className="mk-btn mk-btn-outline" onClick={onClose}>Cancel</button>
