@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { TokenEmailInput } from './TokenEmailInput';
+import { useModalClose } from './useModalClose';
 import './MakeModal.css';
 
 const icon = (name) => `${import.meta.env.BASE_URL}images/gnb/${name}.svg`;
@@ -21,24 +22,26 @@ export function MakeModal({ kind = 'space', onClose, onSave }) {
   const [name, setName] = useState('');
   const [members, setMembers] = useState([]);
   const nameRef = useRef(null);
+  const { closing, requestClose, overlayProps } = useModalClose(onClose);
 
   useEffect(() => {
     nameRef.current?.focus();
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e) => { if (e.key === 'Escape') requestClose(); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [requestClose]);
 
   const canSave = name.trim().length > 0;
   const handleSave = (e) => {
     e.preventDefault();
     if (!canSave) return;
-    onSave({ name: name.trim(), visibility, members: members.map((m) => m.email) });
+    const payload = { name: name.trim(), visibility, members: members.map((m) => m.email) };
+    requestClose(() => onSave(payload));
   };
 
   // Portal: the GNB uses backdrop-filter, which would otherwise trap position:fixed inside it.
   return createPortal(
-    <div className="mk-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className={`mk-overlay${closing ? ' closing' : ''}`} {...overlayProps} onMouseDown={(e) => { if (e.target === e.currentTarget) requestClose(); }}>
       <form className="mk-panel" role="dialog" aria-modal="true" aria-labelledby="mk-title" onSubmit={handleSave}>
         <header className="mk-header">
           <img src={icon(copy.icon)} alt="" width={32} height={32} />
@@ -49,7 +52,7 @@ export function MakeModal({ kind = 'space', onClose, onSave }) {
           <button type="button" className="mk-icon-btn" title="More">
             <img src={icon('more_vert_32')} alt="" width={32} height={32} />
           </button>
-          <button type="button" className="mk-icon-btn mk-close" title="Close" onClick={onClose}>
+          <button type="button" className="mk-icon-btn mk-close" title="Close" onClick={() => requestClose()}>
             <img src={icon('close_32')} alt="" width={32} height={32} />
           </button>
         </div>
@@ -88,7 +91,7 @@ export function MakeModal({ kind = 'space', onClose, onSave }) {
         </section>
 
         <footer className="mk-footer">
-          <button type="button" className="mk-btn mk-btn-outline" onClick={onClose}>Cancel</button>
+          <button type="button" className="mk-btn mk-btn-outline" onClick={() => requestClose()}>Cancel</button>
           <button type="submit" className="mk-btn mk-btn-primary" disabled={!canSave}>Save</button>
         </footer>
       </form>

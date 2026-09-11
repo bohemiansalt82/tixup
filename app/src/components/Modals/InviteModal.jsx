@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { TokenEmailInput } from './TokenEmailInput';
 import { buildInviteLink } from '../../store/invites';
 import './MakeModal.css';
+import { useModalClose } from './useModalClose';
 import './InviteModal.css';
 
 const icon = (name) => `${import.meta.env.BASE_URL}images/gnb/${name}.svg`;
@@ -16,12 +17,13 @@ const icon = (name) => `${import.meta.env.BASE_URL}images/gnb/${name}.svg`;
 export function InviteModal({ space, inviter, onClose, onInvite }) {
   const [members, setMembers] = useState([]);
   const [copied, setCopied] = useState(false);
+  const { closing, requestClose, overlayProps } = useModalClose(onClose);
 
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e) => { if (e.key === 'Escape') requestClose(); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [requestClose]);
 
   const link = buildInviteLink(space, inviter);
   const hasInvalid = members.some((m) => !m.valid);
@@ -40,11 +42,12 @@ export function InviteModal({ space, inviter, onClose, onInvite }) {
   const handleInvite = (e) => {
     e.preventDefault();
     if (!canInvite) return;
-    onInvite(members.map((m) => m.email), link);
+    const emails = members.map((m) => m.email);
+    requestClose(() => onInvite(emails, link));
   };
 
   return createPortal(
-    <div className="inv-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className={`inv-overlay${closing ? ' closing' : ''}`} {...overlayProps} onMouseDown={(e) => { if (e.target === e.currentTarget) requestClose(); }}>
       <form className="inv-panel" role="dialog" aria-modal="true" aria-labelledby="inv-title" onSubmit={handleInvite}>
         <header className="mk-header">
           <img src={icon('send_32')} alt="" width={32} height={32} />
@@ -55,7 +58,7 @@ export function InviteModal({ space, inviter, onClose, onInvite }) {
           <button type="button" className="mk-icon-btn" title="More">
             <img src={icon('more_vert_32')} alt="" width={32} height={32} />
           </button>
-          <button type="button" className="mk-icon-btn mk-close" title="Close" onClick={onClose}>
+          <button type="button" className="mk-icon-btn mk-close" title="Close" onClick={() => requestClose()}>
             <img src={icon('close_32')} alt="" width={32} height={32} />
           </button>
         </div>
@@ -72,7 +75,7 @@ export function InviteModal({ space, inviter, onClose, onInvite }) {
             <span>{copied ? 'Link copied' : 'Copy Link'}</span>
           </button>
           <div className="inv-actions">
-            <button type="button" className="mk-btn mk-btn-outline" onClick={onClose}>Cancel</button>
+            <button type="button" className="mk-btn mk-btn-outline" onClick={() => requestClose()}>Cancel</button>
             <button type="submit" className="mk-btn mk-btn-primary" disabled={!canInvite}>Invite</button>
           </div>
         </footer>
