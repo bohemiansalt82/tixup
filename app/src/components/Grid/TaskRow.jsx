@@ -108,7 +108,7 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
   );
 }
 
-const EditableTitle = forwardRef(function EditableTitle({ task, onRename, autoEdit, isParent }, ref) {
+export const EditableTitle = forwardRef(function EditableTitle({ task, onRename, autoEdit, isParent }, ref) {
   const [editing, setEditing] = useState(autoEdit);
   const [value, setValue] = useState(task.title);
   const inputRef = useRef(null);

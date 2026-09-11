@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useSyncExternalStore } from 'react';
+import { useState, useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { SignUp } from './components/Auth/SignUp';
 import { Login } from './components/Auth/Login';
 import { useAuth } from './store/useAuth';
@@ -6,6 +6,7 @@ import { Gnb } from './components/Layout/Gnb';
 import { TopBar } from './components/Layout/TopBar';
 import { TaskGrid } from './components/Grid/TaskGrid';
 import { TimelineView } from './components/Timeline/TimelineView';
+import { ListView } from './components/List/ListView';
 import { SelectionBar } from './components/Shared/SelectionBar';
 import { useTaskStore } from './store/useTaskStore';
 import { useSpaces, joinSpace as joinSpaceForUser } from './store/useSpaces';
@@ -48,7 +49,19 @@ export default function App() {
 function Dashboard({ spaceId }) {
   const user = useAuth();
   const { activeSpace, activeBox } = useSpaces();
-  const { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, addTask, addChild, removeTask, updateTask, toggleCollapse, moveTask } = useTaskStore(spaceId, { space: activeSpace, user });
+  const { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, remoteMembers, addTask, addChild, removeTask, updateTask, toggleCollapse, moveTask } = useTaskStore(spaceId, { space: activeSpace, user });
+  // Assignee candidates: me, emails invited locally, and members recorded on the shared space.
+  const members = useMemo(() => {
+    const list = [];
+    const add = (email, name, picture) => {
+      if (!email || list.some(m => m.email === email)) return;
+      list.push({ email, name: name || email.split('@')[0], picture: picture || null });
+    };
+    if (user) add(user.email, user.name, user.picture);
+    remoteMembers.forEach(m => add(m.email, m.name));
+    (activeSpace?.members || []).forEach(email => add(email));
+    return list;
+  }, [user, remoteMembers, activeSpace]);
   // My Tasks shows every task in the space; a selected box narrows it down.
   const visibleTasks = activeBox ? tasks.filter(t => t.boxId === activeBox.id) : tasks;
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -80,10 +93,11 @@ function Dashboard({ spaceId }) {
     if (parent?.collapsed) toggleCollapse(parentId);
     const newId = addChild(parentId);
     setTimeout(() => {
-      const el = document.querySelector(`[data-row-id="${newId}"]`);
+      const scope = currentView === 'list' ? '#full-data-grid ' : '#sidebar-container ';
+      const el = document.querySelector(`${scope}[data-row-id="${newId}"]`);
       if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }, 50);
-  }, [tasks, addChild, toggleCollapse]);
+  }, [tasks, addChild, toggleCollapse, currentView]);
 
   const handleRename = useCallback((id, name) => {
     if (name === null) removeTask(id);
@@ -140,10 +154,10 @@ function Dashboard({ spaceId }) {
   const handleCreateTix = useCallback(() => {
     addTask('', activeBox?.id ?? null);
     setTimeout(() => {
-      const sidebar = document.getElementById('sidebar-container');
-      if (sidebar) sidebar.scrollTop = sidebar.scrollHeight;
+      const el = document.getElementById(currentView === 'list' ? 'full-grid-tbody' : 'sidebar-container');
+      if (el) el.scrollTop = el.scrollHeight;
     }, 50);
-  }, [addTask, activeBox]);
+  }, [addTask, activeBox, currentView]);
 
   const footer = (
     <div className="timeline-footer-row">
@@ -203,9 +217,25 @@ function Dashboard({ spaceId }) {
 
         <section
           id="full-data-grid"
-          style={{ display: currentView === 'list' ? 'flex' : 'none', flex: 1 }}
+          className="lv-section"
+          style={{ display: currentView === 'list' ? 'flex' : 'none', flex: 1, minHeight: 0 }}
         >
-          <p style={{ padding: 24, color: 'var(--primitive-colors-gray-400)' }}>List view — coming soon</p>
+          <ListView
+            tasks={visibleTasks}
+            exitingIds={exitingIds}
+            newIds={newIds}
+            selectedIds={selectedIds}
+            members={members}
+            currentUser={user}
+            onSelect={handleSelect}
+            onSelectAll={handleSelectAll}
+            onToggle={toggleCollapse}
+            onAddChild={handleAddChild}
+            onRename={handleRename}
+            onStatusChange={(id, status) => updateTask(id, { status })}
+            onUpdateTask={updateTask}
+            onCreateTix={handleCreateTix}
+          />
         </section>
       </main>
 

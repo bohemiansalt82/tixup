@@ -9,6 +9,9 @@ export const BASE_EPOCH = (() => {
   return d;
 })();
 
+// Tag presets for the list view "Tags" column (Figma Marker V2 colours in ListView.css).
+export const TAGS = ['Design', 'IT', 'Dev', 'Marketing', 'Product', 'Consulting', 'HR'];
+
 export const STATUS_LABELS = {
   pending: 'Pending',
   inprogress: 'In Progress',

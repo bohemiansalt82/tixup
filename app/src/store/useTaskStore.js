@@ -48,6 +48,8 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
   const [newIds, setNewIds] = useState(new Set());
   const [collapsingParentIds, setCollapsingParentIds] = useState(new Set());
   const [expandingParentIds, setExpandingParentIds] = useState(new Set());
+  // Members recorded on the shared space document (owner + everyone who opened an invite).
+  const [remoteMembers, setRemoteMembers] = useState([]);
 
   // ---- remote sync (refs so callbacks stay stable) ----
   const syncRef = useRef({ rev: null, dirty: false, pushing: false, timer: null, unmounted: false });
@@ -102,6 +104,12 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
         else s.rev = 0;
         return;
       }
+      if (r.space) {
+        const list = [];
+        if (r.space.owner) list.push({ email: r.space.owner, name: r.space.ownerName || null });
+        (r.space.members || []).forEach(email => { if (!list.some(m => m.email === email)) list.push({ email, name: null }); });
+        setRemoteMembers(prev => (JSON.stringify(prev) === JSON.stringify(list) ? prev : list));
+      }
       if (r.rev === s.rev) return;
       const remote = Array.isArray(r.tasks) ? r.tasks : [];
       const firstSync = s.rev === null;
@@ -123,7 +131,8 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
     if (!spaceId || !canSync()) return undefined;
     const s = syncRef.current;
     s.unmounted = false;
-    pull();
+    // Deferred so StrictMode's mount/unmount/mount only issues one initial pull.
+    const initial = setTimeout(pull, 0);
     const onVisible = () => { if (document.visibilityState === 'visible') pull(); };
     const onHide = () => {
       if (!s.dirty) return;
@@ -138,6 +147,7 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
     window.addEventListener('pagehide', onHide);
     return () => {
       s.unmounted = true;
+      clearTimeout(initial);
       clearInterval(interval);
       clearTimeout(s.timer);
       window.removeEventListener('focus', onVisible);
@@ -260,5 +270,5 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
     });
   }, [updateTasks]);
 
-  return { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, addTask, addChild, removeTask, updateTask, toggleCollapse, moveTask };
+  return { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, remoteMembers, addTask, addChild, removeTask, updateTask, toggleCollapse, moveTask };
 }
