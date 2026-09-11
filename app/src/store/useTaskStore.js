@@ -21,6 +21,19 @@ function save(spaceId, tasks) {
   localStorage.setItem(tasksKey(spaceId), JSON.stringify(tasks));
 }
 
+/** Appends local-only tasks to the remote list, keeping children right after their parent. */
+function mergeMissing(remote, missing) {
+  const out = [...remote];
+  missing.filter(t => t.type !== 'child').forEach(t => out.push(t));
+  missing.filter(t => t.type === 'child').forEach(t => {
+    let idx = out.findIndex(x => x.id === t.parentId);
+    if (idx === -1) { out.push(t); return; }
+    while (idx + 1 < out.length && out[idx + 1].parentId === t.parentId) idx++;
+    out.splice(idx + 1, 0, t);
+  });
+  return out;
+}
+
 /**
  * Tasks for one space. Mount with a `key` of the space id so state reloads on switch.
  * localStorage is the immediate store; when a backend endpoint is configured the list is
@@ -90,10 +103,17 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
         return;
       }
       if (r.rev === s.rev) return;
-      s.rev = r.rev;
       const remote = Array.isArray(r.tasks) ? r.tasks : [];
-      save(spaceId, remote);
-      setTasks(remote);
+      const firstSync = s.rev === null;
+      s.rev = r.rev;
+      // First contact with the server for this space: never drop local Tix the server
+      // does not know about — merge them in and publish the union.
+      const local = firstSync ? load(spaceId) : [];
+      const missing = local.filter(t => !remote.some(x => x.id === t.id));
+      const next = missing.length ? mergeMissing(remote, missing) : remote;
+      save(spaceId, next);
+      setTasks(next);
+      if (missing.length) push();
     } catch (err) {
       console.warn('Tixup sync: pull failed', err);
     }
