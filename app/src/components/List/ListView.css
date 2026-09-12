@@ -64,7 +64,7 @@
 .lv-cell-title { padding: 0 16px 0 8px; }
 .lv-cell-title .row-title-container { width: 100%; min-width: 0; }
 .lv-cell-title .nav-icon.icon-stat { margin-left: 22px; }
-.lv-cell-title .data-grid-text { font-size: var(--semantic-font-font-size-font-size-lg, 16px); }
+.lv-cell-title .data-grid-text { font-size: var(--semantic-font-font-size-font-size-md, 14px); }
 .lv-empty { padding: 24px 16px; color: var(--primitive-colors-gray-400, #bdbdbd); font-size: 14px; }
 
 /* ---- footer ---- */

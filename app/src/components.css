@@ -882,7 +882,7 @@ body.dragging-active *::-moz-selection {
 }
 
 .data-grid-text {
-    font-size: var(--semantic-font-font-size-font-size-lg);
+    font-size: var(--semantic-font-font-size-font-size-md); /* Figma Tix row 37631:13783 */
     font-weight: var(--semantic-font-font-weight-default);
     color: var(--semantic-color-colors-text-body);
     font-family: var(--semantic-font-font-family-default);
@@ -2442,7 +2442,7 @@ body.marquee-active, body.marquee-active * {
     flex: 1;
     border: none;
     background: transparent;
-    font-size: var(--semantic-font-font-size-font-size-lg);
+    font-size: var(--semantic-font-font-size-font-size-md);
     color: var(--primitive-colors-gray-900);
     outline: none;
     padding: 0;
@@ -2450,7 +2450,7 @@ body.marquee-active, body.marquee-active * {
 
 .grid-create-input::placeholder {
     color: var(--primitive-colors-gray-400);
-    font-size: var(--semantic-font-font-size-font-size-lg);
+    font-size: var(--semantic-font-font-size-font-size-md);
 }
 
 /* -------------------------------------
@@ -2463,7 +2463,7 @@ body.marquee-active, body.marquee-active * {
     flex: 1;
     border: none;
     outline: none;
-    font-size: var(--semantic-font-font-size-font-size-lg);
+    font-size: var(--semantic-font-font-size-font-size-md);
     font-family: inherit;
     color: var(--primitive-colors-gray-900);
     background: transparent;
