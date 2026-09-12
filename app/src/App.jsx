@@ -9,7 +9,7 @@ import { TimelineView } from './components/Timeline/TimelineView';
 import { ListView } from './components/List/ListView';
 import { SelectionBar } from './components/Shared/SelectionBar';
 import { useTaskStore } from './store/useTaskStore';
-import { useSpaces, joinSpace as joinSpaceForUser } from './store/useSpaces';
+import { useSpaces, useSpaceSync, joinSpace as joinSpaceForUser } from './store/useSpaces';
 import { parseInviteHash, resolveInvite, stashPendingInvite, takePendingInvite } from './store/invites';
 import './tokens.css';
 import './components.css';
@@ -23,7 +23,9 @@ function subscribeHash(callback) {
 export default function App() {
   const hash = useSyncExternalStore(subscribeHash, () => window.location.hash);
   const user = useAuth();
-  const { activeSpace } = useSpaces();
+  // Account profile (spaces + boxes) lives on the backend; sync it for the signed-in user.
+  useSpaceSync(user);
+  const { activeSpace, ready } = useSpaces();
 
   // Invite links (#join=<id> / legacy #invite=...): stash on arrival so the login flow can
   // clear the hash, then join once a user is signed in. One effect so a link opened in an
@@ -42,8 +44,20 @@ export default function App() {
     resolveInvite(pending).then((resolved) => { if (resolved) joinSpaceForUser(userId, resolved); });
   }, [hash, user]);
   if (!user) return hash === '#signup' ? <SignUp /> : <Login />;
+  // Wait for the account's space list before showing anything, so a fresh browser never
+  // starts on a made-up default space while the real ones are still loading.
+  if (!ready) return <SyncSplash />;
   // Keyed by space so task state reloads when the active space changes.
   return <Dashboard key={activeSpace?.id ?? 'none'} spaceId={activeSpace?.id ?? null} />;
+}
+
+function SyncSplash() {
+  return (
+    <div className="tixup-root sync-splash" role="status" aria-live="polite">
+      <div className="sync-splash-spinner" />
+      <span className="sync-splash-text">Loading your spaces…</span>
+    </div>
+  );
 }
 
 function Dashboard({ spaceId }) {

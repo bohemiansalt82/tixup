@@ -3,12 +3,16 @@
  * Deploy: Extensions → Apps Script → paste → Deploy → New deployment →
  *   type "Web app", Execute as "Me", Who has access "Anyone". Copy the /exec URL.
  *
- * Two jobs, one endpoint (text/plain POST, JSON body):
+ * Three jobs, one endpoint (text/plain POST, JSON body):
  *   1. Invite mail   { to: [emails], space: {id,name}, inviter: {name,email}, link }
  *   2. Space storage { action: 'load', space: '<id>', member?: {email} }
  *                    { action: 'save', space: {id,name,visibility}, tasks: [...], by?: {name,email} }
- * Space documents are JSON files in the "Tixup Data" folder of the deploying account's Drive,
- * so everyone who opens an invite link sees the same Tix. Last write wins.
+ *   3. User profile  { action: 'profile', user: {email} }
+ *                    { action: 'saveProfile', user: {email,name}, spaces: [...], boxes: {spaceId: [...]} }
+ *      The profile is the account's list of spaces (and their boxes), keyed by e-mail, so the same
+ *      account sees the same spaces in every browser / device.
+ * Documents are JSON files in the "Tixup Data" folder of the deploying account's Drive.
+ * Last write wins.
  */
 var TEMPLATE_URL = 'https://bohemiansalt82.github.io/tixup/email/invite.html';
 var MAX_RECIPIENTS = 10;      // per request
@@ -23,6 +27,8 @@ function doPost(e) {
     var action = body.action || 'invite';
     if (action === 'load') return json_(loadSpace_(body));
     if (action === 'save') return json_(saveSpace_(body));
+    if (action === 'profile') return json_(loadProfile_(body));
+    if (action === 'saveProfile') return json_(saveProfile_(body));
     if (action !== 'invite') return json_({ ok: false, error: 'Unknown action' });
     return json_(sendInvites_(body));
   } catch (err) {
@@ -133,6 +139,61 @@ function saveSpace_(body) {
   }
 }
 
+// ---------------------------------------------------------------- user profiles
+
+/** Document id for an account: e-mail is case-insensitive, hashed so it is a safe file name. */
+function profileId_(email) {
+  if (!isEmail(email)) return null;
+  var digest = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, String(email).trim().toLowerCase(), Utilities.Charset.UTF_8);
+  return 'user-' + digest.map(function (b) { return ('0' + ((b + 256) % 256).toString(16)).slice(-2); }).join('');
+}
+
+/** Returns the account's spaces / boxes. */
+function loadProfile_(body) {
+  var id = profileId_(body.user && body.user.email);
+  if (!id) return { ok: false, error: 'Invalid user' };
+  var doc = readJson_(id);
+  if (!doc || !Array.isArray(doc.spaces)) return { ok: true, found: false };
+  return { ok: true, found: true, spaces: doc.spaces, boxes: doc.boxes || {}, rev: doc.rev, updatedAt: doc.updatedAt };
+}
+
+/** Replaces the account's spaces / boxes (last write wins) and bumps the revision. */
+function saveProfile_(body) {
+  var email = body.user && body.user.email;
+  var id = profileId_(email);
+  if (!id) return { ok: false, error: 'Invalid user' };
+  if (!Array.isArray(body.spaces)) return { ok: false, error: 'spaces must be an array' };
+  var spaces = body.spaces.filter(function (s) { return s && cleanId_(s.id); });
+  var boxes = {};
+  if (body.boxes && typeof body.boxes === 'object') {
+    Object.keys(body.boxes).forEach(function (k) {
+      if (cleanId_(k) && Array.isArray(body.boxes[k])) boxes[k] = body.boxes[k];
+    });
+  }
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var prev = readJson_(id);
+    var doc = {
+      email: String(email).trim().toLowerCase(),
+      name: body.user.name ? String(body.user.name).slice(0, 100) : ((prev && prev.name) || null),
+      spaces: spaces,
+      boxes: boxes,
+      rev: ((prev && prev.rev) || 0) + 1,
+      updatedAt: Date.now(),
+    };
+    var json = JSON.stringify(doc);
+    if (json.length > MAX_DOC_BYTES) return { ok: false, error: 'Profile is too large' };
+    writeDoc_(id, doc, json);
+    return { ok: true, rev: doc.rev, updatedAt: doc.updatedAt };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ---------------------------------------------------------------- Drive storage
+
 function dataFolder_() {
   var props = PropertiesService.getScriptProperties();
   var fid = props.getProperty('dataFolderId');
@@ -162,16 +223,19 @@ function docFile_(id) {
   return file;
 }
 
-function readDoc_(id) {
+function readJson_(id) {
   var f = docFile_(id);
   if (!f) return null;
   try {
-    var doc = JSON.parse(f.getBlob().getDataAsString());
-    if (!doc || !doc.space) return null;
-    return doc;
+    return JSON.parse(f.getBlob().getDataAsString());
   } catch (e) {
     return null;
   }
+}
+
+function readDoc_(id) {
+  var doc = readJson_(id);
+  return doc && doc.space ? doc : null;
 }
 
 function writeDoc_(id, doc, json) {
