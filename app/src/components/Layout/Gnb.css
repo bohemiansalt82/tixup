@@ -93,7 +93,7 @@
 .gnb-item-label {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: var(--semantic-font-font-size-font-size-lg, 16px);
+  font-size: var(--semantic-font-font-size-font-size-md, 14px); /* Figma GNB_V5 37551:4091 */
   font-weight: 500;
   line-height: 1.6;
   white-space: nowrap;
@@ -117,8 +117,8 @@
   border-radius: 11px;
   background: #fff;
   border: 1px solid #e4e4e4;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--semantic-font-font-size-font-size-sm, 10px);
+  font-weight: 600;
   line-height: 1.6;
   flex-shrink: 0;
 }
@@ -149,7 +149,7 @@
   border: 0;
   background: #fff;
   font: inherit;
-  font-size: var(--semantic-font-font-size-font-size-lg, 16px);
+  font-size: var(--semantic-font-font-size-font-size-md, 14px);
   font-weight: 500;
   line-height: 1;
   color: inherit;
