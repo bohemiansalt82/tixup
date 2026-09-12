@@ -1,7 +1,6 @@
 /* List view (data grid) — Figma Tixup-V2.0 39523:13757
-   Lines/backgrounds are one step stronger than the Figma values (#eee / #fafafa) so rows
-   stay distinguishable when every row is a parent Tix. */
-.lv-table { --lv-line: var(--primitive-colors-gray-300, #e0e0e0); --lv-parent-bg: var(--primitive-colors-gray-100, #f5f5f5); }
+   White table, every row underlined with border-default (#eee); parent rows #fafafa, sub rows white. */
+.lv-table { --lv-line: var(--semantic-color-colors-border-default, #eee); --lv-parent-bg: var(--primitive-colors-gray-50, #fafafa); }
 .lv-section { padding: 0 24px 24px; box-sizing: border-box; align-items: flex-start; }
 .lv-table {
   display: flex;
@@ -49,7 +48,8 @@
 
 /* ---- body ---- */
 .lv-body { flex: 1; min-height: 0; overflow-y: auto; position: relative; }
-.lv-row {
+.lv-row,
+.lv-row.data-grid-row:last-child { /* beats components.css `.data-grid-row:last-child { border-bottom: none }` */
   height: 48px;
   min-height: 48px;
   border-bottom: 1px solid var(--lv-line);
@@ -59,7 +59,7 @@
 .lv-row > .data-grid-cell.center { border-right: 0; }
 .lv-row.lv-parent { background: var(--lv-parent-bg); }
 .lv-row.lv-child { background: var(--primitive-colors-base-white, #fff); }
-.lv-row:hover { background: var(--primitive-colors-gray-200, #eee); }
+.lv-row:hover { background: var(--primitive-colors-gray-100, #f5f5f5); }
 .lv-row.selected { background: var(--primitive-colors-blue-50, #e3f2fd); }
 .lv-cell-title { padding: 0 16px 0 8px; }
 .lv-cell-title .row-title-container { width: 100%; min-width: 0; }
@@ -74,7 +74,6 @@
   height: 56px;
   min-height: 56px;
   padding: 0 16px;
-  border-top: 1px solid var(--lv-line);
   background: var(--primitive-colors-base-white, #fff);
 }
 .lv-footer .grid-create-btn .data-grid-text { color: var(--semantic-color-colors-text-heading, #212121); flex: none; }
