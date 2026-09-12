@@ -11,7 +11,9 @@ import { canSync, loadRemoteProfile, saveRemoteProfile, beaconSaveRemoteProfile 
  *  - login / focus / every POLL_MS: pull the profile if its revision changed
  *  - every change (create / rename / join / delete space or box): debounced push, last write wins
  *  - the first pull never drops spaces this browser knows and the server does not: they are
- *    merged in and the union is published
+ *    merged in and the union is published — except empty ones (no Tix, no boxes), which are the
+ *    default space an older build made in this browser before the account list existed
+ *  - the profile also remembers the last active space, so a new browser opens on the same one
  * Until the first pull has answered `ready` is false and no default space is created, so a fresh
  * browser does not invent a second "My Space" for an account that already has one.
  */
@@ -124,6 +126,7 @@ export function setActiveSpaceId(spaceId) {
   else localStorage.removeItem(ACTIVE_SPACE_KEY);
   localStorage.removeItem(ACTIVE_BOX_KEY);
   emit();
+  schedulePush(); // the profile remembers the last active space
 }
 
 // ---- Boxes (per space) ----
@@ -201,7 +204,19 @@ function snapshot(userId) {
   const spaces = getSpaces(userId);
   const boxes = {};
   spaces.forEach((s) => { boxes[s.id] = getBoxes(s.id); });
-  return { spaces, boxes };
+  const active = getActiveSpaceId();
+  return { spaces, boxes, active: spaces.some((s) => s.id === active) ? active : null };
+}
+
+/** True when this browser holds nothing for the space (no Tix, no boxes). */
+function isEmptySpace(spaceId) {
+  if (getBoxes(spaceId).length > 0) return false;
+  try {
+    const raw = localStorage.getItem(`tixup-tasks-${spaceId}`);
+    return !raw || (JSON.parse(raw) || []).length === 0;
+  } catch {
+    return true;
+  }
 }
 
 function schedulePush() {
@@ -218,8 +233,8 @@ async function push() {
   sync.dirty = false;
   sync.pushing = true;
   try {
-    const { spaces, boxes } = snapshot(user.id);
-    const r = await saveRemoteProfile(user, spaces, boxes);
+    const { spaces, boxes, active } = snapshot(user.id);
+    const r = await saveRemoteProfile(user, spaces, boxes, active);
     if (sync.user === user && typeof r.rev === 'number') sync.rev = r.rev;
   } catch (err) {
     noteBackendError(err);
@@ -252,15 +267,23 @@ async function pull() {
     sync.rev = r.rev;
     const remote = Array.isArray(r.spaces) ? r.spaces : [];
     const remoteBoxes = r.boxes && typeof r.boxes === 'object' ? r.boxes : {};
-    // First contact for this user: keep spaces the server does not know about (merge + publish).
+    // First contact for this user: keep spaces the server does not know about (merge + publish),
+    // but not empty ones — those are defaults an older build invented in this browser.
     const local = firstSync ? getSpaces(user.id) : EMPTY;
-    const missing = local.filter((s) => !remote.some((x) => x.id === s.id));
+    const missing = local.filter((s) => !remote.some((x) => x.id === s.id) && !isEmptySpace(s.id));
     const next = missing.length ? [...remote, ...missing] : remote;
     localStorage.setItem(spacesKey(user.id), JSON.stringify(next));
     next.forEach((s) => {
       const boxes = remoteBoxes[s.id] ?? (firstSync ? getBoxes(s.id) : EMPTY);
       localStorage.setItem(boxesKey(s.id), JSON.stringify(boxes));
     });
+    local.forEach((s) => { if (!next.some((x) => x.id === s.id)) localStorage.removeItem(boxesKey(s.id)); });
+    // A browser that was not on one of the account's spaces opens on the last one used elsewhere.
+    const active = getActiveSpaceId();
+    if (!next.some((s) => s.id === active)) {
+      const target = next.find((s) => s.id === r.active) || next[0];
+      if (target) { localStorage.setItem(ACTIVE_SPACE_KEY, target.id); localStorage.removeItem(ACTIVE_BOX_KEY); }
+    }
     emit();
     if (missing.length) push();
   } catch (err) {
@@ -295,8 +318,8 @@ export function useSpaceSync(user) {
     const onVisible = () => { if (document.visibilityState === 'visible') pull(); };
     const onHide = () => {
       if (!sync.dirty) return;
-      const { spaces, boxes } = snapshot(userId);
-      if (beaconSaveRemoteProfile(me, spaces, boxes)) sync.dirty = false;
+      const { spaces, boxes, active } = snapshot(userId);
+      if (beaconSaveRemoteProfile(me, spaces, boxes, active)) sync.dirty = false;
     };
     const interval = setInterval(() => { if (document.visibilityState === 'visible') pull(); }, POLL_MS);
     window.addEventListener('focus', onVisible);

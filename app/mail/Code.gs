@@ -8,7 +8,7 @@
  *   2. Space storage { action: 'load', space: '<id>', member?: {email} }
  *                    { action: 'save', space: {id,name,visibility}, tasks: [...], by?: {name,email} }
  *   3. User profile  { action: 'profile', user: {email} }
- *                    { action: 'saveProfile', user: {email,name}, spaces: [...], boxes: {spaceId: [...]} }
+ *                    { action: 'saveProfile', user: {email,name}, spaces: [...], boxes: {spaceId: [...]}, active?: '<spaceId>' }
  *      The profile is the account's list of spaces (and their boxes), keyed by e-mail, so the same
  *      account sees the same spaces in every browser / device.
  * Documents are JSON files in the "Tixup Data" folder of the deploying account's Drive.
@@ -154,7 +154,7 @@ function loadProfile_(body) {
   if (!id) return { ok: false, error: 'Invalid user' };
   var doc = readJson_(id);
   if (!doc || !Array.isArray(doc.spaces)) return { ok: true, found: false };
-  return { ok: true, found: true, spaces: doc.spaces, boxes: doc.boxes || {}, rev: doc.rev, updatedAt: doc.updatedAt };
+  return { ok: true, found: true, spaces: doc.spaces, boxes: doc.boxes || {}, active: doc.active || null, rev: doc.rev, updatedAt: doc.updatedAt };
 }
 
 /** Replaces the account's spaces / boxes (last write wins) and bumps the revision. */
@@ -180,6 +180,7 @@ function saveProfile_(body) {
       name: body.user.name ? String(body.user.name).slice(0, 100) : ((prev && prev.name) || null),
       spaces: spaces,
       boxes: boxes,
+      active: cleanId_(body.active) || ((prev && prev.active) || null), // last space the user was looking at
       rev: ((prev && prev.rev) || 0) + 1,
       updatedAt: Date.now(),
     };

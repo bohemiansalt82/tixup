@@ -36,7 +36,7 @@ All calls are `POST <endpoint>` with a `text/plain` JSON body (no CORS preflight
 | `{ action: "load", space: "<id>", member?: { email } }` | Returns `{ found, space, tasks, rev, updatedAt }`; records `member.email` on the space. |
 | `{ action: "save", space: { id, name, visibility }, tasks, by?: { name, email } }` | Replaces the task list, bumps `rev`, remembers the first saver as owner. Last write wins. |
 | `{ action: "profile", user: { email } }` | Returns `{ found, spaces, boxes, rev, updatedAt }` for the account (file `user-<md5(email)>.json`). |
-| `{ action: "saveProfile", user: { email, name }, spaces, boxes }` | Replaces the account's space list and boxes, bumps `rev`. Last write wins. |
+| `{ action: "saveProfile", user: { email, name }, spaces, boxes, active? }` | Replaces the account's space list and boxes (and the last active space), bumps `rev`. Last write wins. |
 
 Client side (`src/store/useTaskStore.js` + `src/store/remote.js`):
 - localStorage stays the instant store; on mount, window focus, and every 15 s the app pulls the
@@ -49,7 +49,9 @@ Client side (`src/store/useTaskStore.js` + `src/store/remote.js`):
 Account profile (`src/store/useSpaces.js`, `useSpaceSync` mounted once in `App.jsx`):
 - On login the app pulls the profile before rendering (a "Loading your spaces…" splash) and does
   not create a default "My Space" until it knows the account has none. Spaces this browser knows
-  and the server does not are merged in on the first pull and the union is published.
+  and the server does not are merged in on the first pull and the union is published — except
+  empty ones (no Tix, no boxes), which are defaults an older build invented in this browser.
+  A browser whose active space is not in the account list opens on the account's last active space.
 - Creating / renaming / joining / deleting a space or box pushes the profile after a 700 ms
   debounce; focus and a 15 s poll pull it. localStorage (`tixup-spaces-<userId>`, `tixup-boxes-<spaceId>`) is a cache.
 - If the profile call fails (offline, or the deployed script predates the `profile` action) the

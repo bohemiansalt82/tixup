@@ -52,20 +52,20 @@ export function beaconSaveRemoteSpace(space, tasks, by) {
 
 // ---- account profile (the user's spaces + boxes, keyed by e-mail) ----
 
-/** → { found, spaces?, boxes?, rev?, updatedAt? } */
+/** → { found, spaces?, boxes?, active?, rev?, updatedAt? } */
 export function loadRemoteProfile(user) {
   return call({ action: 'profile', user: { email: user.email } });
 }
 
 /** → { rev, updatedAt } */
-export function saveRemoteProfile(user, spaces, boxes) {
-  return call({ action: 'saveProfile', user: { email: user.email, name: user.name }, spaces, boxes });
+export function saveRemoteProfile(user, spaces, boxes, active) {
+  return call({ action: 'saveProfile', user: { email: user.email, name: user.name }, spaces, boxes, active: active || null });
 }
 
 /** Fire-and-forget profile save for pagehide; the response is ignored. */
-export function beaconSaveRemoteProfile(user, spaces, boxes) {
+export function beaconSaveRemoteProfile(user, spaces, boxes, active) {
   if (!API_ENDPOINT || typeof navigator.sendBeacon !== 'function') return false;
-  const body = JSON.stringify({ action: 'saveProfile', user: { email: user.email, name: user.name }, spaces, boxes });
+  const body = JSON.stringify({ action: 'saveProfile', user: { email: user.email, name: user.name }, spaces, boxes, active: active || null });
   try {
     return navigator.sendBeacon(API_ENDPOINT, new Blob([body], { type: 'text/plain;charset=utf-8' }));
   } catch {
