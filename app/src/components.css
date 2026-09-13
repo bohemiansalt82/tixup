@@ -1230,7 +1230,7 @@ body.marquee-active, body.marquee-active * {
    -------------------------------------------------- */
 /* Ghost Style Marker - 배경 제거 및 텍스트 컬러 통일 */
 /* Figma Marker V3 (icon variants 37556:3991, 37552:6730/6735/6740, 37553:6833, 37555:3966):
-   20px bordered icon + 6px gap + 14px Pretendard Medium text in text-body, 28px tall. */
+   16px bordered icon (1px line, 6px radius) + 6px gap + 14px Pretendard Medium text in text-body, 28px tall. */
 .marker.marker-has-icon {
     background-color: transparent !important;
     padding: 0 !important;
@@ -1252,8 +1252,8 @@ body.marquee-active, body.marquee-active * {
 
 .marker-has-icon::before {
     content: '';
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     background-size: contain;
     background-repeat: no-repeat;
     display: inline-block;
