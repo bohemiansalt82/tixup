@@ -1229,26 +1229,31 @@ body.marquee-active, body.marquee-active * {
    Moved to bottom to ensure priority
    -------------------------------------------------- */
 /* Ghost Style Marker - 배경 제거 및 텍스트 컬러 통일 */
+/* Figma Marker V3 (icon variants 37556:3991, 37552:6730/6735/6740, 37553:6833, 37555:3966):
+   20px bordered icon + 6px gap + 14px Pretendard Medium text in text-body, 28px tall. */
 .marker.marker-has-icon {
     background-color: transparent !important;
     padding: 0 !important;
     gap: 6px !important;
-    height: 22px !important;
+    height: 28px !important;
     border: none !important;
     box-shadow: none !important;
     font-size: var(--semantic-font-font-size-font-size-md) !important;
+    font-weight: var(--semantic-font-font-weight-default, 500) !important;
+    line-height: 1.6 !important;
+    color: var(--semantic-color-colors-text-body, #424242) !important;
 }
 
 .marker-has-icon {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .marker-has-icon::before {
     content: '';
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     background-size: contain;
     background-repeat: no-repeat;
     display: inline-block;
@@ -1256,27 +1261,27 @@ body.marquee-active, body.marquee-active * {
 }
 
 .marker-has-icon.marker-pending::before {
-    background-image: url('../images/icons/marker_pending.png');
+    background-image: url('/images/icons/marker_pending.svg');
 }
 
 .marker-has-icon.marker-inprogress::before {
-    background-image: url('../images/icons/marker_in_progress.png');
+    background-image: url('/images/icons/marker_in_progress.svg');
 }
 
 .marker-has-icon.marker-pause::before {
-    background-image: url('../images/icons/marker_pause.png');
+    background-image: url('/images/icons/marker_pause.svg');
 }
 
 .marker-has-icon.marker-done::before {
-    background-image: url('../images/icons/marker_done.png');
+    background-image: url('/images/icons/marker_done.svg');
 }
 
 .marker-has-icon.marker-overdue::before {
-    background-image: url('../images/icons/marker_overdue.png');
+    background-image: url('/images/icons/marker_overdue.svg');
 }
 
 .marker-has-icon.marker-drop::before {
-    background-image: url('../images/icons/marker_drop.png');
+    background-image: url('/images/icons/marker_drop.svg');
 }
 
 /* Avatar Component */
