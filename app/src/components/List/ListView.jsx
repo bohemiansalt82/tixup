@@ -4,6 +4,7 @@ import { StatusBadge } from '../Shared/StatusBadge';
 import { EditableTitle } from '../Grid/TaskRow';
 import { STATUS_LABELS, TAGS } from '../../constants';
 import { avatarFor } from '../../store/useAuth';
+import { getBarEndDate } from '../../utils/timeline';
 import './ListView.css';
 
 const FILTERS = ['All', 'Done', 'Overdue'];
@@ -108,7 +109,7 @@ function comparator({ key, dir }, currentUser) {
   const val = (t) => {
     if (key === 'status') return STATUS_ORDER.indexOf(t.status);
     if (key === 'assignee') return assigneeLabel(t.assignee, currentUser).toLowerCase();
-    if (key === 'dueDate') return t.dueDate || '9999-99-99';
+    if (key === 'dueDate') return getBarEndDate(t.start, t.width) || '9999-99-99';
     if (key === 'tags') return (t.tags?.[0] || '').toLowerCase();
     return 0;
   };
@@ -166,7 +167,7 @@ function ListRow({ task, hasChildren = false, exitingIds, newIds, selectedIds, m
       </div>
 
       <div className="data-grid-cell lv-cell-due">
-        <DueDateCell value={task.dueDate || ''} onChange={dueDate => onUpdateTask(task.id, { dueDate: dueDate || null })} />
+        <DueDateCell value={getBarEndDate(task.start, task.width)} />
       </div>
 
       <div className="data-grid-cell lv-cell-tags">
@@ -235,20 +236,12 @@ function AssigneeCell({ task, members, currentUser, onChange }) {
   );
 }
 
-function DueDateCell({ value, onChange }) {
-  const inputRef = useRef(null);
-  const openPicker = () => {
-    const el = inputRef.current;
-    if (!el) return;
-    if (typeof el.showPicker === 'function') { try { el.showPicker(); return; } catch { /* fall through */ } }
-    el.focus();
-    el.click();
-  };
+/** Due date is the last day of the Tix bar on the timeline (read-only here; drag the bar to change it). */
+function DueDateCell({ value }) {
   return (
-    <div className={`lv-due${value ? '' : ' empty'}`} onClick={openPicker} role="button" tabIndex={0} onKeyDown={e => { if (e.key === 'Enter') openPicker(); }}>
+    <div className={`lv-due${value ? '' : ' empty'}`} title={value ? 'End date of the timeline bar' : 'Place the Tix on the timeline'}>
       <div className="nav-icon icon-calendar" />
-      <span className="data-grid-text-sm">{value || <span className="lv-placeholder">Set date</span>}</span>
-      <input ref={inputRef} type="date" className="lv-date-input" value={value} onChange={e => onChange(e.target.value)} tabIndex={-1} aria-label="Due date" />
+      <span className="data-grid-text-sm">{value || <span className="lv-placeholder">No date</span>}</span>
     </div>
   );
 }

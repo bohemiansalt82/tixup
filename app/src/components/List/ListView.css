@@ -1,6 +1,6 @@
 /* List view (data grid) — Figma Tixup-V2.0 39523:13757
-   White table, every row underlined with border-default (#eee); parent rows #fafafa, sub rows white. */
-.lv-table { --lv-line: var(--semantic-color-colors-border-default, #eee); --lv-parent-bg: var(--primitive-colors-gray-50, #fafafa); }
+   White table, every row white and underlined with border-default (#eee); the header never changes on hover. */
+.lv-table { --lv-line: var(--semantic-color-colors-border-default, #eee); }
 .lv-section { padding: 0 24px 24px; box-sizing: border-box; align-items: flex-start; }
 .lv-table {
   display: flex;
@@ -17,11 +17,13 @@
 }
 
 /* ---- header ---- */
-.lv-header {
+.lv-header,
+.lv-table .data-grid-row.lv-header:hover { /* beats components.css `.data-grid-row:not(.data-grid-header):hover` */
   height: 56px;
   min-height: 56px;
   background: var(--primitive-colors-base-white, #fff);
   border-bottom: 1px solid var(--lv-line);
+  cursor: default;
 }
 .lv-header > .data-grid-cell { border-right: 1px solid var(--lv-line); }
 .lv-header > .data-grid-cell:last-child { border-right: 0; }
@@ -43,7 +45,7 @@
   opacity: 0.6;
 }
 .lv-sort-btn img { display: block; }
-.lv-sort-btn:hover, .lv-header-cell.sorted .lv-sort-btn { opacity: 1; background: var(--primitive-colors-gray-100, #f5f5f5); }
+.lv-sort-btn:hover, .lv-header-cell.sorted .lv-sort-btn { opacity: 1; }
 .lv-header-cell.sorted.desc .lv-sort-btn img { transform: scaleY(-1); }
 
 /* ---- body ---- */
@@ -57,8 +59,7 @@
 .lv-row > .data-grid-cell { border-right: 1px solid var(--lv-line); min-width: 0; }
 .lv-row > .data-grid-cell:last-child { border-right: 0; }
 .lv-row > .data-grid-cell.center { border-right: 0; }
-.lv-row.lv-parent { background: var(--lv-parent-bg); }
-.lv-row.lv-child { background: var(--primitive-colors-base-white, #fff); }
+.lv-row.lv-parent, .lv-row.lv-child { background: var(--primitive-colors-base-white, #fff); }
 .lv-row:hover { background: var(--primitive-colors-gray-100, #f5f5f5); }
 .lv-row.selected { background: var(--primitive-colors-blue-50, #e3f2fd); }
 .lv-cell-title { padding: 0 16px 0 8px; }
@@ -119,19 +120,10 @@
   padding: 4px 6px;
   margin-left: -6px;
   border-radius: 8px;
-  cursor: pointer;
+  cursor: default;
 }
-.lv-due:hover { background: rgba(0, 0, 0, 0.04); }
 .lv-due .nav-icon.icon-calendar { width: 16px; height: 16px; background-color: var(--primitive-colors-gray-600, #757575); }
 .lv-due .data-grid-text-sm { white-space: nowrap; }
-.lv-date-input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  pointer-events: none;
-}
 
 .lv-tags { flex-wrap: wrap; gap: 8px; }
 .marker.lv-tag { height: 28px; padding: 0 12px; font-size: 14px; font-weight: 600; }

@@ -13,6 +13,17 @@ export function getDateFromPx(px, cellWidth) {
   return d;
 }
 
+/** Last day covered by a bar (stored px, 48 px/day) as a local 'YYYY-MM-DD' string; null when unplaced. */
+export function getBarEndDate(start, width) {
+  if (!Number.isFinite(start) || !Number.isFinite(width) || width <= 0) return null;
+  const days = Math.round((start + width - CENTER_PX) / 48) - 1;
+  const d = new Date(BASE_EPOCH);
+  d.setDate(d.getDate() + days);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
 export function snapToGrid(px, cellWidth) {
   return CENTER_PX + Math.round((px - CENTER_PX) / cellWidth) * cellWidth;
 }
