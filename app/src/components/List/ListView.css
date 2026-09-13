@@ -53,12 +53,13 @@
 
 /* ---- body ---- */
 .lv-body { flex: 1; min-height: 0; overflow-y: auto; position: relative; }
-.lv-row,
-.lv-row.data-grid-row:last-child { /* beats components.css `.data-grid-row:last-child { border-bottom: none }` */
+.lv-row {
   height: 48px;
   min-height: 48px;
   border-bottom: 1px solid var(--lv-line);
 }
+/* The last row keeps components.css `.data-grid-row:last-child { border-bottom: none }`: the footer's
+   top border draws that line (Figma 37635:4700), so the two never stack into a 2px line. */
 .lv-row > .data-grid-cell { border-right: 1px solid var(--lv-line); min-width: 0; }
 .lv-row > .data-grid-cell:last-child { border-right: 0; }
 .lv-row > .data-grid-cell.center { border-right: 0; }
@@ -79,6 +80,7 @@
   height: 56px;
   min-height: 56px;
   padding: 0 16px;
+  border-top: 1px solid var(--lv-line);
   background: var(--primitive-colors-base-white, #fff);
 }
 .lv-footer .grid-create-btn .data-grid-text { color: var(--semantic-color-colors-text-heading, #212121); flex: none; }

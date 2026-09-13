@@ -14,8 +14,10 @@ import { canSync, loadRemoteProfile, saveRemoteProfile, beaconSaveRemoteProfile 
  *    merged in and the union is published — except empty ones (no Tix, no boxes), which are the
  *    default space an older build made in this browser before the account list existed
  *  - the profile also remembers the last active space, so a new browser opens on the same one
- * Until the first pull has answered `ready` is false and no default space is created, so a fresh
- * browser does not invent a second "My Space" for an account that already has one.
+ * A browser that already has the account's list cached renders it at once and refreshes in the
+ * background. Only a browser with nothing cached waits (`ready` false, splash) for the first pull,
+ * so it does not invent a second "My Space" for an account that already has one; that wait is
+ * capped at READY_TIMEOUT_MS so a slow backend never blanks the app.
  */
 
 // localStorage keys shared with the vanilla app (dist/assets/js/tixup-auth.js)
@@ -26,6 +28,7 @@ const boxesKey = (spaceId) => `tixup-boxes-${spaceId}`;
 
 const PUSH_DEBOUNCE_MS = 700;
 const POLL_MS = 15000;
+const READY_TIMEOUT_MS = 8000; // max time a fresh browser waits for the first profile pull
 
 const listeners = new Set();
 const emit = () => listeners.forEach((l) => l());
@@ -312,9 +315,11 @@ export function useSpaceSync(user) {
     sync.rev = null;
     sync.dirty = false;
     if (!canSync()) { ensureDefaults(userId); setReady(true); return undefined; }
-    setReady(false);
+    // Cached list → render now, refresh in the background. Nothing cached → wait for the server.
+    setReady(getSpaces(userId).length > 0);
     // Deferred so StrictMode's mount/unmount/mount only issues one initial pull.
     const initial = setTimeout(pull, 0);
+    const readyTimeout = setTimeout(() => { if (sync.user === me) setReady(true); }, READY_TIMEOUT_MS);
     const onVisible = () => { if (document.visibilityState === 'visible') pull(); };
     const onHide = () => {
       if (!sync.dirty) return;
@@ -328,6 +333,7 @@ export function useSpaceSync(user) {
     window.addEventListener('pagehide', onHide);
     return () => {
       clearTimeout(initial);
+      clearTimeout(readyTimeout);
       clearInterval(interval);
       clearTimeout(sync.timer);
       window.removeEventListener('focus', onVisible);

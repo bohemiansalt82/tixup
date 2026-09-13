@@ -1907,6 +1907,10 @@ body.marquee-active, body.marquee-active * {
     width: 100% !important;
     height: 48px !important;
     background-color: var(--primitive-colors-base-white) !important;
+    /* Figma 37635:4700: Create Tix area sits under a border-default line. margin-top -1px lets it
+       overlap the last row's own underline so the two never stack into a 2px line. */
+    border-top: 1px solid var(--semantic-color-colors-border-default, #eee) !important;
+    margin-top: -1px !important;
     display: flex !important;
     align-items: center !important;
     box-sizing: border-box !important;
