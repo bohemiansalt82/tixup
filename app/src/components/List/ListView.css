@@ -17,8 +17,11 @@
 }
 
 /* ---- header ---- */
-.lv-header,
-.lv-table .data-grid-row.lv-header:hover { /* beats components.css `.data-grid-row:not(.data-grid-header):hover` */
+/* `.lv-table >` keeps these ahead of components.css `.data-grid-row` (min-height 48px) and its
+   `:not(.data-grid-header):hover`; `flex: none` so a full table never squeezes the header. */
+.lv-table > .lv-header,
+.lv-table > .data-grid-row.lv-header:hover {
+  flex: none;
   height: 56px;
   min-height: 56px;
   background: var(--primitive-colors-base-white, #fff);
@@ -71,6 +74,7 @@
 /* ---- footer ---- */
 .lv-footer {
   display: flex;
+  flex: none;
   align-items: center;
   height: 56px;
   min-height: 56px;
