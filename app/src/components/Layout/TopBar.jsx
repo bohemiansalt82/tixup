@@ -10,7 +10,7 @@ const icon = (name) => `${import.meta.env.BASE_URL}images/header/${name}.svg`;
 const VIEWS = [
   { id: 'list', icon: 'list_left', title: 'List view' },
   { id: 'timeline', icon: 'clock', title: 'Timeline view' },
-  { id: 'calendar', icon: 'calendar', title: 'Calendar view (coming soon)', disabled: true },
+  { id: 'calendar', icon: 'calendar', title: 'Calendar view' },
 ];
 
 /**

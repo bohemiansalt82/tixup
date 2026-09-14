@@ -1,0 +1,240 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { CalendarItem } from './CalendarItem';
+import {
+  WEEKDAYS, addMonths, dateToDayOffset, formatMonth, isSameDay, layoutWeek, monthGrid, parseISO,
+  spanToPx, startOfMonth, taskSpan, toISO,
+} from './calendarLayout';
+import './CalendarView.css';
+
+const icon = (name) => `${import.meta.env.BASE_URL}images/icons/${name}.svg`;
+const addIcon = `${import.meta.env.BASE_URL}images/calendar/add_circle.svg`;
+
+const ITEM_H = 60;
+const ITEM_GAP = 10;
+const ITEM_TOP = 46;
+const ROW_MIN = 130;
+const ROW_BOTTOM = 16;
+const DRAG_THRESHOLD = 4;
+
+/** Block colour by Tix status (Figma shows the four Item for Calendar tints). */
+const STATUS_COLOR = { pending: 'yellow', inprogress: 'green', done: 'blue', overdue: 'red', pause: 'gray', drop: 'gray' };
+
+function directionOf(seg) {
+  if (seg.continuesLeft && seg.continuesRight) return 'middle';
+  if (seg.continuesRight) return 'start';
+  if (seg.continuesLeft) return 'end';
+  return 'both';
+}
+
+function dateAtPoint(x, y) {
+  for (const el of document.elementsFromPoint(x, y)) {
+    const date = el.dataset?.date;
+    if (date) return date;
+  }
+  return null;
+}
+
+/**
+ * Calendar view — Figma Tixup-V2.0 Calendar_View 37643:4421 / Calendar_View_Hover_Drag 37658:5140.
+ * Each block is a parent Tix placed by its timeline bar (48 px/day); the text under the title
+ * is the titles of its sub-tix. Drag a block to move it (its sub-tix bars move with it), drag
+ * the edge handles to change start/end, hover a day and press + to create a Tix on that day.
+ *
+ * Every gesture reports once through `onCommit(updates)` where updates = [{ id, start, width }]
+ * in stored px, so one gesture = one undo step for the caller.
+ */
+export function CalendarView({ tasks, onCommit, onCreateTix }) {
+  const [month, setMonth] = useState(() => startOfMonth(new Date()));
+  const today = useMemo(() => new Date(), []);
+  const weeks = useMemo(() => monthGrid(month), [month]);
+
+  // Parent Tix → blocks; sub-tix titles come from the children in list order.
+  const items = useMemo(() => {
+    const subs = new Map();
+    tasks.forEach((t) => {
+      if (t.type !== 'child' || !t.parentId) return;
+      if (!subs.has(t.parentId)) subs.set(t.parentId, []);
+      if (t.title) subs.get(t.parentId).push(t.title);
+    });
+    return tasks
+      .filter((t) => t.type === 'parent')
+      .map((t) => ({ id: t.id, task: t, span: taskSpan(t), subTix: subs.get(t.id) ?? [], color: STATUS_COLOR[t.status] ?? 'yellow' }))
+      .filter((it) => it.span !== null);
+  }, [tasks]);
+
+  const [drag, setDrag] = useState(null);
+  const dragRef = useRef(null);
+  useEffect(() => { dragRef.current = drag; }, [drag]);
+  const [preview, setPreview] = useState(null); // { id, startOffset, endOffset } while resizing
+  const previewRef = useRef(null);
+  useEffect(() => { previewRef.current = preview; }, [preview]);
+
+  const effectiveItems = useMemo(() => {
+    if (!preview) return items;
+    return items.map((it) => {
+      if (it.id !== preview.id) return it;
+      const px = spanToPx(preview.startOffset, preview.endOffset);
+      return { ...it, span: taskSpan({ ...it.task, ...px }) };
+    });
+  }, [items, preview]);
+  const itemById = useMemo(() => new Map(effectiveItems.map((it) => [it.id, it])), [effectiveItems]);
+
+  const startMove = (seg, e) => {
+    if (e.button !== 0) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDrag({
+      mode: 'move',
+      id: seg.id,
+      originDate: dateAtPoint(e.clientX, e.clientY) ?? seg.span.startISO,
+      pointer: { x: e.clientX, y: e.clientY },
+      offset: { x: e.clientX - rect.left, y: e.clientY - rect.top },
+      width: rect.width,
+      moved: false,
+      hoverDate: null,
+    });
+  };
+
+  const startResize = (seg, edge, e) => {
+    if (e.button !== 0) return;
+    e.stopPropagation();
+    setDrag({ mode: 'resize', id: seg.id, edge });
+  };
+
+  useEffect(() => {
+    if (!drag) return undefined;
+
+    const onMove = (e) => {
+      const current = dragRef.current;
+      if (!current) return;
+      const date = dateAtPoint(e.clientX, e.clientY);
+      if (current.mode === 'move') {
+        const moved = current.moved || Math.hypot(e.clientX - current.pointer.x, e.clientY - current.pointer.y) > DRAG_THRESHOLD;
+        setDrag({ ...current, moved, pointer: moved ? { x: e.clientX, y: e.clientY } : current.pointer, hoverDate: date });
+        return;
+      }
+      if (!date) return;
+      const item = itemById.get(current.id);
+      if (!item) return;
+      const base = previewRef.current ?? { id: item.id, startOffset: item.span.startOffset, endOffset: item.span.startOffset + item.span.days - 1 };
+      const offset = dateToDayOffset(parseISO(date));
+      const next = current.edge === 'start'
+        ? { ...base, startOffset: Math.min(offset, base.endOffset) }
+        : { ...base, endOffset: Math.max(offset, base.startOffset) };
+      if (next.startOffset !== base.startOffset || next.endOffset !== base.endOffset) setPreview(next);
+    };
+
+    const onUp = (e) => {
+      const current = dragRef.current;
+      if (current?.mode === 'move' && current.moved) {
+        const dropDate = dateAtPoint(e.clientX, e.clientY);
+        const item = itemById.get(current.id);
+        if (dropDate && item) {
+          const delta = dateToDayOffset(parseISO(dropDate)) - dateToDayOffset(parseISO(current.originDate));
+          if (delta !== 0) {
+            // Move the parent and its sub-tix bars together.
+            const group = tasks.filter((t) => t.id === item.id || t.parentId === item.id);
+            onCommit(group.map((t) => ({ id: t.id, start: t.start + delta * 48, width: t.width })));
+          }
+        }
+      } else if (current?.mode === 'resize') {
+        const final = previewRef.current;
+        if (final) onCommit([{ id: final.id, ...spanToPx(final.startOffset, final.endOffset) }]);
+        setPreview(null);
+      }
+      setDrag(null);
+    };
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+    };
+  }, [drag, itemById, tasks, onCommit]);
+
+  const moving = drag?.mode === 'move' && drag.moved ? itemById.get(drag.id) : undefined;
+
+  return (
+    <div className="cv-section">
+      <div className="cv-toolbar">
+        <span className="cv-month">{formatMonth(month)}</span>
+        <div className="cv-toolbar-right">
+          <button type="button" className="cv-ghost-btn" title="Month view">
+            Month
+            <img src={icon('chevron_bottom')} alt="" width={24} height={24} />
+          </button>
+          <div className="cv-nav">
+            <button type="button" className="cv-ghost-btn" onClick={() => setMonth((m) => addMonths(m, -1))} aria-label="Previous month">
+              <img src={icon('chevron_left')} alt="" width={24} height={24} />
+            </button>
+            <button type="button" className="cv-ghost-btn cv-today-btn" onClick={() => setMonth(startOfMonth(new Date()))}>Today</button>
+            <button type="button" className="cv-ghost-btn" onClick={() => setMonth((m) => addMonths(m, 1))} aria-label="Next month">
+              <img src={icon('chevron_right')} alt="" width={24} height={24} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="cv-calendar" role="grid" aria-label="Calendar">
+        <div className="cv-weekdays" role="row">
+          {WEEKDAYS.map((d) => <div key={d} className="cv-weekday" role="columnheader">{d}</div>)}
+        </div>
+
+        {weeks.map((week) => {
+          const { segments, laneCount } = layoutWeek(week, effectiveItems);
+          const rowHeight = Math.max(ROW_MIN, ITEM_TOP + laneCount * (ITEM_H + ITEM_GAP) - ITEM_GAP + ROW_BOTTOM + 1);
+          return (
+            <div key={toISO(week[0])} className="cv-week" role="row" style={{ minHeight: rowHeight }}>
+              {week.map((day, col) => {
+                const iso = toISO(day);
+                const cls = ['cv-cell', col === 0 || col === 6 ? 'cv-weekend' : '', moving && drag.hoverDate === iso ? 'cv-drop-target' : ''].filter(Boolean).join(' ');
+                const dateCls = ['cv-date', day.getMonth() !== month.getMonth() ? 'cv-other-month' : '', isSameDay(day, today) ? 'cv-today' : ''].filter(Boolean).join(' ');
+                return (
+                  <div key={iso} className={cls} data-date={iso} role="gridcell">
+                    <div className="cv-date-row">
+                      {onCreateTix && (
+                        <button type="button" className="cv-add-btn" onClick={() => onCreateTix(iso)} title="Create Tix on this day">
+                          <img src={addIcon} alt="" width={24} height={24} />
+                        </button>
+                      )}
+                      <span className={dateCls}>{day.getDate()}</span>
+                    </div>
+                  </div>
+                );
+              })}
+
+              <div className="cv-items">
+                {segments.map((seg) => (
+                  <div
+                    key={`${seg.id}-${seg.startCol}`}
+                    className="cv-segment"
+                    style={{ left: `${(seg.startCol / 7) * 100}%`, width: `${((seg.endCol - seg.startCol + 1) / 7) * 100}%`, top: ITEM_TOP + seg.lane * (ITEM_H + ITEM_GAP) }}
+                  >
+                    <CalendarItem
+                      title={seg.task.title}
+                      subTix={seg.subTix}
+                      color={seg.color}
+                      direction={directionOf(seg)}
+                      active={drag?.mode === 'resize' && drag.id === seg.id}
+                      data-task-id={seg.id}
+                      onPointerDown={(e) => startMove(seg, e)}
+                      onHandlePointerDown={(edge, e) => startResize(seg, edge, e)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {moving && (
+        <div className="cv-ghost" style={{ left: drag.pointer.x - drag.offset.x, top: drag.pointer.y - drag.offset.y, width: drag.width }}>
+          <CalendarItem title={moving.task.title} subTix={moving.subTix} color={moving.color} interaction="drag" />
+        </div>
+      )}
+    </div>
+  );
+}

@@ -7,8 +7,12 @@ import { TopBar } from './components/Layout/TopBar';
 import { TaskGrid } from './components/Grid/TaskGrid';
 import { TimelineView } from './components/Timeline/TimelineView';
 import { ListView } from './components/List/ListView';
+import { CalendarView } from './components/Calendar/CalendarView';
+import { dateToDayOffset, dayOffsetToPx, parseISO } from './components/Calendar/calendarLayout';
 import { SelectionBar } from './components/Shared/SelectionBar';
 import { useTaskStore } from './store/useTaskStore';
+import { useUndoHistory } from './hooks/useUndoHistory';
+import { CELL_WIDTH } from './constants';
 import { useSpaces, useSpaceSync, joinSpace as joinSpaceForUser } from './store/useSpaces';
 import { parseInviteHash, resolveInvite, stashPendingInvite, takePendingInvite } from './store/invites';
 import './tokens.css';
@@ -63,7 +67,7 @@ function SyncSplash() {
 function Dashboard({ spaceId }) {
   const user = useAuth();
   const { activeSpace, activeBox } = useSpaces();
-  const { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, remoteMembers, addTask, addChild, removeTask, updateTask, toggleCollapse, moveTask } = useTaskStore(spaceId, { space: activeSpace, user });
+  const { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, remoteMembers, addTask, addChild, removeTask, updateTask, replaceTasks, toggleCollapse, moveTask } = useTaskStore(spaceId, { space: activeSpace, user });
   // Assignee candidates: me, emails invited locally, and members recorded on the shared space.
   const members = useMemo(() => {
     const list = [];
@@ -121,6 +125,18 @@ function Dashboard({ spaceId }) {
   const handleSaveBarPositions = useCallback((updates) => {
     updates.forEach(({ id, start, width }) => updateTask(id, { start, width }));
   }, [updateTask]);
+
+  // Calendar view: every gesture (move / resize / create) is one undo step, up to 30 back.
+  const { record } = useUndoHistory(tasks, replaceTasks, { limit: 30, enabled: currentView === 'calendar' });
+  const handleCalendarCommit = useCallback((updates) => {
+    record();
+    updates.forEach(({ id, start, width }) => updateTask(id, { start, width }));
+  }, [record, updateTask]);
+  const handleCalendarCreate = useCallback((iso) => {
+    record();
+    const id = addTask('', activeBox?.id ?? null);
+    updateTask(id, { start: dayOffsetToPx(dateToDayOffset(parseISO(iso))), width: CELL_WIDTH });
+  }, [record, addTask, updateTask, activeBox]);
 
   // 스크롤 동기화
   useEffect(() => {
@@ -251,6 +267,10 @@ function Dashboard({ spaceId }) {
             onCreateTix={handleCreateTix}
           />
         </section>
+
+        {currentView === 'calendar' && (
+          <CalendarView tasks={visibleTasks} onCommit={handleCalendarCommit} onCreateTix={handleCalendarCreate} />
+        )}
       </main>
 
       <SelectionBar

@@ -202,6 +202,11 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
     updateTasks(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t));
   }, [updateTasks]);
 
+  /** Replace the whole list (undo/redo snapshots). */
+  const replaceTasks = useCallback((list) => {
+    updateTasks(list);
+  }, [updateTasks]);
+
   const toggleCollapse = useCallback((id) => {
     const task = tasks.find(t => t.id === id);
     if (!task) return;
@@ -270,5 +275,5 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
     });
   }, [updateTasks]);
 
-  return { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, remoteMembers, addTask, addChild, removeTask, updateTask, toggleCollapse, moveTask };
+  return { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, remoteMembers, addTask, addChild, removeTask, updateTask, replaceTasks, toggleCollapse, moveTask };
 }
