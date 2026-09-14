@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { CENTER_PX } from '../constants';
-import { uid } from '../utils/timeline';
+import { uid, rebaseTasks } from '../utils/timeline';
 import { canSync, loadRemoteSpace, saveRemoteSpace, beaconSaveRemoteSpace } from './remote';
 
 const PUSH_DEBOUNCE_MS = 700;
@@ -12,7 +12,11 @@ function load(spaceId) {
   if (!spaceId) return [];
   try {
     const raw = localStorage.getItem(tasksKey(spaceId));
-    return raw ? JSON.parse(raw) : [];
+    const parsed = raw ? JSON.parse(raw) : [];
+    // Shift px written on an earlier day so every bar keeps its calendar date (see rebaseTasks).
+    const list = rebaseTasks(parsed);
+    if (list !== parsed) save(spaceId, list);
+    return list;
   } catch { return []; }
 }
 
@@ -111,7 +115,7 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
         setRemoteMembers(prev => (JSON.stringify(prev) === JSON.stringify(list) ? prev : list));
       }
       if (r.rev === s.rev) return;
-      const remote = Array.isArray(r.tasks) ? r.tasks : [];
+      const remote = rebaseTasks(Array.isArray(r.tasks) ? r.tasks : []);
       const firstSync = s.rev === null;
       s.rev = r.rev;
       // First contact with the server for this space: never drop local Tix the server
@@ -160,7 +164,8 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
 
   const updateTasks = useCallback((updater) => {
     setTasks(prev => {
-      const next = typeof updater === 'function' ? updater(prev) : updater;
+      // Every write stamps `anchor` = today so other days/browsers can re-anchor the px values.
+      const next = rebaseTasks(typeof updater === 'function' ? updater(prev) : updater);
       save(spaceId, next);
       return next;
     });

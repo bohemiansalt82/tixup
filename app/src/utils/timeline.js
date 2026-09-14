@@ -51,3 +51,34 @@ export function toStoredWidth(visualWidth, cellWidth) {
 export function uid() {
   return 'live-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
 }
+
+/* ---------- day anchoring ----------
+ * Stored px are relative to "today" (CENTER_PX = BASE_EPOCH, midnight when the app loaded), so a
+ * bar saved at CENTER_PX yesterday would render on *today* after a reload — every schedule drifted
+ * one day per day. Each task now carries `anchor` ('YYYY-MM-DD'): the day its px were written
+ * against. `rebaseTasks()` shifts px by the days elapsed since that anchor so dates stay put. */
+function localISO(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+export const todayISO = () => localISO(BASE_EPOCH);
+
+function daysBetweenISO(a, b) {
+  const [ay, am, ad] = a.split('-').map(Number);
+  const [by, bm, bd] = b.split('-').map(Number);
+  return Math.round((Date.UTC(by, bm - 1, bd) - Date.UTC(ay, am - 1, ad)) / 86400000);
+}
+
+/** Re-anchors every task to today; returns the same array when nothing needed to change. */
+export function rebaseTasks(tasks) {
+  if (!Array.isArray(tasks)) return tasks;
+  const today = todayISO();
+  let changed = false;
+  const out = tasks.map((t) => {
+    if (!t || typeof t !== 'object' || t.anchor === today) return t;
+    changed = true;
+    if (!t.anchor || !/^\d{4}-\d{2}-\d{2}$/.test(t.anchor) || !Number.isFinite(t.start)) return { ...t, anchor: today };
+    const delta = daysBetweenISO(t.anchor, today);
+    return { ...t, anchor: today, start: t.start - delta * 48 };
+  });
+  return changed ? out : tasks;
+}

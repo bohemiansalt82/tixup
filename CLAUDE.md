@@ -44,8 +44,9 @@ Both apps use the same px-based model, defined in `dist/assets/js/tixup-constant
 - **Stored values are normalized to 48 px/day** (`CELL_WIDTH`). The visible zoom (`currentCellWidth` / `cellWidth`) scales them on render: `visual = CENTER_PX + (stored - CENTER_PX) / 48 * cellWidth`. Always convert with `toVisualLeft/toStoredLeft` (React) or the equivalent math in `saveData()` (vanilla); never persist visual px.
 - The scroll canvas is `VIRTUAL_WIDTH = 35000` px wide and is panned with a `translateX(-panOffset)` transform. When scroll nears the edge the viewport "jumps" and the day/month header re-renders (`renderTimelineHeader` / `useTimelineScroll`). This is the source of most historical "teleport" bugs.
 - `start < 300000` is treated as corrupt legacy data and reset on load.
+- **Day anchoring (React app only).** Because `CENTER_PX` means "the day the app loaded", raw px values drift one day per day. Every task therefore carries `anchor: 'YYYY-MM-DD'` (the day its px were written against); `rebaseTasks()` in `app/src/utils/timeline.js` shifts `start` by the days elapsed since the anchor and re-stamps it. It runs in `useTaskStore` on local load, on every remote pull, and inside `updateTasks()` (every write). Tasks without an anchor are treated as anchored today. The vanilla `dist/` app has no such fix and still drifts.
 
-Task shape: `{ id, title, status, type: 'parent'|'child', parentId?, start, width, assignee, dueDate, tag, collapsed }`.
+Task shape: `{ id, title, status, type: 'parent'|'child', parentId?, start, width, anchor, assignee, dueDate, tag, collapsed, comments? }`.
 Statuses: `pending | inprogress | done | overdue | pause | drop` (legacy `onhold` maps to `pause`). Status drives the CSS class `marker-<status>` and row `data-status`.
 
 ## Architecture: vanilla app (`dist/`)
