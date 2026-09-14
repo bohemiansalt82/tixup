@@ -15,6 +15,8 @@ const ITEM_TOP = 46;
 const ROW_MIN = 130;
 const ROW_BOTTOM = 16;
 const DRAG_THRESHOLD = 4;
+/** Resize: fraction of a day cell the dragged edge must cross before the date snaps over. */
+const SNAP_THRESHOLD = 0.7;
 
 /** Block tint follows the timeline bar (`.timeline-bar-<status>` in components.css). */
 const STATUSES = ['pending', 'inprogress', 'done', 'overdue', 'pause', 'drop'];
@@ -115,16 +117,30 @@ export function CalendarView({ tasks, onCommit, onCreateTix }) {
       }
       // Live edge: remember the pointer x and the week row under it (null outside the grid).
       const rowEl = document.elementsFromPoint(e.clientX, e.clientY).find((el) => el.classList?.contains('cv-week'));
-      const rect = rowEl?.getBoundingClientRect();
-      setDrag({ ...current, x: e.clientX, row: rowEl ? { key: rowEl.dataset.week, left: rect.left, width: rect.width } : null });
-      if (!date) return;
+      if (!rowEl) return;
+      const rect = rowEl.getBoundingClientRect();
+      setDrag({ ...current, x: e.clientX, row: { key: rowEl.dataset.week, left: rect.left, width: rect.width } });
       const item = itemById.get(current.id);
       if (!item) return;
       const base = previewRef.current ?? { id: item.id, startOffset: item.span.startOffset, endOffset: item.span.startOffset + item.span.days - 1 };
-      const offset = dateToDayOffset(parseISO(date));
-      const next = current.edge === 'start'
-        ? { ...base, startOffset: Math.min(offset, base.endOffset) }
-        : { ...base, endOffset: Math.max(offset, base.startOffset) };
+      // Edge position as a continuous day offset (row start + pointer x in cell widths). The
+      // snapped day only changes once the edge has travelled SNAP_THRESHOLD of a cell past the
+      // current boundary, in either direction, so a slight overshoot never flips the date.
+      const p = dateToDayOffset(parseISO(rowEl.dataset.week)) + Math.min(Math.max(e.clientX - rect.left, 0), rect.width) / (rect.width / 7);
+      let next = base;
+      if (current.edge === 'end') {
+        const b = base.endOffset + 1; // boundary after the last day
+        let nb = b;
+        if (p > b + SNAP_THRESHOLD) nb = Math.floor(p - SNAP_THRESHOLD) + 1;
+        else if (p < b - SNAP_THRESHOLD) nb = Math.ceil(p + SNAP_THRESHOLD) - 1;
+        next = { ...base, endOffset: Math.max(nb, base.startOffset + 1) - 1 };
+      } else {
+        const s = base.startOffset; // boundary before the first day
+        let ns = s;
+        if (p < s - SNAP_THRESHOLD) ns = Math.floor(p + SNAP_THRESHOLD);
+        else if (p > s + SNAP_THRESHOLD) ns = Math.ceil(p - SNAP_THRESHOLD);
+        next = { ...base, startOffset: Math.min(ns, base.endOffset) };
+      }
       if (next.startOffset !== base.startOffset || next.endOffset !== base.endOffset) setPreview(next);
     };
 
