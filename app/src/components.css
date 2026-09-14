@@ -1854,6 +1854,9 @@ body.marquee-active, body.marquee-active * {
     min-height: 0;
     width: 100%;
     position: relative;
+    /* Own stacking context: keeps .timeline-sidebar (z-index 20) from painting over the
+       Create Tix footer (z-index 10) and hiding its top border. */
+    isolation: isolate;
 }
 
 .timeline-grid-container * {
