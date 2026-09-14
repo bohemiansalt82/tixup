@@ -16,7 +16,7 @@ const sortIcon = `${import.meta.env.BASE_URL}images/list/unfold_more_20.svg`;
  * Columns: select | title (status tabs in the header) | Status | Assignee | Due Date | Tags.
  * Parent rows sit on gray-50, sub-tix on white; sort by clicking a header's unfold icon.
  */
-export function ListView({ tasks, exitingIds, newIds, selectedIds, members, currentUser, onSelect, onSelectAll, onToggle, onAddChild, onRename, onStatusChange, onUpdateTask, onCreateTix }) {
+export function ListView({ tasks, exitingIds, newIds, selectedIds, members, currentUser, onSelect, onSelectAll, onToggle, onAddChild, onRename, onStatusChange, onUpdateTask, onCreateTix, onOpen }) {
   const [filter, setFilter] = useState('all');
   const [sort, setSort] = useState({ key: null, dir: 'asc' });
 
@@ -85,9 +85,9 @@ export function ListView({ tasks, exitingIds, newIds, selectedIds, members, curr
       <div className="lv-body" id="full-grid-tbody">
         {groups.map(({ parent, children, childCount: n }) => (
           <div key={parent.id} className="lv-group">
-            <ListRow task={parent} hasChildren={n > 0} {...{ exitingIds, newIds, selectedIds, members, currentUser, onSelect, onToggle, onAddChild, onRename, onStatusChange, onUpdateTask }} />
+            <ListRow task={parent} hasChildren={n > 0} {...{ exitingIds, newIds, selectedIds, members, currentUser, onSelect, onToggle, onAddChild, onRename, onStatusChange, onUpdateTask, onOpen }} />
             {children.map(child => (
-              <ListRow key={child.id} task={child} {...{ exitingIds, newIds, selectedIds, members, currentUser, onSelect, onToggle, onAddChild, onRename, onStatusChange, onUpdateTask }} />
+              <ListRow key={child.id} task={child} {...{ exitingIds, newIds, selectedIds, members, currentUser, onSelect, onToggle, onAddChild, onRename, onStatusChange, onUpdateTask, onOpen }} />
             ))}
           </div>
         ))}
@@ -126,7 +126,7 @@ function assigneeLabel(assignee, currentUser) {
   return (assignee.email || '').split('@')[0];
 }
 
-function ListRow({ task, hasChildren = false, exitingIds, newIds, selectedIds, members, currentUser, onSelect, onToggle, onAddChild, onRename, onStatusChange, onUpdateTask }) {
+function ListRow({ task, hasChildren = false, exitingIds, newIds, selectedIds, members, currentUser, onSelect, onToggle, onAddChild, onRename, onStatusChange, onUpdateTask, onOpen }) {
   const isParent = task.type === 'parent';
   const anim = exitingIds.has(task.id) ? 'tix-anim-exit' : newIds.has(task.id) ? 'tix-anim-enter' : '';
   const cls = ['data-grid-row', 'lv-row', isParent ? 'lv-parent' : 'lv-child', selectedIds.has(task.id) ? 'selected' : '', anim].filter(Boolean).join(' ');
@@ -141,7 +141,11 @@ function ListRow({ task, hasChildren = false, exitingIds, newIds, selectedIds, m
       </div>
 
       <div className="data-grid-cell lv-cell-title">
-        <div className={`row-title-container${isParent ? '' : ' depth-2'}`}>
+        {/* Single click on the title opens the detail popup; double-click still edits (EditableTitle). */}
+        <div
+          className={`row-title-container${isParent ? '' : ' depth-2'}`}
+          onClick={(e) => { if (onOpen && e.target.classList?.contains('data-grid-text')) onOpen(task.id); }}
+        >
           {isParent && hasChildren && (
             <button type="button" className={`tree-expander ${task.collapsed ? 'collapsed' : 'expanded'}`} onClick={() => onToggle(task.id)}>
               <div className="nav-icon icon-chevron-lg-bottom" />

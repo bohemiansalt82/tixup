@@ -3,7 +3,7 @@ import { TaskRow } from './TaskRow';
 
 const FILTERS = ['All', 'Done', 'Overdue'];
 
-export function TaskGrid({ tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, selectedIds, onSelect, onSelectAll, onToggle, onAddChild, onRename, onStatusChange, onCreateTix, onMoveTask }) {
+export function TaskGrid({ tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, selectedIds, onSelect, onSelectAll, onToggle, onAddChild, onRename, onStatusChange, onCreateTix, onMoveTask, onOpen }) {
   const [filter, setFilter] = useState('all');
 
   const [dragId, setDragId] = useState(null);
@@ -162,6 +162,7 @@ export function TaskGrid({ tasks, exitingIds, newIds, collapsingParentIds, expan
       <div id="grid-tbody">
         {groups.map(({ parent, children }) => (
           <TaskGroup
+            onOpen={onOpen}
             key={parent.id}
             parent={parent}
             children={children}
@@ -245,7 +246,7 @@ function animateTo(el, targetHeight) {
   }));
 }
 
-function TaskGroup({ parent, children, isCollapsing, isExpanding, exitingIds, newIds, selectedIds, dragId, dropTarget, onSelect, onToggle, onAddChild, onRename, onStatusChange, onRowMouseDown }) {
+function TaskGroup({ parent, children, isCollapsing, isExpanding, exitingIds, newIds, selectedIds, dragId, dropTarget, onSelect, onToggle, onAddChild, onRename, onStatusChange, onRowMouseDown, onOpen }) {
   const groupRef = useRef(null);
   const isExiting = exitingIds.has(parent.id);
 
@@ -265,12 +266,13 @@ function TaskGroup({ parent, children, isCollapsing, isExpanding, exitingIds, ne
     }
   }, [isExiting, isCollapsing]);
 
-  const sharedProps = { onSelect, onToggle, onAddChild, onRename, onStatusChange, onRowMouseDown };
+  const sharedProps = { onSelect, onToggle, onAddChild, onRename, onStatusChange, onRowMouseDown, onOpen };
 
   return (
     <div ref={groupRef}>
       <TaskRow
         task={parent}
+        onOpen={onOpen}
         isExiting={false}
         isNew={newIds?.has(parent.id)}
         isSelected={selectedIds.has(parent.id)}

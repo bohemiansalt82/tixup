@@ -45,7 +45,7 @@ function dateAtPoint(x, y) {
  * Every gesture reports once through `onCommit(updates)` where updates = [{ id, start, width }]
  * in stored px, so one gesture = one undo step for the caller.
  */
-export function CalendarView({ tasks, onCommit, onCreateTix }) {
+export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix }) {
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const today = useMemo(() => new Date(), []);
   const weeks = useMemo(() => monthGrid(month), [month]);
@@ -146,7 +146,10 @@ export function CalendarView({ tasks, onCommit, onCreateTix }) {
 
     const onUp = (e) => {
       const current = dragRef.current;
-      if (current?.mode === 'move' && current.moved) {
+      if (current?.mode === 'move' && !current.moved) {
+        // Plain click (no drag): open the Tix detail popup.
+        onOpenTix?.(current.id);
+      } else if (current?.mode === 'move' && current.moved) {
         const dropDate = dateAtPoint(e.clientX, e.clientY);
         const item = itemById.get(current.id);
         if (dropDate && item) {
@@ -173,7 +176,7 @@ export function CalendarView({ tasks, onCommit, onCreateTix }) {
       window.removeEventListener('pointerup', onUp);
       window.removeEventListener('pointercancel', onUp);
     };
-  }, [drag, itemById, tasks, onCommit]);
+  }, [drag, itemById, tasks, onCommit, onOpenTix]);
 
   const moving = drag?.mode === 'move' && drag.moved ? itemById.get(drag.id) : undefined;
 

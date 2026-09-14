@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useCallback, forwardRef, useImperativeHand
 import { createPortal } from 'react-dom';
 import { StatusBadge } from '../Shared/StatusBadge';
 
-export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDragging, isCollapsed, isDropInto, hasChildren = false, onSelect, onToggle, onAddChild, onRename, onStatusChange, onRowMouseDown }) {
+export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDragging, isCollapsed, isDropInto, hasChildren = false, onSelect, onToggle, onAddChild, onRename, onStatusChange, onRowMouseDown, onOpen }) {
   const isParent = task.type === 'parent';
   const hasNoTitle = !task.title;
 
@@ -60,7 +60,11 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
         </label>
       </div>
       <div className="data-grid-cell">
-        <div className={`row-title-container ${!isParent ? 'depth-2' : ''}`}>
+        {/* Single click on the title opens the detail popup; double-click still edits (EditableTitle). */}
+        <div
+          className={`row-title-container ${!isParent ? 'depth-2' : ''}`}
+          onClick={(e) => { if (onOpen && e.target.classList?.contains('data-grid-text')) onOpen(task.id); }}
+        >
           {isParent && hasChildren && (
             <button
               className={`tree-expander ${task.collapsed ? 'collapsed' : 'expanded'}`}

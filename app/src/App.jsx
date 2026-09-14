@@ -8,6 +8,7 @@ import { TaskGrid } from './components/Grid/TaskGrid';
 import { TimelineView } from './components/Timeline/TimelineView';
 import { ListView } from './components/List/ListView';
 import { CalendarView } from './components/Calendar/CalendarView';
+import { TixDetailModal } from './components/Detail/TixDetailModal';
 import { dateToDayOffset, dayOffsetToPx, parseISO } from './components/Calendar/calendarLayout';
 import { SelectionBar } from './components/Shared/SelectionBar';
 import { useTaskStore } from './store/useTaskStore';
@@ -85,6 +86,8 @@ function Dashboard({ spaceId }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [currentView, setCurrentView] = useState('timeline');
   const [sidebarOverflow, setSidebarOverflow] = useState(false);
+  // Tix detail popup (Figma 37581:7211 / 37575:5948): opened from any view by clicking a title / block.
+  const [detailTaskId, setDetailTaskId] = useState(null);
 
   const handleSelect = useCallback((id) => {
     setSelectedIds(prev => {
@@ -232,6 +235,7 @@ function Dashboard({ spaceId }) {
               onStatusChange={(id, status) => updateTask(id, { status })}
               onCreateTix={sidebarOverflow ? undefined : handleCreateTix}
               onMoveTask={moveTask}
+              onOpen={setDetailTaskId}
             />
             <TimelineView
               tasks={visibleTasks}
@@ -265,13 +269,25 @@ function Dashboard({ spaceId }) {
             onStatusChange={(id, status) => updateTask(id, { status })}
             onUpdateTask={updateTask}
             onCreateTix={handleCreateTix}
+            onOpen={setDetailTaskId}
           />
         </section>
 
         {currentView === 'calendar' && (
-          <CalendarView tasks={visibleTasks} onCommit={handleCalendarCommit} onCreateTix={handleCalendarCreate} />
+          <CalendarView tasks={visibleTasks} onCommit={handleCalendarCommit} onCreateTix={handleCalendarCreate} onOpenTix={setDetailTaskId} />
         )}
       </main>
+
+      {detailTaskId && tasks.some(t => t.id === detailTaskId) && (
+        <TixDetailModal
+          taskId={detailTaskId}
+          tasks={tasks}
+          currentUser={user}
+          onClose={() => setDetailTaskId(null)}
+          onUpdateTask={updateTask}
+          onOpenTask={setDetailTaskId}
+        />
+      )}
 
       <SelectionBar
         selectedIds={selectedIds}
