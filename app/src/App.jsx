@@ -212,6 +212,7 @@ function Dashboard({ spaceId }) {
           currentView={currentView}
           onViewChange={setCurrentView}
           taskCount={visibleTasks.length}
+          onCreateTix={handleCreateTix}
         />
 
         <section

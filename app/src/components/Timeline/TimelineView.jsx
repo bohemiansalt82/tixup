@@ -215,19 +215,29 @@ export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, e
           <div id="timeline-fixed-master" ref={fixedMasterRef} />
           <div id="timeline-floating-labels" ref={floatingLabelsRef} />
         </div>
+        {/* Figma Timeline View 37635:4541 "Year/ month" right: Day / Week / Month ghost buttons + ‹ Today › */}
         <div className="timeline-nav-right">
-          <select className="nav-view-select" value={viewMode} onChange={e => handleViewChange(e.target.value)}>
-            <option value="month">Month</option>
-            <option value="week">Week</option>
-            <option value="day">Day</option>
-          </select>
+          <div className="timeline-nav-modes" role="tablist" aria-label="Zoom">
+            {[['day', 'Day'], ['week', 'Week'], ['month', 'Month']].map(([mode, label]) => (
+              <button
+                key={mode}
+                type="button"
+                role="tab"
+                aria-selected={viewMode === mode}
+                className={`nav-ghost-btn${viewMode === mode ? ' active' : ''}`}
+                onClick={() => handleViewChange(mode)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <div className="timeline-nav-group">
-            <button className="nav-arrow-btn" onClick={scrollPrev}>
-              <img src={`${import.meta.env.BASE_URL}images/icons/chevron_left.svg`} alt="이전" />
+            <button type="button" className="nav-ghost-btn nav-arrow-btn" onClick={scrollPrev} title="이전">
+              <img src={`${import.meta.env.BASE_URL}images/icons/chevron_left.svg`} alt="" />
             </button>
-            <button className="nav-today-btn" id="go-today-btn" onClick={scrollToToday}>Today</button>
-            <button className="nav-arrow-btn" onClick={scrollNext}>
-              <img src={`${import.meta.env.BASE_URL}images/icons/chevron_right.svg`} alt="다음" />
+            <button type="button" className="nav-ghost-btn" id="go-today-btn" onClick={scrollToToday}>Today</button>
+            <button type="button" className="nav-ghost-btn nav-arrow-btn" onClick={scrollNext} title="다음">
+              <img src={`${import.meta.env.BASE_URL}images/icons/chevron_right.svg`} alt="" />
             </button>
           </div>
         </div>

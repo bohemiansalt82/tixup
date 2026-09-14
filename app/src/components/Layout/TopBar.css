@@ -1,4 +1,4 @@
-/* TopBar — Figma Tixup-V2.0 39519:9833 */
+/* TopBar — Figma Tixup-V2.0 "TopBar" 39558:13539 */
 .topbar {
   display: flex;
   align-items: center;
@@ -24,7 +24,7 @@
 .topbar-title {
   margin: 0;
   padding: 0 32px 0 16px;
-  font-size: var(--semantic-font-font-size-font-size-xl, 24px);
+  font-size: 18px;
   font-weight: var(--semantic-font-font-weight-emphasis-low, 600);
   line-height: normal;
   color: var(--semantic-color-colors-text-heading, #212121);
@@ -36,7 +36,8 @@
 }
 
 /* View switcher */
-.topbar-views { display: flex; align-items: center; gap: 8px; padding: 0 32px; flex-shrink: 0; }
+/* Tab / Icon Group (39557:2840): 40px tabs, radius 12, gap 8; more_vert sits in the group as a 4th tab. */
+.topbar-views { display: flex; align-items: center; gap: 8px; padding-left: 32px; flex-shrink: 0; }
 .topbar-view-btn {
   display: inline-flex;
   align-items: center;
@@ -44,11 +45,11 @@
   width: 40px;
   height: 40px;
   border: 1px solid transparent;
-  border-radius: 14px;
+  border-radius: 12px;
   background: transparent;
 }
-.topbar-view-btn:hover:not(:disabled) { background: rgba(0, 0, 0, 0.04); }
-.topbar-view-btn.active { background: #fff; border-color: #e6e6e6; border-radius: 12px; }
+.topbar-view-btn:hover:not(:disabled) { background: var(--primitive-colors-gray-100, #f5f5f5); }
+.topbar-view-btn.active { background: #fff; border-color: #e6e6e6; }
 .topbar-view-btn:disabled { opacity: 0.45; }
 .topbar-plain-btn {
   display: inline-flex;
@@ -59,28 +60,30 @@
 }
 .topbar-plain-btn:hover { background: rgba(0, 0, 0, 0.04); }
 
-/* Filter / Sort / Hide */
-.topbar-controls { display: flex; align-items: center; gap: 24px; height: 40px; padding: 0 32px; flex-shrink: 0; }
+/* Filter / Sort / Hide (TableControls): 32px chips, radius 8; the pressed/hover chip fills #EEE */
+.topbar-controls { display: flex; align-items: center; gap: 16px; height: 40px; padding-left: 32px; flex-shrink: 0; }
 .topbar-control {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 6px;
+  gap: 6px;
+  height: 32px;
+  padding: 0 8px 0 6px;
   border: 0;
-  border-radius: 6px;
+  border-radius: 8px;
   background: transparent;
-  font-size: var(--semantic-font-font-size-font-size-lg, 16px);
+  font-size: var(--semantic-font-font-size-font-size-md, 14px);
   font-weight: 500;
   line-height: 13px;
   color: var(--semantic-color-colors-text-body, #424242);
   white-space: nowrap;
 }
-.topbar-control:hover { background: rgba(0, 0, 0, 0.04); }
+.topbar-control img { width: 18px; height: 18px; }
+.topbar-control:hover, .topbar-control.active { background: var(--primitive-colors-gray-200, #eee); color: var(--semantic-color-colors-text-heading, #212121); }
 
 /* Right cluster */
 .topbar-right { display: flex; align-items: center; gap: 24px; height: 100%; padding-left: 32px; flex-shrink: 0; }
 
-.topbar-members { display: flex; align-items: center; gap: 4px; padding-right: 16px; }
+.topbar-members { display: flex; align-items: center; gap: 4px; padding-right: 40px; }
 .topbar-avatar {
   position: relative;
   display: inline-flex;
@@ -99,9 +102,9 @@
 .topbar-avatar-add > img:first-child { width: 24px; height: 24px; border-radius: 0; }
 .topbar-avatar-add:hover { background: #f5f5f5; }
 
-.topbar-count { display: flex; align-items: center; gap: 10px; padding-right: 16px; white-space: nowrap; }
+.topbar-count { display: flex; align-items: center; gap: 10px; padding-right: 40px; white-space: nowrap; }
 .topbar-count-value {
-  font-size: var(--semantic-font-font-size-font-size-xl, 24px);
+  font-size: 18px;
   font-weight: 600;
   color: var(--semantic-color-colors-text-heading, #212121);
 }
@@ -111,6 +114,27 @@
   color: var(--semantic-color-colors-text-caption, #757575);
 }
 
+
+/* + Tix — Button / Primary (LG, icon left) */
+/* `.topbar .topbar-create` outranks the `.topbar button { color: inherit }` reset above. */
+.topbar .topbar-create {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 18px 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--semantic-color-colors-primary, #18675a);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 13px;
+  white-space: nowrap;
+}
+.topbar .topbar-create img { width: 22px; height: 22px; }
+.topbar .topbar-create:hover { background: #145747; }
 
 .topbar-more {
   display: inline-flex;

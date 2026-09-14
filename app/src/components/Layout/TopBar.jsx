@@ -14,11 +14,11 @@ const VIEWS = [
 ];
 
 /**
- * Top bar — Figma Tixup-V2.0 node 39519:9833.
- * Wired: title, view switcher, Tix count. Visual only for now:
- * Filter / Sort / Hide, member invite, overflow menus.
+ * Top bar — Figma Tixup-V2.0 "TopBar" component 39558:13539 (List page, Timeline View 37635:4541).
+ * Wired: title, view switcher (Tab / Icon Group), Tix count, + Tix (create), member invite.
+ * Visual only for now: Filter / Sort / Hide, overflow menus.
  */
-export function TopBar({ title, currentView, onViewChange, taskCount = 0 }) {
+export function TopBar({ title, currentView, onViewChange, taskCount = 0, onCreateTix }) {
   const user = useAuth();
   const { activeSpace, addMembers } = useSpaces();
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -75,7 +75,7 @@ export function TopBar({ title, currentView, onViewChange, taskCount = 0 }) {
               <img src={icon(v.icon)} alt="" width={24} height={24} />
             </button>
           ))}
-          <button type="button" className="topbar-plain-btn" title="View options (coming soon)">
+          <button type="button" className="topbar-view-btn" title="View options (coming soon)">
             <img src={icon('more_vert')} alt="" width={24} height={24} />
           </button>
         </div>
@@ -83,7 +83,7 @@ export function TopBar({ title, currentView, onViewChange, taskCount = 0 }) {
         <div className="topbar-controls">
           {[['filter', 'Filter'], ['sort', 'Sort'], ['visibility_off', 'Hide']].map(([ic, label]) => (
             <button key={ic} type="button" className="topbar-control" title={`${label} (coming soon)`}>
-              <img src={icon(ic)} alt="" width={20} height={20} />
+              <img src={icon(ic)} alt="" width={18} height={18} />
               <span>{label}</span>
             </button>
           ))}
@@ -118,6 +118,13 @@ export function TopBar({ title, currentView, onViewChange, taskCount = 0 }) {
           <span className="topbar-count-value">{taskCount}</span>
           <span className="topbar-count-label">Tix</span>
         </div>
+
+        {onCreateTix && (
+          <button type="button" className="topbar-create" onClick={onCreateTix} title="Create Tix">
+            <img src={icon('add_white')} alt="" width={22} height={22} />
+            <span>Tix</span>
+          </button>
+        )}
 
         <button type="button" className="topbar-more" title="More (coming soon)">
           <img src={icon('more_vert_32')} alt="" width={32} height={32} />
