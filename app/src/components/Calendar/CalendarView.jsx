@@ -97,7 +97,8 @@ export function CalendarView({ tasks, onCommit, onCreateTix }) {
   const startResize = (seg, edge, e) => {
     if (e.button !== 0) return;
     e.stopPropagation();
-    setDrag({ mode: 'resize', id: seg.id, edge });
+    // `x` / `row` let the dragged edge follow the pointer live; the span itself snaps per day.
+    setDrag({ mode: 'resize', id: seg.id, edge, x: null, row: null });
   };
 
   useEffect(() => {
@@ -112,6 +113,10 @@ export function CalendarView({ tasks, onCommit, onCreateTix }) {
         setDrag({ ...current, moved, pointer: moved ? { x: e.clientX, y: e.clientY } : current.pointer, hoverDate: date });
         return;
       }
+      // Live edge: remember the pointer x and the week row under it (null outside the grid).
+      const rowEl = document.elementsFromPoint(e.clientX, e.clientY).find((el) => el.classList?.contains('cv-week'));
+      const rect = rowEl?.getBoundingClientRect();
+      setDrag({ ...current, x: e.clientX, row: rowEl ? { key: rowEl.dataset.week, left: rect.left, width: rect.width } : null });
       if (!date) return;
       const item = itemById.get(current.id);
       if (!item) return;
@@ -185,8 +190,9 @@ export function CalendarView({ tasks, onCommit, onCreateTix }) {
         {weeks.map((week) => {
           const { segments, laneCount } = layoutWeek(week, effectiveItems);
           const rowHeight = Math.max(ROW_MIN, ITEM_TOP + laneCount * (ITEM_H + ITEM_GAP) - ITEM_GAP + ROW_BOTTOM + 1);
+          const weekKey = toISO(week[0]);
           return (
-            <div key={toISO(week[0])} className="cv-week" role="row" style={{ minHeight: rowHeight }}>
+            <div key={weekKey} className="cv-week" role="row" data-week={weekKey} style={{ minHeight: rowHeight }}>
               {week.map((day, col) => {
                 const iso = toISO(day);
                 const cls = ['cv-cell', col === 0 || col === 6 ? 'cv-weekend' : '', moving && drag.hoverDate === iso ? 'cv-drop-target' : ''].filter(Boolean).join(' ');
@@ -206,11 +212,29 @@ export function CalendarView({ tasks, onCommit, onCreateTix }) {
               })}
 
               <div className="cv-items">
-                {segments.map((seg) => (
+                {segments.map((seg) => {
+                  const style = { left: `${(seg.startCol / 7) * 100}%`, width: `${((seg.endCol - seg.startCol + 1) / 7) * 100}%`, top: ITEM_TOP + seg.lane * (ITEM_H + ITEM_GAP) };
+                  // While resizing, the dragged edge in the row under the pointer follows the pointer
+                  // pixel-for-pixel; the other edge stays on its day. Snaps on release.
+                  if (drag?.mode === 'resize' && drag.id === seg.id && drag.row?.key === weekKey && drag.x !== null) {
+                    const colW = drag.row.width / 7;
+                    const x = Math.min(Math.max(drag.x - drag.row.left, 0), drag.row.width);
+                    if (drag.edge === 'end' && !seg.continuesRight) {
+                      const leftPx = seg.startCol * colW;
+                      style.left = leftPx;
+                      style.width = Math.min(Math.max(x - leftPx, colW), drag.row.width - leftPx);
+                    } else if (drag.edge === 'start' && !seg.continuesLeft) {
+                      const rightPx = (seg.endCol + 1) * colW;
+                      const leftPx = Math.min(x, rightPx - colW);
+                      style.left = leftPx;
+                      style.width = rightPx - leftPx;
+                    }
+                  }
+                  return (
                   <div
                     key={`${seg.id}-${seg.startCol}`}
                     className={['cv-segment', seg.continuesLeft ? 'cv-seg-from-left' : '', seg.continuesRight ? 'cv-seg-to-right' : ''].filter(Boolean).join(' ')}
-                    style={{ left: `${(seg.startCol / 7) * 100}%`, width: `${((seg.endCol - seg.startCol + 1) / 7) * 100}%`, top: ITEM_TOP + seg.lane * (ITEM_H + ITEM_GAP) }}
+                    style={style}
                   >
                     <CalendarItem
                       title={seg.task.title}
@@ -223,7 +247,8 @@ export function CalendarView({ tasks, onCommit, onCreateTix }) {
                       onHandlePointerDown={(edge, e) => startResize(seg, edge, e)}
                     />
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           );
