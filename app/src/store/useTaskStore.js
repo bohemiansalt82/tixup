@@ -7,6 +7,12 @@ const PUSH_DEBOUNCE_MS = 700;
 const POLL_MS = 15000;
 
 const tasksKey = (spaceId) => `tixup-tasks-${spaceId}`;
+// Set while a local change has not reached the backend yet. Survives a reload, so the first
+// pull after a refresh pushes the pending list instead of overwriting it with the server copy
+// (which used to make an edit "disappear" until the next poll brought the beacon-saved copy back).
+const dirtyKey = (spaceId) => `tixup-dirty-${spaceId}`;
+const hasPendingPush = (spaceId) => { try { return localStorage.getItem(dirtyKey(spaceId)) === '1'; } catch { return false; } };
+const setPendingPush = (spaceId, on) => { try { if (on) localStorage.setItem(dirtyKey(spaceId), '1'); else localStorage.removeItem(dirtyKey(spaceId)); } catch { /* ignore */ } };
 
 function load(spaceId) {
   if (!spaceId) return [];
@@ -75,6 +81,7 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
       // localStorage always holds the latest list (save() runs inside every update).
       const r = await saveRemoteSpace(spaceMeta(), load(spaceId), metaRef.current.user);
       s.rev = r.rev;
+      if (!s.dirty) setPendingPush(spaceId, false);
     } catch (err) {
       console.warn('Tixup sync: push failed', err);
       s.dirty = true;
@@ -92,6 +99,7 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
     const s = syncRef.current;
     if (!spaceId || !canSync()) return;
     s.dirty = true;
+    setPendingPush(spaceId, true);
     clearTimeout(s.timer);
     s.timer = setTimeout(push, PUSH_DEBOUNCE_MS);
   }, [spaceId, push]);
@@ -99,6 +107,9 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
   const pull = useCallback(async () => {
     const s = syncRef.current;
     if (!spaceId || !canSync() || s.dirty || s.pushing) return;
+    // A change from before a reload never reached the server: publish it first. The push
+    // records the new revision, so the next poll sees nothing to pull.
+    if (hasPendingPush(spaceId)) { push(); return; }
     try {
       const r = await loadRemoteSpace(spaceId, metaRef.current.user);
       if (s.unmounted || s.dirty || s.pushing) return; // local edits happened meanwhile
