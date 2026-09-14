@@ -151,11 +151,13 @@
   filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.03));
 }
 .cv-item:active { cursor: grabbing; }
-.cv-item-green  { --cv-bg: #d9ffe1; --cv-bg-rgb: 217, 255, 225; }
-.cv-item-blue   { --cv-bg: #edf9ff; --cv-bg-rgb: 237, 249, 255; }
-.cv-item-yellow { --cv-bg: #fdffe2; --cv-bg-rgb: 253, 255, 226; }
-.cv-item-red    { --cv-bg: #ffe2e2; --cv-bg-rgb: 255, 226, 226; }
-.cv-item-gray   { --cv-bg: #f1f1f1; --cv-bg-rgb: 241, 241, 241; }
+/* Status tints — keep identical to the timeline bars (`.timeline-bar-<status>` in components.css). */
+.cv-item-pending    { --cv-bg: #fef9c3; --cv-bg-rgb: 254, 249, 195; }
+.cv-item-inprogress { --cv-bg: #dbeafe; --cv-bg-rgb: 219, 234, 254; }
+.cv-item-done       { --cv-bg: #dcfce7; --cv-bg-rgb: 220, 252, 231; }
+.cv-item-overdue    { --cv-bg: #fee2e2; --cv-bg-rgb: 254, 226, 226; }
+.cv-item-drop       { --cv-bg: var(--primitive-colors-gray-100, #f5f5f5); --cv-bg-rgb: 245, 245, 245; }
+.cv-item-pause      { --cv-bg: #ffffff; --cv-bg-rgb: 255, 255, 255; } /* timeline has no pause tint: plain bar */
 
 .cv-item-bg {
   position: absolute;

@@ -16,8 +16,8 @@ const ROW_MIN = 130;
 const ROW_BOTTOM = 16;
 const DRAG_THRESHOLD = 4;
 
-/** Block colour by Tix status (Figma shows the four Item for Calendar tints). */
-const STATUS_COLOR = { pending: 'yellow', inprogress: 'green', done: 'blue', overdue: 'red', pause: 'gray', drop: 'gray' };
+/** Block tint follows the timeline bar (`.timeline-bar-<status>` in components.css). */
+const STATUSES = ['pending', 'inprogress', 'done', 'overdue', 'pause', 'drop'];
 
 function directionOf(seg) {
   if (seg.continuesLeft && seg.continuesRight) return 'middle';
@@ -58,7 +58,7 @@ export function CalendarView({ tasks, onCommit, onCreateTix }) {
     });
     return tasks
       .filter((t) => t.type === 'parent')
-      .map((t) => ({ id: t.id, task: t, span: taskSpan(t), subTix: subs.get(t.id) ?? [], color: STATUS_COLOR[t.status] ?? 'yellow' }))
+      .map((t) => ({ id: t.id, task: t, span: taskSpan(t), subTix: subs.get(t.id) ?? [], color: STATUSES.includes(t.status) ? t.status : 'pending' }))
       .filter((it) => it.span !== null);
   }, [tasks]);
 
