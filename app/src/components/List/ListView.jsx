@@ -131,8 +131,15 @@ function ListRow({ task, hasChildren = false, exitingIds, newIds, selectedIds, m
   const anim = exitingIds.has(task.id) ? 'tix-anim-exit' : newIds.has(task.id) ? 'tix-anim-enter' : '';
   const cls = ['data-grid-row', 'lv-row', isParent ? 'lv-parent' : 'lv-child', selectedIds.has(task.id) ? 'selected' : '', anim].filter(Boolean).join(' ');
 
+  // Plain click anywhere on the row opens the Tix detail popup; cell controls are excluded.
+  const handleRowClick = (e) => {
+    if (!onOpen) return;
+    if (e.target.closest('button, input, label, .marker, .tree-expander, .add-child-btn, .lv-assignee, .lv-tags')) return;
+    onOpen(task.id);
+  };
+
   return (
-    <div className={cls} data-row-id={task.id} data-type={task.type} data-status={task.status}>
+    <div className={cls} data-row-id={task.id} data-type={task.type} data-status={task.status} onClick={handleRowClick} style={{ cursor: onOpen ? 'pointer' : undefined }}>
       <div className="data-grid-cell center">
         <label className="checkbox-container">
           <input type="checkbox" checked={selectedIds.has(task.id)} onChange={() => onSelect(task.id)} />
@@ -141,11 +148,7 @@ function ListRow({ task, hasChildren = false, exitingIds, newIds, selectedIds, m
       </div>
 
       <div className="data-grid-cell lv-cell-title">
-        {/* Single click on the title opens the detail popup; double-click still edits (EditableTitle). */}
-        <div
-          className={`row-title-container${isParent ? '' : ' depth-2'}`}
-          onClick={(e) => { if (onOpen && e.target.classList?.contains('data-grid-text')) onOpen(task.id); }}
-        >
+        <div className={`row-title-container${isParent ? '' : ' depth-2'}`}>
           {isParent && hasChildren && (
             <button type="button" className={`tree-expander ${task.collapsed ? 'collapsed' : 'expanded'}`} onClick={() => onToggle(task.id)}>
               <div className="nav-icon icon-chevron-lg-bottom" />

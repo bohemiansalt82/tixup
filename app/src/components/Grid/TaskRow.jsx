@@ -9,6 +9,9 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
   const [contextMenu, setContextMenu] = useState(null);
   const editRef = useRef(null);
   const menuRef = useRef(null);
+  // Where the mouse went down: a click that travelled further than this was a drag, not a click.
+  const downPos = useRef(null);
+  const CLICK_SLOP = 4;
 
   const animClass = isExiting ? 'tix-anim-exit' : isCollapsing ? 'tix-collapsing' : isNew ? 'tix-anim-enter' : '';
 
@@ -47,8 +50,17 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
       data-parent={task.parentId || undefined}
       onMouseDown={e => {
         if (e.button !== 0) return;
+        downPos.current = { x: e.clientX, y: e.clientY };
         if (e.target.closest('button, input, label, .marker')) return;
         onRowMouseDown(e, task);
+      }}
+      onClick={e => {
+        // Plain click anywhere on the row opens the Tix detail popup; controls and drags are excluded.
+        if (!onOpen) return;
+        if (e.target.closest('button, input, label, .marker, .tree-expander, .add-child-btn')) return;
+        const d = downPos.current;
+        if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > CLICK_SLOP) return;
+        onOpen(task.id);
       }}
       onContextMenu={handleContextMenu}
       style={{ cursor: 'grab' }}
@@ -60,11 +72,7 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
         </label>
       </div>
       <div className="data-grid-cell">
-        {/* Single click on the title opens the detail popup; double-click still edits (EditableTitle). */}
-        <div
-          className={`row-title-container ${!isParent ? 'depth-2' : ''}`}
-          onClick={(e) => { if (onOpen && e.target.classList?.contains('data-grid-text')) onOpen(task.id); }}
-        >
+        <div className={`row-title-container ${!isParent ? 'depth-2' : ''}`}>
           {isParent && hasChildren && (
             <button
               className={`tree-expander ${task.collapsed ? 'collapsed' : 'expanded'}`}
