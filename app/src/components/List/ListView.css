@@ -1,7 +1,7 @@
 /* List view (data grid) — Figma Tixup-V2.0 39523:13757
    White table, every row white and underlined with border-default (#eee); the header never changes on hover. */
 .lv-table { --lv-line: var(--semantic-color-colors-border-default, #eee); }
-.lv-section { padding: 0 24px 24px; box-sizing: border-box; align-items: flex-start; }
+.lv-section { box-sizing: border-box; align-items: flex-start; }
 .lv-table {
   display: flex;
   flex-direction: column;

@@ -51,7 +51,6 @@
   background: var(--primitive-colors-base-white, #fff);
   border: 1px solid var(--primitive-colors-gray-300, #e0e0e0);
   border-radius: 16px;
-  margin-bottom: 30px; /* same breathing room as .timeline-grid-container */
 }
 .cv-weekdays {
   position: sticky;
