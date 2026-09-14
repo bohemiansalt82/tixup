@@ -209,7 +209,7 @@ export function CalendarView({ tasks, onCommit, onCreateTix }) {
                 {segments.map((seg) => (
                   <div
                     key={`${seg.id}-${seg.startCol}`}
-                    className="cv-segment"
+                    className={['cv-segment', seg.continuesLeft ? 'cv-seg-from-left' : '', seg.continuesRight ? 'cv-seg-to-right' : ''].filter(Boolean).join(' ')}
                     style={{ left: `${(seg.startCol / 7) * 100}%`, width: `${((seg.endCol - seg.startCol + 1) / 7) * 100}%`, top: ITEM_TOP + seg.lane * (ITEM_H + ITEM_GAP) }}
                   >
                     <CalendarItem

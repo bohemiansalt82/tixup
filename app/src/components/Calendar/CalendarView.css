@@ -134,7 +134,11 @@
 
 /* ---- block layer ---- */
 .cv-items { position: absolute; inset: 0; pointer-events: none; }
-.cv-segment { position: absolute; pointer-events: auto; }
+/* Blocks keep `--cv-item-inset` from the day edges, so neighbours sit 2× that apart (8px).
+   A side that continues into the previous/next week stays flush so the fade reaches the edge. */
+.cv-segment { --cv-item-inset: 4px; position: absolute; pointer-events: auto; padding: 0 var(--cv-item-inset); }
+.cv-seg-from-left { padding-left: 0; }
+.cv-seg-to-right { padding-right: 0; }
 .cv-ghost { position: fixed; z-index: 100; pointer-events: none; }
 
 /* ---- Item for Calendar (60px block) ---- */
