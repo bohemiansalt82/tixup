@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth, logout } from '../../store/useAuth';
 import { useSpaces } from '../../store/useSpaces';
 import { MakeModal } from '../Modals/MakeModal';
+import { ContextMenu, InlineName } from '../Shared/ContextMenu';
+import { useContextMenu } from '../../hooks/useContextMenu';
 import './Gnb.css';
 
 const icon = (name) => `${import.meta.env.BASE_URL}images/gnb/${name}.svg`;
@@ -44,11 +46,30 @@ function useOutsideClose(open, onClose) {
 
 export function Gnb({ tasks = [] }) {
   const user = useAuth();
-  const { spaces, activeSpace, boxes, activeBox, createSpace, switchSpace, deleteSpace, createBox, selectBox } = useSpaces();
+  const { spaces, activeSpace, boxes, activeBox, createSpace, switchSpace, renameSpace, deleteSpace, createBox, renameBox, deleteBox, selectBox } = useSpaces();
   const [spaceMenuOpen, setSpaceMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [modal, setModal] = useState(null); // 'space' | 'box' | null
   const countInBox = (boxId) => tasks.filter((t) => t.boxId === boxId).length;
+  // Right-click: rename / delete a space or a box. `editing` = { kind: 'space'|'box', id } while renaming inline.
+  const ctx = useContextMenu();
+  const [ctxTarget, setCtxTarget] = useState(null); // { kind: 'space'|'box', id, name }
+  const [editing, setEditing] = useState(null);
+  const openCtx = (kind, item) => (e) => { setCtxTarget({ kind, id: item.id, name: item.name }); ctx.open(e); };
+  const removeSpace = (space) => {
+    if (spaces.length <= 1) { alert('마지막 스페이스는 삭제할 수 없어요.'); return; }
+    if (confirm(`"${space.name}" 스페이스를 삭제할까요? 박스 목록도 함께 삭제됩니다.`)) deleteSpace(space.id);
+  };
+  const removeBox = (box) => {
+    const n = countInBox(box.id);
+    if (confirm(`"${box.name}" 박스를 삭제할까요?${n ? ` 안의 Tix ${n}개는 My Tasks에 남습니다.` : ''}`)) deleteBox(box.id);
+  };
+  const ctxItems = ctxTarget ? [
+    { label: '이름 변경', onClick: () => setEditing({ kind: ctxTarget.kind, id: ctxTarget.id }) },
+    { label: '삭제하기', danger: true, onClick: () => (ctxTarget.kind === 'space' ? removeSpace(ctxTarget) : removeBox(ctxTarget)) },
+  ] : [];
+  const isEditing = (kind, id) => editing?.kind === kind && editing?.id === id;
+  const commitName = (kind, id) => (name) => { if (kind === 'space') renameSpace(id, name); else renameBox(id, name); setEditing(null); };
 
   const spaceMenuRef = useOutsideClose(spaceMenuOpen, () => setSpaceMenuOpen(false));
   const userMenuRef = useOutsideClose(userMenuOpen, () => setUserMenuOpen(false));
@@ -60,11 +81,7 @@ export function Gnb({ tasks = [] }) {
     else if (modal === 'box') createBox(data);
     setModal(null);
   };
-  const handleDeleteSpace = () => {
-    if (!activeSpace) return;
-    if (spaces.length <= 1) { alert('마지막 스페이스는 삭제할 수 없어요.'); return; }
-    if (confirm(`"${activeSpace.name}" 스페이스를 삭제할까요? 박스 목록도 함께 삭제됩니다.`)) deleteSpace(activeSpace.id);
-  };
+  const handleDeleteSpace = () => { if (activeSpace) removeSpace(activeSpace); };
 
   return (
     <nav className="gnb">
@@ -87,12 +104,20 @@ export function Gnb({ tasks = [] }) {
           <button
             type="button"
             className="gnb-item gnb-item-space"
-            onClick={() => setSpaceMenuOpen((o) => !o)}
+            onClick={() => { if (!isEditing('space', activeSpace?.id)) setSpaceMenuOpen((o) => !o); }}
+            onContextMenu={activeSpace ? openCtx('space', activeSpace) : undefined}
             aria-haspopup="listbox"
             aria-expanded={spaceMenuOpen}
           >
             <GnbIcon name="planet" />
-            <span className="gnb-item-label">{activeSpace?.name ?? 'My Space'}</span>
+            <InlineName
+              value={activeSpace?.name ?? 'My Space'}
+              editing={!!activeSpace && isEditing('space', activeSpace.id)}
+              onCommit={commitName('space', activeSpace?.id)}
+              onCancel={() => setEditing(null)}
+              className="gnb-item-label"
+              inputClassName="gnb-item-label gnb-inline-input"
+            />
             <GnbIcon name="swap" className="gnb-item-trailing" />
           </button>
 
@@ -105,10 +130,17 @@ export function Gnb({ tasks = [] }) {
                     role="option"
                     aria-selected={s.id === activeSpace?.id}
                     className={`gnb-dropdown-item${s.id === activeSpace?.id ? ' selected' : ''}`}
-                    onClick={() => { switchSpace(s.id); setSpaceMenuOpen(false); }}
+                    onClick={() => { if (isEditing('space', s.id)) return; switchSpace(s.id); setSpaceMenuOpen(false); }}
+                    onContextMenu={openCtx('space', s)}
                   >
                     <GnbIcon name="planet" />
-                    <span>{s.name}</span>
+                    <InlineName
+                      value={s.name}
+                      editing={isEditing('space', s.id)}
+                      onCommit={commitName('space', s.id)}
+                      onCancel={() => setEditing(null)}
+                      inputClassName="gnb-inline-input"
+                    />
                   </button>
                 </li>
               ))}
@@ -136,10 +168,18 @@ export function Gnb({ tasks = [] }) {
             <button
               type="button"
               className={`gnb-item${activeBox?.id === b.id ? ' active' : ''}`}
-              onClick={() => selectBox(b.id)}
+              onClick={() => { if (!isEditing('box', b.id)) selectBox(b.id); }}
+              onContextMenu={openCtx('box', b)}
             >
               <GnbIcon name="deployed_code" />
-              <span className="gnb-item-label">{b.name}</span>
+              <InlineName
+                value={b.name}
+                editing={isEditing('box', b.id)}
+                onCommit={commitName('box', b.id)}
+                onCancel={() => setEditing(null)}
+                className="gnb-item-label"
+                inputClassName="gnb-item-label gnb-inline-input"
+              />
               {countInBox(b.id) > 0 && <CountBadge value={countInBox(b.id)} />}
             </button>
           </div>
@@ -173,6 +213,7 @@ export function Gnb({ tasks = [] }) {
       </footer>
 
       {modal && <MakeModal kind={modal} onClose={() => setModal(null)} onSave={handleModalSave} />}
+      <ContextMenu state={ctx} items={ctxItems} />
     </nav>
   );
 }

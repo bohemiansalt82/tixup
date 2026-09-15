@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarItem } from './CalendarItem';
+import { ContextMenu } from '../Shared/ContextMenu';
+import { useContextMenu } from '../../hooks/useContextMenu';
 import {
   WEEKDAYS, addMonths, dateToDayOffset, formatMonth, isSameDay, layoutWeek, monthGrid, parseISO,
   spanToPx, startOfMonth, taskSpan, toISO,
@@ -45,8 +47,17 @@ function dateAtPoint(x, y) {
  * Every gesture reports once through `onCommit(updates)` where updates = [{ id, start, width }]
  * in stored px, so one gesture = one undo step for the caller.
  */
-export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix }) {
+export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix, onRenameTix, onDeleteTix }) {
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
+  // Right-click on a block: rename (inline) / delete.
+  const ctx = useContextMenu();
+  const [ctxTixId, setCtxTixId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const ctxTask = tasks.find((t) => t.id === ctxTixId);
+  const ctxItems = ctxTask ? [
+    { label: '이름 변경', onClick: () => setEditingId(ctxTask.id) },
+    { label: '삭제하기', danger: true, onClick: () => { const n = tasks.filter((t) => t.parentId === ctxTask.id).length; if (confirm(`"${ctxTask.title || 'New Tix'}"을(를) 삭제할까요?${n ? ` 서브틱스 ${n}개도 함께 삭제됩니다.` : ''}`)) onDeleteTix?.(ctxTask.id); } },
+  ] : [];
   const today = useMemo(() => new Date(), []);
   const weeks = useMemo(() => monthGrid(month), [month]);
 
@@ -258,8 +269,12 @@ export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix }) {
                       color={seg.color}
                       direction={directionOf(seg)}
                       active={drag?.mode === 'resize' && drag.id === seg.id}
+                      editing={editingId === seg.id && !seg.continuesLeft}
+                      onRename={(name) => { onRenameTix?.(seg.id, name); setEditingId(null); }}
+                      onCancelRename={() => setEditingId(null)}
                       data-task-id={seg.id}
-                      onPointerDown={(e) => startMove(seg, e)}
+                      onPointerDown={(e) => { if (editingId !== seg.id) startMove(seg, e); }}
+                      onContextMenu={(e) => { setCtxTixId(seg.id); ctx.open(e); }}
                       onHandlePointerDown={(edge, e) => startResize(seg, edge, e)}
                     />
                   </div>
@@ -271,6 +286,8 @@ export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix }) {
         })}
         </div>
       </div>
+
+      <ContextMenu state={ctx} items={ctxItems} />
 
       {moving && (
         <div className="cv-ghost" style={{ left: drag.pointer.x - drag.offset.x, top: drag.pointer.y - drag.offset.y, width: drag.width }}>

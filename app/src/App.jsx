@@ -275,7 +275,14 @@ function Dashboard({ spaceId }) {
         </section>
 
         {currentView === 'calendar' && (
-          <CalendarView tasks={visibleTasks} onCommit={handleCalendarCommit} onCreateTix={handleCalendarCreate} onOpenTix={setDetailTaskId} />
+          <CalendarView
+            tasks={visibleTasks}
+            onCommit={handleCalendarCommit}
+            onCreateTix={handleCalendarCreate}
+            onOpenTix={setDetailTaskId}
+            onRenameTix={(id, name) => handleRename(id, name)}
+            onDeleteTix={(id) => handleRename(id, null)}
+          />
         )}
       </main>
 

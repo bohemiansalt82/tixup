@@ -150,6 +150,10 @@ export function createBox(spaceId, input) {
   schedulePush();
   return box;
 }
+export function renameBox(spaceId, boxId, name) {
+  writeJson(boxesKey(spaceId), getBoxes(spaceId).map((b) => (b.id === boxId ? { ...b, name } : b)));
+  schedulePush();
+}
 export function deleteBox(spaceId, boxId) {
   writeJson(boxesKey(spaceId), getBoxes(spaceId).filter((b) => b.id !== boxId));
   if (getActiveBoxId() === boxId) setActiveBoxId(null);
@@ -381,6 +385,7 @@ export function useSpaces() {
     joinSpace: (invite) => joinSpace(userId, invite),
     switchSpace: setActiveSpaceId,
     createBox: (data) => (activeSpaceId ? createBox(activeSpaceId, data) : null),
+    renameBox: (id, name) => (activeSpaceId ? renameBox(activeSpaceId, id, name) : null),
     deleteBox: (id) => (activeSpaceId ? deleteBox(activeSpaceId, id) : null),
     selectBox: setActiveBoxId,
   }), [ready, spaces, boxes, activeSpaceId, activeBoxId, userId]);

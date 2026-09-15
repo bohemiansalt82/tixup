@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { StatusBadge } from '../Shared/StatusBadge';
 import { EditableTitle } from '../Grid/TaskRow';
+import { ContextMenu } from '../Shared/ContextMenu';
+import { useContextMenu } from '../../hooks/useContextMenu';
 import { STATUS_LABELS, TAGS } from '../../constants';
 import { avatarFor } from '../../store/useAuth';
 import { getBarEndDate } from '../../utils/timeline';
@@ -130,6 +132,13 @@ function ListRow({ task, hasChildren = false, exitingIds, newIds, selectedIds, m
   const isParent = task.type === 'parent';
   const anim = exitingIds.has(task.id) ? 'tix-anim-exit' : newIds.has(task.id) ? 'tix-anim-enter' : '';
   const cls = ['data-grid-row', 'lv-row', isParent ? 'lv-parent' : 'lv-child', selectedIds.has(task.id) ? 'selected' : '', anim].filter(Boolean).join(' ');
+  // Right-click: rename (inline, via EditableTitle) / delete.
+  const ctx = useContextMenu();
+  const editRef = useRef(null);
+  const ctxItems = [
+    { label: '이름 변경', onClick: () => editRef.current?.startEdit() },
+    { label: '삭제하기', danger: true, onClick: () => { if (confirm(`"${task.title || 'New Tix'}"을(를) 삭제할까요?${isParent && hasChildren ? ' 서브틱스도 함께 삭제됩니다.' : ''}`)) onRename(task.id, null); } },
+  ];
 
   // Plain click anywhere on the row opens the Tix detail popup; cell controls are excluded.
   const handleRowClick = (e) => {
@@ -139,7 +148,8 @@ function ListRow({ task, hasChildren = false, exitingIds, newIds, selectedIds, m
   };
 
   return (
-    <div className={cls} data-row-id={task.id} data-type={task.type} data-status={task.status} onClick={handleRowClick} style={{ cursor: onOpen ? 'pointer' : undefined }}>
+    <div className={cls} data-row-id={task.id} data-type={task.type} data-status={task.status} onClick={handleRowClick} onContextMenu={ctx.open} style={{ cursor: onOpen ? 'pointer' : undefined }}>
+      <ContextMenu state={ctx} items={ctxItems} />
       <div className="data-grid-cell center">
         <label className="checkbox-container">
           <input type="checkbox" checked={selectedIds.has(task.id)} onChange={() => onSelect(task.id)} />
@@ -156,7 +166,7 @@ function ListRow({ task, hasChildren = false, exitingIds, newIds, selectedIds, m
           )}
           {isParent && !hasChildren && <span className="tree-expander tree-expander-placeholder" aria-hidden="true" />}
           <div className={`nav-icon ${isParent ? 'icon-tix' : 'icon-stat'}`} />
-          <EditableTitle task={task} onRename={onRename} autoEdit={!task.title} isParent={isParent} />
+          <EditableTitle ref={editRef} task={task} onRename={onRename} autoEdit={!task.title} isParent={isParent} />
           {isParent && (
             <button type="button" className="add-child-btn" title="Add sub tix" onClick={() => onAddChild(task.id)}>
               <div className="nav-icon icon-add" />

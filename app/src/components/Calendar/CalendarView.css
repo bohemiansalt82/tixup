@@ -238,3 +238,20 @@
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
+
+/* Inline rename inside a block (right-click → 이름 변경) */
+.cv-item-title-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0 4px;
+  margin: -2px 0;
+  font: inherit;
+  font-size: 14px;
+  line-height: 17px;
+  color: var(--primitive-colors-gray-800, #424242);
+  background: #fff;
+  border: 1px solid var(--primitive-colors-gray-400, #bdbdbd);
+  border-radius: 4px;
+  outline: none;
+}
+.cv-item-title-input:focus { border-color: var(--semantic-color-colors-primary, #18675a); }

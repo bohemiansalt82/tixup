@@ -201,3 +201,17 @@
   cursor: pointer;
 }
 .gnb-user-logout:hover { background: #f2f2f2; }
+
+/* Inline rename (right-click → 이름 변경) */
+.gnb-inline-input {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 6px;
+  border: 1px solid var(--primitive-colors-gray-400, #bdbdbd);
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+  color: inherit;
+  outline: none;
+}
+.gnb-inline-input:focus { border-color: var(--semantic-color-colors-primary, #18675a); }
