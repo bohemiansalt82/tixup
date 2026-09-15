@@ -182,26 +182,40 @@ export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix }) {
 
   return (
     <div className="cv-section">
-      <div className="cv-toolbar">
-        <span className="cv-month">{formatMonth(month)}</span>
-        <div className="cv-toolbar-right">
-          <button type="button" className="cv-ghost-btn" title="Month view">
-            Month
-            <img src={icon('chevron_bottom')} alt="" width={24} height={24} />
-          </button>
-          <div className="cv-nav">
-            <button type="button" className="cv-ghost-btn" onClick={() => setMonth((m) => addMonths(m, -1))} aria-label="Previous month">
-              <img src={icon('chevron_left')} alt="" width={24} height={24} />
-            </button>
-            <button type="button" className="cv-ghost-btn cv-today-btn" onClick={() => setMonth(startOfMonth(new Date()))}>Today</button>
-            <button type="button" className="cv-ghost-btn" onClick={() => setMonth((m) => addMonths(m, 1))} aria-label="Next month">
-              <img src={icon('chevron_right')} alt="" width={24} height={24} />
-            </button>
+      <div className="cv-calendar" role="grid" aria-label="Calendar">
+        {/* Month toolbar sits inside the card (Figma 39552:12445): 18px month, Day / Week / Month
+            ghost segment (only Month exists here), ‹ This Month › */}
+        <div className="cv-toolbar">
+          <span className="cv-month">{formatMonth(month)}</span>
+          <div className="cv-toolbar-right">
+            <div className="cv-modes" role="tablist" aria-label="Zoom">
+              {[['day', 'Day'], ['week', 'Week'], ['month', 'Month']].map(([mode, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === 'month'}
+                  className={`cv-ghost-btn${mode === 'month' ? ' active' : ''}`}
+                  title={mode === 'month' ? 'Month view' : `${label} view (coming soon)`}
+                  disabled={mode !== 'month'}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="cv-nav">
+              <button type="button" className="cv-ghost-btn cv-arrow-btn" onClick={() => setMonth((m) => addMonths(m, -1))} aria-label="Previous month">
+                <img src={icon('chevron_left')} alt="" width={18} height={18} />
+              </button>
+              <button type="button" className="cv-ghost-btn" onClick={() => setMonth(startOfMonth(new Date()))}>This Month</button>
+              <button type="button" className="cv-ghost-btn cv-arrow-btn" onClick={() => setMonth((m) => addMonths(m, 1))} aria-label="Next month">
+                <img src={icon('chevron_right')} alt="" width={18} height={18} />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="cv-calendar" role="grid" aria-label="Calendar">
+        <div className="cv-scroll">
         <div className="cv-weekdays" role="row">
           {WEEKDAYS.map((d) => <div key={d} className="cv-weekday" role="columnheader">{d}</div>)}
         </div>
@@ -272,6 +286,7 @@ export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix }) {
             </div>
           );
         })}
+        </div>
       </div>
 
       {moving && (
