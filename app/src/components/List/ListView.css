@@ -132,14 +132,16 @@
 .lv-due .data-grid-text-sm { white-space: nowrap; }
 
 .lv-tags { flex-wrap: wrap; gap: 8px; }
-.marker.lv-tag { height: 28px; padding: 0 12px; font-size: 14px; font-weight: 600; }
-.lv-tag-design     { background: var(--primitive-colors-green-50, #e8f5e9);  color: var(--primitive-colors-green-900, #1b5e20); }
+/* Figma Marker V3 tag variants (Color=Depart 1–8, 37552:6706): 24px, radius 8, px 8, 12px Pretendard Medium */
+.marker.lv-tag { height: 24px; padding: 0 8px; border-radius: 8px; font-size: 12px; font-weight: 500; line-height: 1.6; }
 .lv-tag-it         { background: var(--primitive-colors-blue-50, #e3f2fd);   color: var(--primitive-colors-blue-900, #0d47a1); }
+.lv-tag-design     { background: var(--primitive-colors-green-50, #e8f5e9);  color: var(--primitive-colors-green-900, #1b5e20); }
+.lv-tag-dev        { background: #fff3e0; color: #e65100; }
 .lv-tag-marketing  { background: #e0f7fa; color: #006064; }
-.lv-tag-consulting { background: var(--primitive-colors-red-50, #ffebee);    color: var(--primitive-colors-red-700, #d32f2f); }
-.lv-tag-dev        { background: #ede7f6; color: #512da8; }
-.lv-tag-product    { background: #fff8e1; color: #ff8f00; }
-.lv-tag-hr         { background: #efebe9; color: #5d4037; }
+.lv-tag-product    { background: #efebe9; color: #3e2723; }
+.lv-tag-consulting { background: var(--primitive-colors-red-50, #ffebee);    color: var(--primitive-colors-red-900, #b71c1c); }
+.lv-tag-hr         { background: #ede7f6; color: #311b92; }
+.lv-tag-directing  { background: #fce4ec; color: #880e4f; }
 
 /* ---- popovers (share .status-dropdown chrome) ---- */
 .lv-menu { min-width: 200px; max-height: 320px; overflow-y: auto; }

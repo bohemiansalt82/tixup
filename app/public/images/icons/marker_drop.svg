@@ -1,6 +1,6 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="marker_drop">
-<rect x="0.5" y="0.5" width="15" height="15" rx="5.5" stroke="#9E9E9E"/>
-<path id="Line 1 (Stroke)" d="M14.0104 13.3033L13.3033 14.0104L1.98959 2.6967L2.6967 1.98959L14.0104 13.3033Z" fill="#9E9E9E"/>
+<rect x="0.75" y="0.75" width="14.5" height="14.5" rx="5.25" stroke="#9E9E9E" stroke-width="1.5"/>
+<path id="Line 1 (Stroke)" d="M14.1872 13.1265L13.1265 14.1872L1.81282 2.87348L2.87348 1.81282L14.1872 13.1265Z" fill="#9E9E9E"/>
 </g>
 </svg>
