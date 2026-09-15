@@ -2977,3 +2977,76 @@ body.marquee-active, body.marquee-active * {
 @keyframes sync-splash-spin {
     to { transform: rotate(360deg); }
 }
+
+
+/* --------------------------------------------------
+   Tix Timeline row — Figma "Tix Timeline" 37631:13783 (Type=Tix / Sub Tix, Status=Default / Drag).
+   Appended last so it wins over the older row rules above.
+   -------------------------------------------------- */
+/* columns: 56px select | title (pl 8, pr 16) | 132px status (pr 16) */
+.timeline-sidebar .data-grid-row {
+    grid-template-columns: 56px minmax(0, 1fr) 132px !important;
+}
+.timeline-sidebar .data-grid-cell:nth-child(3) {
+    padding-right: 16px !important;
+}
+.row-title-container {
+    gap: 8px;
+    padding: 0 16px 0 8px;
+}
+/* Sub Tix: no chevron, title group indented 22px */
+.row-title-container.depth-2 {
+    padding-left: 30px;
+}
+/* chevron_lg_right 16px #616161; rotates down when expanded */
+.tree-expander {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    color: var(--primitive-colors-gray-700, #616161);
+}
+.tree-expander .nav-icon {
+    width: 16px;
+    height: 16px;
+    background-color: currentColor;
+    -webkit-mask-image: var(--icon-url-chevron-lg-right);
+    mask-image: var(--icon-url-chevron-lg-right);
+    transform: rotate(90deg);
+}
+.tree-expander.collapsed .nav-icon {
+    transform: rotate(0deg);
+}
+/* tix / stat icons 20px in colors/primary (#18675A); !important beats the older green rule above */
+.data-grid-cell .nav-icon.icon-tix,
+.data-grid-cell .nav-icon.icon-stat {
+    width: 20px !important;
+    height: 20px !important;
+    background-color: var(--semantic-color-colors-primary, #18675a) !important;
+}
+/* add (sub tix) 24px #00C27B, shown on hover — colour already set above */
+/* checkbox: check_box_default 24px icon = 16px box, 1.5px #9E9E9E stroke, radius 5.5 */
+.checkbox-container {
+    width: 24px;
+    height: 24px;
+    justify-content: center;
+}
+.checkbox-box {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--primitive-colors-gray-500, #9e9e9e);
+    border-radius: 5.5px;
+}
+.checkbox-container input:checked+.checkbox-box::before {
+    width: 14px;
+    height: 14px;
+}
+/* Status=Drag: white card, 2px #757575 border, radius 8, 0 0 30px 10% shadow, backdrop blur */
+.drag-ghost {
+    background-color: var(--primitive-colors-base-white);
+    border: 2px solid var(--semantic-color-colors-text-caption, #757575);
+    border-radius: 8px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+    opacity: 1;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
