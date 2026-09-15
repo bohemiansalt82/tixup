@@ -28,6 +28,10 @@ export function setUser(user) {
 
 export function logout() {
   localStorage.removeItem(USER_KEY);
+  // The active space / box keys are browser-wide (shared with the vanilla app); drop them so the
+  // next account never opens on — or reads the boxes of — the previous account's space.
+  localStorage.removeItem('tixup-active-space');
+  localStorage.removeItem('tixup-active-box');
   emit();
 }
 

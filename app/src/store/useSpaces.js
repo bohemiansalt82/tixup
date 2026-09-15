@@ -314,6 +314,14 @@ export function useSpaceSync(user) {
     sync.user = me;
     sync.rev = null;
     sync.dirty = false;
+    // Account switch: never keep the previous account's active space / box (browser-wide keys).
+    // A returning account in a fresh browser gets its last active space back from the profile pull.
+    const staleActive = getActiveSpaceId();
+    if (staleActive && !getSpaces(userId).some((s) => s.id === staleActive)) {
+      localStorage.removeItem(ACTIVE_SPACE_KEY);
+      localStorage.removeItem(ACTIVE_BOX_KEY);
+      emit();
+    }
     if (!canSync()) { ensureDefaults(userId); setReady(true); return undefined; }
     // Cached list → render now, refresh in the background. Nothing cached → wait for the server.
     setReady(getSpaces(userId).length > 0);
@@ -352,14 +360,18 @@ export function useSpaces() {
 
   const ready = useSyncExternalStore(subscribe, isSpacesReady);
   const spaces = useSyncExternalStore(subscribe, () => getSpaces(userId));
-  const activeSpaceId = useSyncExternalStore(subscribe, getActiveSpaceId);
+  const storedActiveId = useSyncExternalStore(subscribe, getActiveSpaceId);
   const activeBoxId = useSyncExternalStore(subscribe, getActiveBoxId);
+  // `tixup-active-space` is one browser-wide key, so after switching accounts it can still point
+  // at the previous account's space. Resolve it against *this* user's list first and use the
+  // resolved id everywhere (boxes, createBox, deleteBox) — never the raw stored one.
+  const activeSpaceId = spaces.some((s) => s.id === storedActiveId) ? storedActiveId : (spaces[0]?.id ?? null);
   const boxes = useSyncExternalStore(subscribe, () => getBoxes(activeSpaceId));
 
   return useMemo(() => ({
     ready,
     spaces,
-    activeSpace: spaces.find((s) => s.id === activeSpaceId) ?? spaces[0] ?? null,
+    activeSpace: spaces.find((s) => s.id === activeSpaceId) ?? null,
     boxes,
     activeBox: boxes.find((b) => b.id === activeBoxId) ?? null,
     createSpace: (data) => createSpace(userId, data),
