@@ -58,6 +58,12 @@
   min-height: 48px;
   border-bottom: 1px solid var(--lv-line);
 }
+/* Rows are wrapped in `.lv-group` (parent + its sub-tix), so components.css
+   `.data-grid-row:last-child { border-bottom: none }` used to strip the underline from every
+   group's last row (i.e. every parent without children). Restore it; only the very last row
+   before the footer stays open (the footer's top border underlines it). */
+.lv-body .lv-group .lv-row:last-child { border-bottom: 1px solid var(--lv-line); }
+.lv-body .lv-group:last-child .lv-row:last-child { border-bottom: 0; }
 /* The last row keeps components.css `.data-grid-row:last-child { border-bottom: none }`: the footer's
    top border draws that line (Figma 37635:4700), so the two never stack into a 2px line. */
 .lv-row > .data-grid-cell { border-right: 1px solid var(--lv-line); min-width: 0; }
