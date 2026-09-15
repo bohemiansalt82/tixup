@@ -72,11 +72,11 @@ export function TopBar({ title, currentView, onViewChange, taskCount = 0, onCrea
               disabled={v.disabled}
               onClick={() => !v.disabled && onViewChange(v.id)}
             >
-              <img src={icon(v.icon)} alt="" width={24} height={24} />
+              <span className="topbar-view-icon" style={{ '--icon': `url(${icon(v.icon)})` }} aria-hidden="true" />
             </button>
           ))}
           <button type="button" className="topbar-view-btn" title="View options (coming soon)">
-            <img src={icon('more_vert')} alt="" width={24} height={24} />
+            <span className="topbar-view-icon" style={{ '--icon': `url(${icon('more_vert')})` }} aria-hidden="true" />
           </button>
         </div>
 

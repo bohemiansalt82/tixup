@@ -13,7 +13,8 @@
 }
 .cv-section *, .cv-section *::before, .cv-section *::after { box-sizing: border-box; }
 .cv-section img { display: block; }
-.cv-section button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+/* :where() keeps this reset at zero specificity so .cv-* button rules can set font/colour. */
+.cv-section :where(button) { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 
 /* ---- calendar card ---- */
 .cv-calendar {
@@ -39,10 +40,9 @@
   border-bottom: 1px solid var(--cv-line);
 }
 .cv-month { font-size: 18px; line-height: 13px; white-space: nowrap; color: var(--semantic-color-colors-text-heading, #212121); }
-.cv-toolbar-right { display: flex; align-items: center; gap: 16px; }
-.cv-modes { display: flex; align-items: center; gap: 10px; }
 .cv-nav { display: flex; align-items: center; }
-/* Button / Ghost (24px): 10px SemiBold, the active zoom sits on #F5F5F5 */
+/* Button / Ghost, Size=SM (39553:12915): 24px, radius 8, px 8, 10px SemiBold #2D2D2D.
+   Status: Hover #F5F5F5 · Disabled 50% opacity · Icon Only 24×24 with an 18px #424242 icon. */
 .cv-ghost-btn {
   display: flex;
   align-items: center;
@@ -57,9 +57,16 @@
   white-space: nowrap;
 }
 .cv-ghost-btn:hover:not(:disabled) { background: var(--primitive-colors-gray-100, #f5f5f5); }
-.cv-ghost-btn.active { background: var(--semantic-color-colors-border-soft, #f5f5f5); }
-.cv-ghost-btn:disabled { cursor: default; opacity: 0.55; }
-.cv-arrow-btn { width: 24px; padding: 0; }
+.cv-ghost-btn:disabled { cursor: default; opacity: 0.5; }
+.cv-arrow-btn { width: 24px; padding: 0; color: var(--primitive-colors-gray-800, #424242); }
+.cv-ghost-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  background-color: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
 
 .cv-weekdays {
   position: sticky;

@@ -36,9 +36,13 @@
 }
 
 /* View switcher */
-/* Tab / Icon Group (39557:2840): 40px tabs, radius 12, gap 8; more_vert sits in the group as a 4th tab. */
+/* Tab / Icon Group (39557:2840): 40px tabs, radius 12, gap 8; more_vert sits in the group as a 4th tab.
+   Status follows the "Tab / Icon" component (39556:2848):
+   Default icon gray/600 · Hover #F5F5F5 · Selected white + 1px #E6E6E6, icon black · Disabled icon gray/400.
+   The icon is a CSS mask so its colour comes from the button's `color`. */
 .topbar-views { display: flex; align-items: center; gap: 8px; padding-left: 32px; flex-shrink: 0; }
-.topbar-view-btn {
+/* `.topbar .topbar-view-btn` outranks the `.topbar button { color: inherit }` reset above. */
+.topbar .topbar-view-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -47,10 +51,19 @@
   border: 1px solid transparent;
   border-radius: 12px;
   background: transparent;
+  color: var(--primitive-colors-gray-600, #757575);
 }
-.topbar-view-btn:hover:not(:disabled) { background: var(--primitive-colors-gray-100, #f5f5f5); }
-.topbar-view-btn.active { background: #fff; border-color: #e6e6e6; }
-.topbar-view-btn:disabled { opacity: 0.45; }
+.topbar .topbar-view-btn:hover:not(:disabled):not(.active) { background: var(--primitive-colors-gray-100, #f5f5f5); }
+.topbar .topbar-view-btn.active { background: #fff; border-color: #e6e6e6; color: var(--primitive-colors-base-black, #000); }
+.topbar .topbar-view-btn:disabled { color: var(--primitive-colors-gray-400, #bdbdbd); }
+.topbar-view-icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  background-color: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
 .topbar-plain-btn {
   display: inline-flex;
   padding: 0;

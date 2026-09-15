@@ -183,35 +183,18 @@ export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix }) {
   return (
     <div className="cv-section">
       <div className="cv-calendar" role="grid" aria-label="Calendar">
-        {/* Month toolbar sits inside the card (Figma 39552:12445): 18px month, Day / Week / Month
-            ghost segment (only Month exists here), ‹ This Month › */}
+        {/* Month toolbar sits inside the card (Figma 39552:12445): 18px month + ‹ This Month ›
+            built from "Button / Ghost" SM (24px, radius 8, 10px SemiBold; hover #F5F5F5). */}
         <div className="cv-toolbar">
           <span className="cv-month">{formatMonth(month)}</span>
-          <div className="cv-toolbar-right">
-            <div className="cv-modes" role="tablist" aria-label="Zoom">
-              {[['day', 'Day'], ['week', 'Week'], ['month', 'Month']].map(([mode, label]) => (
-                <button
-                  key={mode}
-                  type="button"
-                  role="tab"
-                  aria-selected={mode === 'month'}
-                  className={`cv-ghost-btn${mode === 'month' ? ' active' : ''}`}
-                  title={mode === 'month' ? 'Month view' : `${label} view (coming soon)`}
-                  disabled={mode !== 'month'}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div className="cv-nav">
-              <button type="button" className="cv-ghost-btn cv-arrow-btn" onClick={() => setMonth((m) => addMonths(m, -1))} aria-label="Previous month">
-                <img src={icon('chevron_left')} alt="" width={18} height={18} />
-              </button>
-              <button type="button" className="cv-ghost-btn" onClick={() => setMonth(startOfMonth(new Date()))}>This Month</button>
-              <button type="button" className="cv-ghost-btn cv-arrow-btn" onClick={() => setMonth((m) => addMonths(m, 1))} aria-label="Next month">
-                <img src={icon('chevron_right')} alt="" width={18} height={18} />
-              </button>
-            </div>
+          <div className="cv-nav">
+            <button type="button" className="cv-ghost-btn cv-arrow-btn" onClick={() => setMonth((m) => addMonths(m, -1))} aria-label="Previous month">
+              <span className="cv-ghost-icon" style={{ '--icon': `url(${icon('chevron_left')})` }} aria-hidden="true" />
+            </button>
+            <button type="button" className="cv-ghost-btn" onClick={() => setMonth(startOfMonth(new Date()))}>This Month</button>
+            <button type="button" className="cv-ghost-btn cv-arrow-btn" onClick={() => setMonth((m) => addMonths(m, 1))} aria-label="Next month">
+              <span className="cv-ghost-icon" style={{ '--icon': `url(${icon('chevron_right')})` }} aria-hidden="true" />
+            </button>
           </div>
         </div>
 
