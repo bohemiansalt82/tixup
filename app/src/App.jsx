@@ -211,7 +211,6 @@ function Dashboard({ spaceId }) {
         {currentView === 'dashboard' ? (
           <DashboardView
             tasks={tasks}
-            spaceId={spaceId}
             members={members}
             currentUser={user}
             onOpenTix={setDetailTaskId}

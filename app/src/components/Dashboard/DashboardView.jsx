@@ -1,15 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useSpaces } from '../../store/useSpaces';
 import { avatarFor } from '../../store/useAuth';
-import { useActivityLog } from '../../store/activityLog';
 import { useInvite } from '../../hooks/useInvite';
 import { STATUS_LABELS } from '../../constants';
-import { todayISO as todayIso } from '../../utils/timeline';
 import { MakeModal } from '../Modals/MakeModal';
 import { InviteModal } from '../Modals/InviteModal';
 import {
   overview, keywords, byAssignee, distribution, assigneeName, assigneePicture,
-  buildDayLine, buildWeekLine, countInRange, dayISO, shortDate, clock,
+  buildDayLine, buildWeekLine, timelineEntries, entryInRange, shortDate, clock,
 } from './dashboardStats';
 import './DashboardView.css';
 
@@ -21,16 +19,19 @@ const headerIcon = (name) => `${import.meta.env.BASE_URL}images/header/${name}.s
  *
  * Live: header counts, New Project (creates a box), team invite, Overview (This Week / This Month),
  * Keywords (word frequency over Tix titles), Issue status by Assignee (sortable), Issue status
- * Distribution, and the activity Timeline (Day / Week day line, click a day to filter).
+ * Distribution, and the Timeline: every parent Tix in date order; the day line dots show how many
+ * Tix run on each day (dot size = count) and clicking a day / week scrolls the list to those Tix
+ * and marks them with the green rail. Only the timeline panes scroll, not the page.
  * Visual only: "Files" count, the "Ai" badge, the ⋮ menu.
  */
-export function DashboardView({ tasks, spaceId, members = [], currentUser, onOpenTix }) {
+export function DashboardView({ tasks, members = [], currentUser, onOpenTix }) {
   const { activeSpace, boxes, createBox } = useSpaces();
-  const activity = useActivityLog(spaceId);
   const [period, setPeriod] = useState('week');
   const [issueSort, setIssueSort] = useState('desc');
   const [lineMode, setLineMode] = useState('day');
-  const [selectedRange, setSelectedRange] = useState(null); // { from, to } ISO
+  const [selected, setSelected] = useState({ from: 0, to: 0 }); // day offsets (0 = today)
+  const feedRef = useRef(null);
+  const daylineRef = useRef(null);
   const [boxModal, setBoxModal] = useState(false);
   const invite = useInvite();
 
@@ -42,12 +43,17 @@ export function DashboardView({ tasks, spaceId, members = [], currentUser, onOpe
   }, [tasks, members, currentUser, issueSort]);
   const dist = useMemo(() => distribution(tasks), [tasks]);
   const line = useMemo(() => (lineMode === 'day' ? buildDayLine() : buildWeekLine()), [lineMode]);
-  const feed = useMemo(() => {
-    if (!selectedRange) return activity;
-    return activity.filter((e) => { const d = dayISO(e.ts); return d >= selectedRange.from && d <= selectedRange.to; });
-  }, [activity, selectedRange]);
+  const entries = useMemo(() => timelineEntries(tasks), [tasks]);
   const boxName = (id) => boxes.find((b) => b.id === id)?.name ?? activeSpace?.name ?? '';
-  const todayISO = todayIso();
+
+  // Selecting a day / week scrolls the Tix list to the first Tix of that range; the day line keeps
+  // the selected item in view too (both panes scroll on their own).
+  useLayoutEffect(() => {
+    const feed = feedRef.current;
+    const target = feed?.querySelector('.dv-entry-selected');
+    if (feed && target) feed.scrollTo({ top: Math.max(0, target.offsetTop - 8), behavior: 'smooth' });
+    daylineRef.current?.querySelector('.dv-day-selected')?.scrollIntoView({ block: 'nearest' });
+  }, [selected, lineMode, entries]);
 
   const teamMembers = members.filter((m) => m.email !== currentUser?.email).slice(0, 3);
 
@@ -201,21 +207,21 @@ export function DashboardView({ tasks, spaceId, members = [], currentUser, onOpe
         <div className="dv-col dv-col-right">
           <div className="dv-block-head">
             <h2 className="dv-block-title">Timeline</h2>
-            <Segment value={lineMode} onChange={(m) => { setLineMode(m); setSelectedRange(null); }} options={[['day', 'Day'], ['week', 'Week']]} />
+            <Segment value={lineMode} onChange={(m) => { setLineMode(m); setSelected({ from: 0, to: 0 }); }} options={[['day', 'Day'], ['week', 'Week']]} />
           </div>
           <div className="dv-timeline">
-            <div className="dv-dayline">
+            <div className="dv-dayline" ref={daylineRef}>
               {line.map((it) => {
                 if (it.kind === 'label') return <div className="dv-day dv-day-label" key={it.key}>{it.text}</div>;
-                const n = countInRange(activity, it.from, it.to);
-                const selected = selectedRange ? selectedRange.from === it.from : it.today;
+                const n = entries.filter((e) => entryInRange(e, it.from, it.to)).length;
+                const isSelected = selected.from === it.from && selected.to === it.to;
                 return (
                   <button
                     type="button"
                     key={it.key}
-                    className={`dv-day${selected ? ' dv-day-selected' : ''}${it.weekend ? ' dv-day-weekend' : ''}`}
-                    onClick={() => setSelectedRange((cur) => (cur && cur.from === it.from ? null : { from: it.from, to: it.to }))}
-                    title={n ? `${n} change${n > 1 ? 's' : ''}` : undefined}
+                    className={`dv-day${isSelected ? ' dv-day-selected' : ''}${it.weekend ? ' dv-day-weekend' : ''}${it.today ? ' dv-day-today' : ''}`}
+                    onClick={() => setSelected({ from: it.from, to: it.to })}
+                    title={n ? `${n} Tix` : undefined}
                   >
                     <span className="dv-day-tix">{n > 0 && <span className={`dv-day-dot dv-day-dot-${n >= 4 ? 3 : n >= 2 ? 2 : 1}`} />}</span>
                     <span className="dv-day-letter">{it.letter}</span>
@@ -224,14 +230,18 @@ export function DashboardView({ tasks, spaceId, members = [], currentUser, onOpe
                 );
               })}
             </div>
-            <div className="dv-feed">
-              {feed.length === 0 && (
-                <div className="dv-feed-empty">
-                  {selectedRange ? 'No changes in this period.' : 'Changes to your Tix will show up here.'}
-                </div>
-              )}
-              {feed.map((e) => (
-                <Entry key={e.id} entry={e} boxName={boxName(e.boxId)} isToday={dayISO(e.ts) === todayISO} members={members} currentUser={currentUser} onOpen={onOpenTix && tasks.some((t) => t.id === e.taskId) ? () => onOpenTix(e.taskId) : null} />
+            <div className="dv-feed" ref={feedRef}>
+              {entries.length === 0 && <div className="dv-feed-empty">Your Tix will show up here in date order.</div>}
+              {entries.map((e) => (
+                <TixEntry
+                  key={e.task.id}
+                  entry={e}
+                  boxName={boxName(e.task.boxId)}
+                  selected={entryInRange(e, selected.from, selected.to)}
+                  members={members}
+                  currentUser={currentUser}
+                  onOpen={onOpenTix ? () => onOpenTix(e.task.id) : null}
+                />
               ))}
             </div>
           </div>
@@ -274,27 +284,36 @@ function Ring({ pct, color }) {
   );
 }
 
-const FIELD_LABELS = { title: 'Renamed', status: 'Status', assignee: 'Tix to', tags: 'Tags', start: 'Change', end: 'Due date', box: 'Box' };
-
-function Entry({ entry, boxName, isToday, members, currentUser, onOpen }) {
-  const title = entry.title || 'Untitled';
+/** One Tix in the Timeline (Figma 37705:1016 / 37705:12623): title + created time, box, then Change / Tix to / Status / Tags. */
+function TixEntry({ entry, boxName, selected, members, currentUser, onOpen }) {
+  const { task } = entry;
+  const title = task.title || 'Untitled';
+  const tags = Array.isArray(task.tags) ? task.tags : [];
   return (
-    <article className={`dv-entry${isToday ? '' : ' dv-entry-past'}`}>
+    <article className={`dv-entry${selected ? ' dv-entry-selected' : ''}`} data-task-id={task.id}>
       <span className="dv-entry-dot" />
       <div className="dv-entry-head">
         <div className="dv-entry-row">
           {onOpen ? <button type="button" className="dv-entry-title dv-entry-link" onClick={onOpen}>{title}</button> : <span className="dv-entry-title">{title}</span>}
-          <span className="dv-entry-time">{clock(entry.ts)}</span>
+          {task.createdAt && <span className="dv-entry-time">{clock(task.createdAt)}</span>}
         </div>
         <div className="dv-entry-sub">{boxName}</div>
       </div>
-      {entry.kind === 'create' && <Row label="Created"><StatusChip status={entry.changes[0]?.to || 'pending'} /></Row>}
-      {entry.kind === 'delete' && <Row label="Deleted"><span className="dv-chip dv-chip-muted">Removed</span></Row>}
-      {entry.kind === 'update' && entry.changes.map((c) => (
-        <Row key={c.field} label={FIELD_LABELS[c.field] || c.field}>
-          <Change change={c} members={members} currentUser={currentUser} />
-        </Row>
-      ))}
+      {entry.startISO && (
+        <Row label="Change"><span className="dv-chip">{shortDate(entry.startISO)}</span><Arrow /><span className="dv-chip">{shortDate(entry.endISO)}</span></Row>
+      )}
+      <Row label="Tix to">
+        {task.assignee ? (
+          <span className="dv-chip dv-chip-person">
+            <img src={assigneePicture(task.assignee, members, currentUser)} alt="" referrerPolicy="no-referrer" />
+            {assigneeName(task.assignee, members, currentUser)}
+          </span>
+        ) : <span className="dv-chip dv-chip-muted">Unassigned</span>}
+      </Row>
+      <Row label="Status"><StatusChip status={task.status} /></Row>
+      {tags.length > 0 && (
+        <Row label="Tags">{tags.map((t) => <span key={t} className={`marker lv-tag lv-tag-${String(t).toLowerCase()}`}>{t}</span>)}</Row>
+      )}
     </article>
   );
 }
@@ -309,30 +328,6 @@ function Row({ label, children }) {
 }
 
 function Arrow() { return <img className="dv-row-arrow" src={icon('arrow_right')} alt="→" width={24} height={24} />; }
-
-function Change({ change, members, currentUser }) {
-  const { field, from, to } = change;
-  switch (field) {
-    case 'start':
-    case 'end':
-      return <><span className="dv-chip">{shortDate(from)}</span><Arrow /><span className="dv-chip">{shortDate(to)}</span></>;
-    case 'status':
-      return <StatusChip status={to} />;
-    case 'assignee':
-      return to ? (
-        <span className="dv-chip dv-chip-person">
-          <img src={assigneePicture(to, members, currentUser)} alt="" referrerPolicy="no-referrer" />
-          {assigneeName(to, members, currentUser)}
-        </span>
-      ) : <span className="dv-chip dv-chip-muted">Unassigned</span>;
-    case 'tags':
-      return to.length ? to.map((t) => <span key={t} className={`marker lv-tag lv-tag-${String(t).toLowerCase()}`}>{t}</span>) : <span className="dv-chip dv-chip-muted">No tags</span>;
-    case 'title':
-      return <><span className="dv-chip dv-chip-text">{from || 'Untitled'}</span><Arrow /><span className="dv-chip dv-chip-text">{to || 'Untitled'}</span></>;
-    default:
-      return <span className="dv-chip">{String(to ?? '—')}</span>;
-  }
-}
 
 /** Marker V2 status chip: Drop (gray, ⊘) and Overdue (red, skull) follow the Figma entries. */
 function StatusChip({ status }) {

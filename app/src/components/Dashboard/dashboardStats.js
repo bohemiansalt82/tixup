@@ -119,15 +119,15 @@ export function distribution(tasks) {
   });
 }
 
-/* ---- activity timeline: day line ---- */
-export const dayISO = (ts) => toISO(new Date(ts));
+/* ---- timeline: Tix by date ---- */
 const LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 function dayItem(date, today) {
-  return { kind: 'day', key: toISO(date), from: toISO(date), to: toISO(date), letter: LETTERS[date.getDay()], num: date.getDate(), weekend: date.getDay() === 0 || date.getDay() === 6, today: isSameDay(date, today) };
+  const offset = diffDays(today, date);
+  return { kind: 'day', key: toISO(date), from: offset, to: offset, letter: LETTERS[date.getDay()], num: date.getDate(), weekend: date.getDay() === 0 || date.getDay() === 6, today: isSameDay(date, today) };
 }
 
-/** Day mode: 3 days of the previous month, the month label, then every day of this month. */
+/** Day mode: 3 days of the previous month, the month label, then every day of this month. `from`/`to` are day offsets. */
 export function buildDayLine(today = BASE_EPOCH) {
   const first = startOfMonth(today);
   const last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
@@ -152,18 +152,26 @@ export function buildWeekLine(today = BASE_EPOCH) {
       month = monday.getMonth();
       items.push({ kind: 'label', key: `label-${toISO(monday)}`, text: formatMonth(monday) });
     }
-    items.push({ kind: 'week', key: `w-${toISO(monday)}`, from: toISO(monday), to: toISO(sunday), letter: 'W', num: monday.getDate(), weekend: false, today: today >= monday && today <= sunday });
+    const from = diffDays(today, monday);
+    items.push({ kind: 'week', key: `w-${toISO(monday)}`, from, to: from + 6, letter: 'W', num: monday.getDate(), weekend: false, today: today >= monday && today <= sunday });
     monday = addDays(monday, 7);
   }
   return items;
 }
 
-/** Number of activity entries whose day falls in [from, to] (ISO strings). */
-export function countInRange(entries, from, to) {
-  let n = 0;
-  entries.forEach((e) => { const d = dayISO(e.ts); if (d >= from && d <= to) n += 1; });
-  return n;
+/** Parent Tix ordered by start date (unplaced ones last), with their day span and ISO dates. */
+export function timelineEntries(tasks) {
+  return tasks
+    .filter((t) => t.type !== 'child')
+    .map((t) => {
+      const span = taskDays(t);
+      return { task: t, ...(span || { startOffset: null, endOffset: null }), startISO: span ? toISO(addDays(BASE_EPOCH, span.startOffset)) : null, endISO: span ? toISO(addDays(BASE_EPOCH, span.endOffset)) : null };
+    })
+    .sort((a, b) => (a.startOffset ?? Infinity) - (b.startOffset ?? Infinity) || (a.endOffset ?? 0) - (b.endOffset ?? 0) || (a.task.title || '').localeCompare(b.task.title || ''));
 }
+
+/** Does the Tix's span touch the day-offset range [from, to]? */
+export const entryInRange = (entry, from, to) => entry.startOffset !== null && entry.startOffset <= to && entry.endOffset >= from;
 
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 export function shortDate(iso) {
@@ -171,7 +179,8 @@ export function shortDate(iso) {
   const [, m, d] = iso.split('-').map(Number);
   return `${d} ${MON[m - 1]}`;
 }
-export function clock(ts) {
-  const d = new Date(ts);
+export function clock(isoOrMs) {
+  const d = new Date(isoOrMs);
+  if (Number.isNaN(d.getTime())) return '';
   return [d.getHours(), d.getMinutes(), d.getSeconds()].map((n) => String(n).padStart(2, '0')).join(':');
 }

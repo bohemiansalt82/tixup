@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { CENTER_PX } from '../constants';
 import { uid, rebaseTasks } from '../utils/timeline';
 import { canSync, loadRemoteSpace, saveRemoteSpace, beaconSaveRemoteSpace } from './remote';
-import { recordActivity } from './activityLog';
 
 const PUSH_DEBOUNCE_MS = 700;
 const POLL_MS = 15000;
@@ -66,13 +65,6 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
   const syncRef = useRef({ rev: null, dirty: false, pushing: false, timer: null, unmounted: false });
   const metaRef = useRef({ space, user });
   useEffect(() => { metaRef.current = { space, user }; }, [space, user]);
-  // Dashboard activity feed: diff every committed list against the previous one (see activityLog.js).
-  const loggedRef = useRef(null);
-  useEffect(() => {
-    const prev = loggedRef.current;
-    loggedRef.current = tasks;
-    if (prev && prev !== tasks) recordActivity(spaceId, prev, tasks);
-  }, [tasks, spaceId]);
   const pushRef = useRef(() => {}); // latest push(), for retries scheduled from inside push()
   const spaceMeta = useCallback(() => {
     const m = metaRef.current.space;
@@ -192,7 +184,7 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
   }, [spaceId, schedulePush]);
 
   const addTask = useCallback((title, boxId = null) => {
-    const task = { id: uid(), title, status: 'pending', type: 'parent', boxId, start: CENTER_PX, width: 96 };
+    const task = { id: uid(), title, status: 'pending', type: 'parent', boxId, start: CENTER_PX, width: 96, createdAt: new Date().toISOString() };
     updateTasks(prev => [...prev, task]);
     setNewIds(prev => new Set([...prev, task.id]));
     setTimeout(() => setNewIds(prev => { const s = new Set(prev); s.delete(task.id); return s; }), 500);
@@ -200,7 +192,7 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
   }, [updateTasks]);
 
   const addChild = useCallback((parentId) => {
-    const task = { id: uid(), title: '', status: 'pending', type: 'child', parentId, start: CENTER_PX, width: 96 };
+    const task = { id: uid(), title: '', status: 'pending', type: 'child', parentId, start: CENTER_PX, width: 96, createdAt: new Date().toISOString() };
     updateTasks(prev => {
       const parent = prev.find(t => t.id === parentId);
       const child = { ...task, boxId: parent?.boxId ?? null };
