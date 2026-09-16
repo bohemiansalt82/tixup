@@ -1,4 +1,4 @@
-/* GNB_V5 — Figma Tixup-V2.0 node 39523:13759 */
+/* GNB_V5 — Figma Tixup-V2.0 node 37551:4091 (Home / Space list / Box) */
 .gnb {
   display: flex;
   flex-direction: column;
@@ -43,7 +43,8 @@
 
 /* Sections */
 .gnb-section { display: flex; flex-direction: column; width: 100%; }
-.gnb-section-space { padding: 8px 0; flex-shrink: 0; }
+.gnb-section-home, .gnb-section-space { padding: 8px 0; flex-shrink: 0; }
+.gnb-section-space { max-height: 40%; overflow-y: auto; }
 .gnb-section-box { padding-top: 24px; flex: 1 1 0; min-height: 0; overflow-y: auto; }
 
 .gnb-section-header {
@@ -82,12 +83,8 @@
 .gnb-item.active { background: var(--primitive-colors-gray-200, #eee); }
 .gnb-item:focus-visible { outline: 2px solid var(--primitive-colors-gray-400, #bdbdbd); outline-offset: -2px; }
 
-.gnb-item-space {
-  border-radius: var(--primitive-sizes-8, 8px);
-  background: var(--primitive-colors-gray-200, #eee);
-  padding-right: 36px;
-}
-.gnb-item-space:hover { background: var(--primitive-colors-gray-300, #e0e0e0); }
+.gnb-item-space.active { border-radius: var(--primitive-sizes-8, 8px); background: var(--primitive-colors-gray-200, #eee); }
+.gnb-item-space.active:hover { background: var(--primitive-colors-gray-300, #e0e0e0); }
 .gnb-item-tasks { padding-right: 12px; }
 
 .gnb-item-label {
@@ -122,43 +119,6 @@
   line-height: 1.6;
   flex-shrink: 0;
 }
-
-/* Space switcher dropdown (Figma 39521:10587) */
-.gnb-dropdown {
-  position: absolute;
-  left: 1px;
-  top: 50px;
-  z-index: 50;
-  width: 223px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  background: #fff;
-  border: 2px solid var(--primitive-colors-gray-400, #bdbdbd);
-  border-radius: var(--primitive-sizes-8, 8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  overflow: hidden;
-}
-.gnb-dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  height: 40px;
-  padding: 0 8px;
-  border: 0;
-  background: #fff;
-  font: inherit;
-  font-size: var(--semantic-font-font-size-font-size-md, 14px);
-  font-weight: 500;
-  line-height: 1;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.gnb-dropdown-item:hover { background: #f7f7f7; }
-.gnb-dropdown-item.selected { background: #f2f2f2; }
-.gnb-dropdown-item span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Footer: py24, gap 30, centered */
 .gnb-footer {

@@ -47,11 +47,10 @@ function useOutsideClose(open, onClose) {
 export function Gnb({ tasks = [], view = 'timeline', onViewChange }) {
   const user = useAuth();
   const { spaces, activeSpace, boxes, activeBox, createSpace, switchSpace, renameSpace, deleteSpace, createBox, renameBox, deleteBox, selectBox } = useSpaces();
-  const [spaceMenuOpen, setSpaceMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [modal, setModal] = useState(null); // 'space' | 'box' | null
   const countInBox = (boxId) => tasks.filter((t) => t.boxId === boxId).length;
-  // Picking a box / My Tasks from the dashboard returns to the timeline.
+  // Picking a box / My Task from the dashboard returns to the timeline.
   const leaveDashboard = () => { if (view === 'dashboard') onViewChange?.('timeline'); };
   // Right-click: rename / delete a space or a box. `editing` = { kind: 'space'|'box', id } while renaming inline.
   const ctx = useContextMenu();
@@ -64,7 +63,7 @@ export function Gnb({ tasks = [], view = 'timeline', onViewChange }) {
   };
   const removeBox = (box) => {
     const n = countInBox(box.id);
-    if (confirm(`"${box.name}" 박스를 삭제할까요?${n ? ` 안의 Tix ${n}개는 My Tasks에 남습니다.` : ''}`)) deleteBox(box.id);
+    if (confirm(`"${box.name}" 박스를 삭제할까요?${n ? ` 안의 Tix ${n}개는 My Task에 남습니다.` : ''}`)) deleteBox(box.id);
   };
   const ctxItems = ctxTarget ? [
     { label: '이름 변경', onClick: () => setEditing({ kind: ctxTarget.kind, id: ctxTarget.id }) },
@@ -73,7 +72,6 @@ export function Gnb({ tasks = [], view = 'timeline', onViewChange }) {
   const isEditing = (kind, id) => editing?.kind === kind && editing?.id === id;
   const commitName = (kind, id) => (name) => { if (kind === 'space') renameSpace(id, name); else renameBox(id, name); setEditing(null); };
 
-  const spaceMenuRef = useOutsideClose(spaceMenuOpen, () => setSpaceMenuOpen(false));
   const userMenuRef = useOutsideClose(userMenuOpen, () => setUserMenuOpen(false));
 
   const handleCreateSpace = () => setModal('space');
@@ -99,57 +97,11 @@ export function Gnb({ tasks = [], view = 'timeline', onViewChange }) {
         </div>
       </header>
 
-      <section className="gnb-section gnb-section-space">
-        <SectionHeader label="Space" onAdd={handleCreateSpace} addTitle="New Space" />
-
-        <div className="gnb-row" ref={spaceMenuRef}>
-          <button
-            type="button"
-            className="gnb-item gnb-item-space"
-            onClick={() => { if (!isEditing('space', activeSpace?.id)) setSpaceMenuOpen((o) => !o); }}
-            onContextMenu={activeSpace ? openCtx('space', activeSpace) : undefined}
-            aria-haspopup="listbox"
-            aria-expanded={spaceMenuOpen}
-          >
-            <GnbIcon name="planet" />
-            <InlineName
-              value={activeSpace?.name ?? 'My Space'}
-              editing={!!activeSpace && isEditing('space', activeSpace.id)}
-              onCommit={commitName('space', activeSpace?.id)}
-              onCancel={() => setEditing(null)}
-              className="gnb-item-label"
-              inputClassName="gnb-item-label gnb-inline-input"
-            />
-            <GnbIcon name="swap" className="gnb-item-trailing" />
-          </button>
-
-          {spaceMenuOpen && (
-            <ul className="gnb-dropdown" role="listbox">
-              {spaces.map((s) => (
-                <li key={s.id}>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={s.id === activeSpace?.id}
-                    className={`gnb-dropdown-item${s.id === activeSpace?.id ? ' selected' : ''}`}
-                    onClick={() => { if (isEditing('space', s.id)) return; switchSpace(s.id); setSpaceMenuOpen(false); }}
-                    onContextMenu={openCtx('space', s)}
-                  >
-                    <GnbIcon name="planet" />
-                    <InlineName
-                      value={s.name}
-                      editing={isEditing('space', s.id)}
-                      onCommit={commitName('space', s.id)}
-                      onCancel={() => setEditing(null)}
-                      inputClassName="gnb-inline-input"
-                    />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+      {/* Home: Dashboard / My Task (Figma GNB_V5 37551:4091, section 37548:4420) */}
+      <section className="gnb-section gnb-section-home">
+        <div className="gnb-section-header">
+          <span className="gnb-section-label">Home</span>
         </div>
-
         <div className="gnb-row">
           <button
             type="button"
@@ -157,22 +109,50 @@ export function Gnb({ tasks = [], view = 'timeline', onViewChange }) {
             onClick={() => onViewChange?.('dashboard')}
             aria-current={view === 'dashboard' ? 'page' : undefined}
           >
-            <GnbIcon name="dashboard" />
+            <GnbIcon name="analytics" />
             <span className="gnb-item-label">Dashboard</span>
           </button>
         </div>
-
         <div className="gnb-row">
           <button
             type="button"
-            className="gnb-item gnb-item-tasks"
+            className={`gnb-item gnb-item-tasks${view !== 'dashboard' && !activeBox ? ' active' : ''}`}
             onClick={() => { leaveDashboard(); selectBox(null); }}
           >
-            <GnbIcon name="work_filled" />
-            <span className="gnb-item-label">My Tasks</span>
+            <GnbIcon name="work" />
+            <span className="gnb-item-label">My Task</span>
             <CountBadge value={tasks.length} />
           </button>
         </div>
+      </section>
+
+      {/* Space: every space listed, the active one filled (section 39580:10388) */}
+      <section className="gnb-section gnb-section-space">
+        <SectionHeader label="Space" onAdd={handleCreateSpace} addTitle="New Space" />
+        {spaces.map((s) => {
+          const active = s.id === activeSpace?.id;
+          return (
+            <div className="gnb-row" key={s.id}>
+              <button
+                type="button"
+                className={`gnb-item gnb-item-space${active ? ' active' : ''}`}
+                onClick={() => { if (!isEditing('space', s.id)) switchSpace(s.id); }}
+                onContextMenu={openCtx('space', s)}
+                aria-current={active ? 'true' : undefined}
+              >
+                <GnbIcon name={active ? 'planet' : 'planet_muted'} />
+                <InlineName
+                  value={s.name}
+                  editing={isEditing('space', s.id)}
+                  onCommit={commitName('space', s.id)}
+                  onCancel={() => setEditing(null)}
+                  className="gnb-item-label"
+                  inputClassName="gnb-item-label gnb-inline-input"
+                />
+              </button>
+            </div>
+          );
+        })}
       </section>
 
       <section className="gnb-section gnb-section-box">
