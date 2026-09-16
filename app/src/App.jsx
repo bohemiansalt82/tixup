@@ -8,6 +8,7 @@ import { TaskGrid } from './components/Grid/TaskGrid';
 import { TimelineView } from './components/Timeline/TimelineView';
 import { ListView } from './components/List/ListView';
 import { CalendarView } from './components/Calendar/CalendarView';
+import { DashboardView } from './components/Dashboard/DashboardView';
 import { TixDetailModal } from './components/Detail/TixDetailModal';
 import { dateToDayOffset, dayOffsetToPx, parseISO } from './components/Calendar/calendarLayout';
 import { SelectionBar } from './components/Shared/SelectionBar';
@@ -205,8 +206,17 @@ function Dashboard({ spaceId }) {
 
   return (
     <div className="tixup-root" style={{ display: 'flex', width: '100%', height: '100vh', overflow: 'hidden' }}>
-      <Gnb tasks={tasks} />
+      <Gnb tasks={tasks} view={currentView} onViewChange={setCurrentView} />
       <main className="guide-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+        {currentView === 'dashboard' ? (
+          <DashboardView
+            tasks={tasks}
+            spaceId={spaceId}
+            members={members}
+            currentUser={user}
+            onOpenTix={setDetailTaskId}
+          />
+        ) : (
         <TopBar
           title={activeBox?.name ?? activeSpace?.name ?? 'My Space'}
           currentView={currentView}
@@ -214,6 +224,7 @@ function Dashboard({ spaceId }) {
           taskCount={visibleTasks.length}
           onCreateTix={handleCreateTix}
         />
+        )}
 
         <section
           className="timeline-grid-container"

@@ -44,13 +44,15 @@ function useOutsideClose(open, onClose) {
   return ref;
 }
 
-export function Gnb({ tasks = [] }) {
+export function Gnb({ tasks = [], view = 'timeline', onViewChange }) {
   const user = useAuth();
   const { spaces, activeSpace, boxes, activeBox, createSpace, switchSpace, renameSpace, deleteSpace, createBox, renameBox, deleteBox, selectBox } = useSpaces();
   const [spaceMenuOpen, setSpaceMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [modal, setModal] = useState(null); // 'space' | 'box' | null
   const countInBox = (boxId) => tasks.filter((t) => t.boxId === boxId).length;
+  // Picking a box / My Tasks from the dashboard returns to the timeline.
+  const leaveDashboard = () => { if (view === 'dashboard') onViewChange?.('timeline'); };
   // Right-click: rename / delete a space or a box. `editing` = { kind: 'space'|'box', id } while renaming inline.
   const ctx = useContextMenu();
   const [ctxTarget, setCtxTarget] = useState(null); // { kind: 'space'|'box', id, name }
@@ -151,8 +153,20 @@ export function Gnb({ tasks = [] }) {
         <div className="gnb-row">
           <button
             type="button"
+            className={`gnb-item${view === 'dashboard' ? ' active' : ''}`}
+            onClick={() => onViewChange?.('dashboard')}
+            aria-current={view === 'dashboard' ? 'page' : undefined}
+          >
+            <GnbIcon name="dashboard" />
+            <span className="gnb-item-label">Dashboard</span>
+          </button>
+        </div>
+
+        <div className="gnb-row">
+          <button
+            type="button"
             className="gnb-item gnb-item-tasks"
-            onClick={() => selectBox(null)}
+            onClick={() => { leaveDashboard(); selectBox(null); }}
           >
             <GnbIcon name="work_filled" />
             <span className="gnb-item-label">My Tasks</span>
@@ -168,7 +182,7 @@ export function Gnb({ tasks = [] }) {
             <button
               type="button"
               className={`gnb-item${activeBox?.id === b.id ? ' active' : ''}`}
-              onClick={() => { if (!isEditing('box', b.id)) selectBox(b.id); }}
+              onClick={() => { if (!isEditing('box', b.id)) { leaveDashboard(); selectBox(b.id); } }}
               onContextMenu={openCtx('box', b)}
             >
               <GnbIcon name="deployed_code" />

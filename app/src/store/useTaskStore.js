@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { CENTER_PX } from '../constants';
 import { uid, rebaseTasks } from '../utils/timeline';
 import { canSync, loadRemoteSpace, saveRemoteSpace, beaconSaveRemoteSpace } from './remote';
+import { recordActivity } from './activityLog';
 
 const PUSH_DEBOUNCE_MS = 700;
 const POLL_MS = 15000;
@@ -65,6 +66,13 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
   const syncRef = useRef({ rev: null, dirty: false, pushing: false, timer: null, unmounted: false });
   const metaRef = useRef({ space, user });
   useEffect(() => { metaRef.current = { space, user }; }, [space, user]);
+  // Dashboard activity feed: diff every committed list against the previous one (see activityLog.js).
+  const loggedRef = useRef(null);
+  useEffect(() => {
+    const prev = loggedRef.current;
+    loggedRef.current = tasks;
+    if (prev && prev !== tasks) recordActivity(spaceId, prev, tasks);
+  }, [tasks, spaceId]);
   const pushRef = useRef(() => {}); // latest push(), for retries scheduled from inside push()
   const spaceMeta = useCallback(() => {
     const m = metaRef.current.space;

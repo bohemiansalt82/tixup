@@ -1,8 +1,6 @@
-import { useState } from 'react';
-import { useAuth, avatarFor } from '../../store/useAuth';
-import { useSpaces } from '../../store/useSpaces';
+import { avatarFor } from '../../store/useAuth';
 import { InviteModal } from '../Modals/InviteModal';
-import { canSendMail, sendInviteMail } from '../../utils/inviteMail';
+import { useInvite } from '../../hooks/useInvite';
 import './TopBar.css';
 
 const icon = (name) => `${import.meta.env.BASE_URL}images/header/${name}.svg`;
@@ -19,42 +17,10 @@ const VIEWS = [
  * Visual only for now: Filter / Sort / Hide, overflow menus.
  */
 export function TopBar({ title, currentView, onViewChange, taskCount = 0, onCreateTix }) {
-  const user = useAuth();
-  const { activeSpace, addMembers } = useSpaces();
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [toast, setToast] = useState(null); // { kind: 'info'|'ok'|'error', text }
-  const showToast = (kind, text, ms = 3200) => {
-    setToast({ kind, text });
-    if (ms) setTimeout(() => setToast(null), ms);
-  };
+  const { user, activeSpace, inviteOpen, setInviteOpen, toast, handleInvite } = useInvite();
   const members = activeSpace?.members ?? [];
   const shownMembers = members.slice(0, 4);
   const overflow = members.length - shownMembers.length;
-
-  const handleInvite = async (emails, link) => {
-    if (!activeSpace) return;
-    addMembers(activeSpace.id, emails);
-    setInviteOpen(false);
-
-    if (canSendMail()) {
-      showToast('info', `Sending ${emails.length} invite${emails.length > 1 ? 's' : ''}…`, 0);
-      try {
-        const res = await sendInviteMail({ to: emails, space: activeSpace, inviter: user, link });
-        showToast('ok', `Invite sent to ${res.sent} ${res.sent > 1 ? 'people' : 'person'}.`);
-      } catch (err) {
-        console.error('Invite mail failed:', err);
-        showToast('error', `Could not send: ${err.message}`, 6000);
-      }
-      return;
-    }
-
-    // No mail endpoint configured: hand the invite to the user's mail client.
-    const subject = encodeURIComponent(`You're invited to "${activeSpace?.name ?? 'a space'}" on Tixup`);
-    const body = encodeURIComponent(
-      `${user?.name ?? 'A teammate'} invited you to the Tixup space "${activeSpace?.name ?? ''}".\n\nOpen this link to join:\n${link}\n\n— Tixup`,
-    );
-    window.location.href = `mailto:${emails.join(',')}?subject=${subject}&body=${body}`;
-  };
 
   return (
     <header className="topbar">
