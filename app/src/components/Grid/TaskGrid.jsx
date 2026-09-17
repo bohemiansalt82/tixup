@@ -96,6 +96,7 @@ export function TaskGrid({ tasks, exitingIds, newIds, collapsingParentIds, expan
 
   useEffect(() => {
     if (!dragId) return;
+    document.body.classList.add('dragging-active'); // hand cursor only while a row drag is running
 
     const onMouseMove = (e) => {
       const container = containerRef.current;
@@ -143,6 +144,7 @@ export function TaskGrid({ tasks, exitingIds, newIds, collapsingParentIds, expan
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
     return () => {
+      document.body.classList.remove('dragging-active');
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
     };

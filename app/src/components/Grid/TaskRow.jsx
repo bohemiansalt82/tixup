@@ -63,7 +63,7 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
         onOpen(task.id);
       }}
       onContextMenu={handleContextMenu}
-      style={{ cursor: 'grab' }}
+      style={{ cursor: 'default' }} /* grabbing only while a drag is running (body.dragging-active) */
     >
       <div className="data-grid-cell center">
         <label className="checkbox-container">
