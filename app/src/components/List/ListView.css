@@ -1,7 +1,7 @@
 /* List view (data grid) — Figma Tixup-V2.0 "List View" 37556:5816
-   Flat grid (no outer card): columns 40px select | 300px title | 4 × 1fr; header 48px with a top and
-   bottom line, rows 48px underlined, cells separated by border-default (#eee) except the select
-   column; parent rows #fafafa, sub rows white; the header never changes on hover. */
+   Card ("Contents" 37556:5882): white, 1px #e0e0e0 border, 16px radius. Inside: columns 40px select |
+   300px title | 4 × 1fr; header 48px, rows 48px underlined, cells separated by border-default (#eee)
+   except the select column; parent rows #fafafa, sub rows white; the header never changes on hover. */
 .lv-table { --lv-line: var(--semantic-color-colors-border-default, #eee); }
 .lv-section { box-sizing: border-box; align-items: flex-start; }
 .lv-table {
@@ -12,8 +12,8 @@
   min-height: 0;
   width: 100%;
   background: var(--primitive-colors-base-white, #fff);
-  border: 0;
-  border-radius: 0;
+  border: 1px solid var(--primitive-colors-gray-300, #e0e0e0);
+  border-radius: var(--semantic-size-radius-md, 16px);
   overflow: hidden;
   font-family: var(--semantic-font-font-family-default, Pretendard), sans-serif;
 }
@@ -43,8 +43,7 @@
   height: 48px;
   min-height: 48px;
   background: var(--primitive-colors-base-white, #fff);
-  border-top: 1px solid var(--lv-line);
-  border-bottom: 1px solid var(--lv-line);
+  border-bottom: 1px solid var(--lv-line); /* the card border draws the top line */
   cursor: default;
 }
 .lv-header > .data-grid-cell { border-right: 1px solid var(--lv-line); }
@@ -101,7 +100,7 @@
 /* `.lv-body` prefix outranks components.css `.data-grid-cell .nav-icon.icon-tix` (18px for the timeline) */
 .lv-body .lv-cell-title .nav-icon.icon-tix { width: 20px !important; height: 20px !important; }
 .lv-body .lv-cell-title .nav-icon.icon-stat { width: 24px !important; height: 24px !important; margin-left: 0; }
-.lv-cell-title .data-grid-text { font-size: var(--semantic-font-font-size-font-size-lg, 16px); }
+.lv-cell-title .data-grid-text { font-size: var(--semantic-font-font-size-font-size-md, 14px); } /* Figma 37828:8114 */
 /* status / assignee / tags cells px 16, due date px 20 */
 .lv-body .lv-row > .data-grid-cell:not(.center):not(.lv-cell-title):not(.lv-cell-due) { padding: 0 16px !important; }
 .lv-empty { padding: 24px 16px; color: var(--primitive-colors-gray-400, #bdbdbd); font-size: 14px; }
@@ -114,8 +113,7 @@
   height: 56px;
   min-height: 56px;
   padding: 0 16px;
-  border-top: 1px solid var(--lv-line);
-  border-bottom: 1px solid var(--lv-line);
+  border-top: 1px solid var(--lv-line); /* the card border draws the bottom line */
   background: var(--primitive-colors-base-white, #fff);
 }
 .lv-footer .grid-create-btn { gap: 6px; }
