@@ -1,5 +1,7 @@
-/* List view (data grid) — Figma Tixup-V2.0 39523:13757
-   White table, every row white and underlined with border-default (#eee); the header never changes on hover. */
+/* List view (data grid) — Figma Tixup-V2.0 "List View" 37556:5816
+   Flat grid (no outer card): columns 40px select | 300px title | 4 × 1fr; header 48px with a top and
+   bottom line, rows 48px underlined, cells separated by border-default (#eee) except the select
+   column; parent rows #fafafa, sub rows white; the header never changes on hover. */
 .lv-table { --lv-line: var(--semantic-color-colors-border-default, #eee); }
 .lv-section { box-sizing: border-box; align-items: flex-start; }
 .lv-table {
@@ -10,10 +12,26 @@
   min-height: 0;
   width: 100%;
   background: var(--primitive-colors-base-white, #fff);
-  border: 1px solid var(--lv-line);
-  border-radius: var(--semantic-size-radius-md, 12px);
+  border: 0;
+  border-radius: 0;
   overflow: hidden;
   font-family: var(--semantic-font-font-family-default, Pretendard), sans-serif;
+}
+.lv-table > .lv-header,
+.lv-body .lv-row,
+.lv-footer {
+  box-sizing: border-box; /* Figma rows are 48px including their 1px line */
+}
+.lv-table > .lv-header,
+.lv-body .lv-row {
+  grid-template-columns: 40px 300px repeat(4, minmax(0, 1fr)) !important;
+}
+/* select column: 16px left padding + 24px checkbox, no right line */
+.lv-table > .lv-header > .data-grid-cell.center,
+.lv-body .lv-row > .data-grid-cell.center {
+  justify-content: flex-start;
+  padding: 0 0 0 16px !important;
+  border-right: 0;
 }
 
 /* ---- header ---- */
@@ -22,20 +40,23 @@
 .lv-table > .lv-header,
 .lv-table > .data-grid-row.lv-header:hover {
   flex: none;
-  height: 56px;
-  min-height: 56px;
+  height: 48px;
+  min-height: 48px;
   background: var(--primitive-colors-base-white, #fff);
+  border-top: 1px solid var(--lv-line);
   border-bottom: 1px solid var(--lv-line);
   cursor: default;
 }
 .lv-header > .data-grid-cell { border-right: 1px solid var(--lv-line); }
 .lv-header > .data-grid-cell:last-child { border-right: 0; }
-.lv-header-tabs { padding: 10px; }
+/* tabs cell: pl 32 / pr 10, the segment fills the cell (32px, #f3f3f3, 4px padding, 24px tabs) */
+.lv-header-tabs { padding: 0 10px 0 32px !important; }
+.lv-header-tabs .grid-filter-tabs { width: auto; flex: 1 1 auto; }
 .lv-header-cell {
   justify-content: space-between;
-  padding: 0 10px 0 16px;
+  padding: 0 10px 0 16px !important;
   font-size: var(--semantic-font-font-size-font-size-md, 14px);
-  font-weight: var(--semantic-font-font-weight-emphasis-low, 600);
+  font-weight: var(--semantic-font-font-weight-default, 500);
   color: var(--semantic-color-colors-text-heading, #212121);
 }
 .lv-sort-btn {
@@ -69,13 +90,20 @@
 .lv-row > .data-grid-cell { border-right: 1px solid var(--lv-line); min-width: 0; }
 .lv-row > .data-grid-cell:last-child { border-right: 0; }
 .lv-row > .data-grid-cell.center { border-right: 0; }
-.lv-row.lv-parent, .lv-row.lv-child { background: var(--primitive-colors-base-white, #fff); }
+.lv-row.lv-parent { background: var(--primitive-colors-gray-50, #fafafa); }
+.lv-row.lv-child { background: var(--primitive-colors-base-white, #fff); }
 .lv-row:hover { background: var(--primitive-colors-gray-100, #f5f5f5); }
 .lv-row.selected { background: var(--primitive-colors-blue-50, #e3f2fd); }
-.lv-cell-title { padding: 0 16px 0 8px; }
-.lv-cell-title .row-title-container { width: 100%; min-width: 0; }
-.lv-cell-title .nav-icon.icon-stat { margin-left: 22px; }
-.lv-cell-title .data-grid-text { font-size: var(--semantic-font-font-size-font-size-md, 14px); }
+/* title cell: pl 8 / pr 16; chevron 16 + tix 20 + 16px title, `+` 24px at the right; sub-tix: 22px indent + stat 24px */
+.lv-cell-title { padding: 0 16px 0 8px !important; }
+.lv-cell-title .row-title-container { width: 100%; min-width: 0; gap: 8px; padding: 0; }
+.lv-cell-title .row-title-container.depth-2 { padding-left: 22px; }
+/* `.lv-body` prefix outranks components.css `.data-grid-cell .nav-icon.icon-tix` (18px for the timeline) */
+.lv-body .lv-cell-title .nav-icon.icon-tix { width: 20px !important; height: 20px !important; }
+.lv-body .lv-cell-title .nav-icon.icon-stat { width: 24px !important; height: 24px !important; margin-left: 0; }
+.lv-cell-title .data-grid-text { font-size: var(--semantic-font-font-size-font-size-lg, 16px); }
+/* status / assignee / tags cells px 16, due date px 20 */
+.lv-body .lv-row > .data-grid-cell:not(.center):not(.lv-cell-title):not(.lv-cell-due) { padding: 0 16px !important; }
 .lv-empty { padding: 24px 16px; color: var(--primitive-colors-gray-400, #bdbdbd); font-size: 14px; }
 
 /* ---- footer ---- */
@@ -87,9 +115,11 @@
   min-height: 56px;
   padding: 0 16px;
   border-top: 1px solid var(--lv-line);
+  border-bottom: 1px solid var(--lv-line);
   background: var(--primitive-colors-base-white, #fff);
 }
-.lv-footer .grid-create-btn .data-grid-text { color: var(--semantic-color-colors-text-heading, #212121); flex: none; }
+.lv-footer .grid-create-btn { gap: 6px; }
+.lv-footer .grid-create-btn .data-grid-text { font-size: 16px; color: var(--semantic-color-colors-text-heading, #212121); flex: none; }
 
 /* ---- cells ---- */
 .lv-placeholder { color: var(--primitive-colors-gray-400, #bdbdbd); font-size: 14px; }
@@ -116,14 +146,15 @@
 
 .marker.lv-mine {
   height: 28px;
-  padding: 0 12px;
+  padding: 0 8px;
+  border-radius: 8px;
   background: var(--primitive-colors-blue-50, #e3f2fd);
   color: var(--primitive-colors-blue-900, #0d47a1);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
 }
 
-.lv-cell-due { padding: 0 20px; }
+.lv-cell-due { padding: 0 20px !important; }
 .lv-due {
   position: relative;
   display: inline-flex;
@@ -138,8 +169,8 @@
 .lv-due .data-grid-text-sm { white-space: nowrap; }
 
 .lv-tags { flex-wrap: wrap; gap: 8px; }
-/* Figma Marker V3 tag variants (Color=Depart 1–8, 37552:6706): 24px, radius 8, px 8, 12px Pretendard Medium */
-.marker.lv-tag { height: 24px; padding: 0 8px; border-radius: 8px; font-size: 12px; font-weight: 500; line-height: 1.6; }
+/* Figma Marker V3 tag variants (Color=Depart 1–8) as placed in the list rows (37828:8058): 28px, radius 8, px 8, 12px Pretendard Medium */
+.marker.lv-tag { height: 28px; padding: 0 8px; border-radius: 8px; font-size: 12px; font-weight: 500; line-height: 1.6; }
 .lv-tag-it         { background: var(--primitive-colors-blue-50, #e3f2fd);   color: var(--primitive-colors-blue-900, #0d47a1); }
 .lv-tag-design     { background: var(--primitive-colors-green-50, #e8f5e9);  color: var(--primitive-colors-green-900, #1b5e20); }
 .lv-tag-dev        { background: #fff3e0; color: #e65100; }
