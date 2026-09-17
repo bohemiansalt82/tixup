@@ -6,7 +6,7 @@ import { useTimelineDrag } from '../../hooks/useTimelineDrag';
 
 const VIEW_PRESETS = { month: 20, week: 48, day: 80 };
 
-const SIDEBAR_WIDTH = 400;
+const SIDEBAR_WIDTH = 459; // Figma 37635:4541: 40px select column + 419px
 
 export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, onSaveBarPositions }) {
   const [selectedIds, setSelectedIds] = useState(new Set());

@@ -85,7 +85,7 @@ export function useTimelineScroll({
         date.setDate(date.getDate() + i);
         const left = CENTER_PX + i * cw;
         const isWE = date.getDay() === 0 || date.getDay() === 6;
-        dHtml += `<div class="timeline-day-cell${i === 0 ? ' today-marker' : ''}" style="position:absolute;left:${left}px;width:${cw}px;${isWE ? 'color:var(--primitive-colors-red-400);' : ''}">${date.getDate()}</div>`;
+        dHtml += `<div class="timeline-day-cell${i === 0 ? ' today-marker' : ''}" style="position:absolute;left:${left}px;width:${cw}px;${isWE ? 'color:var(--primitive-colors-red-500, #f44336);' : ''}">${date.getDate()}</div>`;
         gHtml += `<div class="timeline-grid-line${isWE ? ' is-weekend' : ''}" style="position:absolute;left:${left}px;top:0;bottom:0;width:${cw}px;border-right:1px solid var(--primitive-colors-gray-100);"></div>`;
       }
     } else if (cw > 10) {

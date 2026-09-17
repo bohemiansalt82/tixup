@@ -152,7 +152,7 @@ export function TaskGrid({ tasks, exitingIds, newIds, collapsingParentIds, expan
             <div className="checkbox-box" />
           </label>
         </div>
-        <div className="data-grid-cell" style={{ padding: 10 }}>
+        <div className="data-grid-cell grid-header-tools">
           <div className="grid-filter-tabs">
             {FILTERS.map(f => (
               <button
@@ -162,8 +162,11 @@ export function TaskGrid({ tasks, exitingIds, newIds, collapsingParentIds, expan
               >{f}</button>
             ))}
           </div>
+          {/* dock_to_right (Figma 37635:4622) — visual only for now */}
+          <button type="button" className="grid-header-dock" title="Collapse list" aria-label="Collapse list">
+            <img src={`${import.meta.env.BASE_URL}images/icons/dock_to_right.svg`} alt="" />
+          </button>
         </div>
-        <div className="data-grid-cell" />
       </div>
 
       <div id="grid-tbody">
