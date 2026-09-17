@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { TaskRow } from './TaskRow';
 
+const DRAG_THRESHOLD = 4; // px the pointer must travel before a sidebar row starts dragging
+
 const FILTERS = ['All', 'Done', 'Overdue'];
 
 export function TaskGrid({ tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, selectedIds, onSelect, onSelectAll, onToggle, onAddChild, onRename, onStatusChange, onCreateTix, onMoveTask, onOpen }) {
@@ -62,24 +64,29 @@ export function TaskGrid({ tasks, exitingIds, newIds, collapsingParentIds, expan
     setIndicatorTop(null);
   }, [onMoveTask]);
 
+  // A row drag only starts once the pointer has moved DRAG_THRESHOLD px. Starting it on mousedown
+  // re-rendered the row into the ghost, which swallowed the click that opens the Tix detail popup.
   const handleRowMouseDown = useCallback((e, task) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const rowEl = e.currentTarget;
-    const rect = rowEl.getBoundingClientRect();
-    dragOffsetY.current = e.clientY - rect.top;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+    const x0 = e.clientX, y0 = e.clientY;
+    const ac = new AbortController();
 
-    dragIdRef.current = task.id;
-    dragTypeRef.current = task.type;
-    setDragId(task.id);
-    setGhostInfo({
-      top: e.clientY - dragOffsetY.current,
-      left: rect.left,
-      width: rect.width,
-      height: rect.height,
-      task,
-    });
+    const begin = (ev) => {
+      ac.abort();
+      dragOffsetY.current = offsetY;
+      dragIdRef.current = task.id;
+      dragTypeRef.current = task.type;
+      setDragId(task.id);
+      setGhostInfo({ top: ev.clientY - offsetY, left: rect.left, width: rect.width, height: rect.height, task });
+    };
+    window.addEventListener('mousemove', (ev) => {
+      if (Math.hypot(ev.clientX - x0, ev.clientY - y0) >= DRAG_THRESHOLD) begin(ev);
+    }, { signal: ac.signal });
+    window.addEventListener('mouseup', () => ac.abort(), { signal: ac.signal }); // plain click: let it through
   }, []);
 
   useEffect(() => {
