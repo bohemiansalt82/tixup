@@ -156,13 +156,13 @@
 .cv-seg-to-right { padding-right: 0; }
 .cv-ghost { position: fixed; z-index: 100; pointer-events: none; }
 
-/* ---- Item for Calendar (60px block) ---- */
+/* ---- Item for Calendar — Type=Main Tix 38px (title only) / Type=Sub Tix 60px (title + sub-tix band) ---- */
 .cv-item {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  height: 60px;
+  height: 38px;
   overflow: hidden;
   user-select: none;
   touch-action: none;
@@ -178,6 +178,7 @@
 .cv-item-drop       { --cv-bg: var(--primitive-colors-gray-100, #f5f5f5); --cv-bg-rgb: 245, 245, 245; }
 .cv-item-pause      { --cv-bg: #ffffff; --cv-bg-rgb: 255, 255, 255; } /* timeline has no pause tint: plain bar */
 
+.cv-item-sub { height: 60px; }
 .cv-item-bg {
   position: absolute;
   inset: 0;
@@ -186,6 +187,17 @@
   background: var(--cv-bg);
   box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.03);
 }
+/* Sub Tix band: 5% black from 31px down to the bottom (inside the 2px border), bottom corners 8px */
+.cv-item-band {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  top: 29px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 0 0 6px 6px;
+}
+.cv-dir-start .cv-item-band { border-bottom-right-radius: 0; }
+.cv-dir-end .cv-item-band { border-bottom-left-radius: 0; }
+.cv-dir-middle .cv-item-band { border-radius: 0; }
 /* Direction — a block that crosses the week boundary loses that corner and fades out */
 .cv-dir-start .cv-item-bg {
   border-top-right-radius: 0; border-bottom-right-radius: 0;
@@ -206,8 +218,8 @@
 .cv-item-title-row { position: relative; display: flex; align-items: center; width: 100%; padding: 12px 12px 0; flex-shrink: 0; }
 .cv-item-title { font-size: 14px; line-height: 13px; white-space: nowrap; color: var(--primitive-colors-gray-800, #424242); }
 .cv-item-untitled { color: var(--primitive-colors-gray-500, #9e9e9e); }
-.cv-item-sub-row { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 12px 0; flex-shrink: 0; }
-.cv-item-sub { font-size: 12px; line-height: 1.6; white-space: nowrap; color: var(--primitive-colors-gray-600, #757575); }
+.cv-item-sub-row { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 12px 4px; flex-shrink: 0; }
+.cv-item-sub { font-size: 12px; line-height: 1.6; white-space: nowrap; color: var(--primitive-colors-gray-700, #616161); }
 .cv-item-dot { flex-shrink: 0; }
 
 /* Hover — edge handles (Figma Interaction=Hover) */
@@ -215,7 +227,7 @@
   position: absolute;
   top: 7px;
   width: 4px;
-  height: 45px;
+  height: 24px; /* Main Tix; Sub Tix below */
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.2);
   opacity: 0;
@@ -224,6 +236,7 @@
   z-index: 1;
 }
 .cv-handle::before { content: ''; position: absolute; inset: -6px -8px; }
+.cv-item-sub .cv-handle { height: 45px; }
 .cv-handle-start { left: 5px; }
 .cv-handle-end { right: 5px; }
 .cv-item:hover .cv-handle, .cv-item-active .cv-handle { opacity: 1; }

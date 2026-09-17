@@ -24,26 +24,28 @@ function TitleInput({ value, onCommit, onCancel }) {
 
 /**
  * Calendar block — Figma Tixup-V2.0 "Item for Calendar" 37651:9139.
- * The block is a parent Tix; the line under the title lists its sub-tix titles.
+ * The block is a parent Tix. Type=Main Tix (no sub-tix) is a 38px single-line block; Type=Sub Tix
+ * (has sub-tix) is 60px with a darker lower band listing the sub-tix titles.
  *
  * direction: 'both' (starts and ends this week) | 'start' (continues into next week, Figma
  * Direction=Left) | 'end' (continued from last week, Figma Direction=Right) | 'middle'.
  * interaction: 'default' | 'drag' (translucent blurred ghost, Figma 37658:5809).
  */
 export function CalendarItem({ title, subTix = [], color = 'yellow', direction = 'both', interaction = 'default', active = false, editing = false, onRename, onCancelRename, onHandlePointerDown, style, ...rest }) {
-  const cls = ['cv-item', `cv-item-${color}`, `cv-dir-${direction}`, interaction === 'drag' ? 'cv-item-drag' : '', active ? 'cv-item-active' : ''].filter(Boolean).join(' ');
+  const hasSubs = subTix.length > 0;
+  const cls = ['cv-item', hasSubs ? 'cv-item-sub' : 'cv-item-main', `cv-item-${color}`, `cv-dir-${direction}`, interaction === 'drag' ? 'cv-item-drag' : '', active ? 'cv-item-active' : ''].filter(Boolean).join(' ');
   const showStart = interaction !== 'drag' && (direction === 'both' || direction === 'start');
   const showEnd = interaction !== 'drag' && (direction === 'both' || direction === 'end');
 
   return (
     <div className={cls} style={style} {...rest}>
-      <div className="cv-item-bg" />
+      <div className="cv-item-bg">{hasSubs && <div className="cv-item-band" />}</div>
       <div className="cv-item-title-row">
         {editing
           ? <TitleInput value={title} onCommit={(name) => onRename?.(name)} onCancel={() => onCancelRename?.()} />
           : <span className={`cv-item-title${title ? '' : ' cv-item-untitled'}`}>{title || 'New Tix'}</span>}
       </div>
-      {subTix.length > 0 && (
+      {hasSubs && (
         <div className="cv-item-sub-row">
           {subTix.map((name, i) => (
             <Fragment key={`${name}-${i}`}>

@@ -11,7 +11,9 @@ import './CalendarView.css';
 const icon = (name) => `${import.meta.env.BASE_URL}images/icons/${name}.svg`;
 const addIcon = `${import.meta.env.BASE_URL}images/calendar/add_circle.svg`;
 
-const ITEM_H = 60;
+const ITEM_H_MAIN = 38; // Figma Item for Calendar, Type=Main Tix
+const ITEM_H_SUB = 60;  // Type=Sub Tix (has sub-tix)
+const itemHeight = (seg) => (seg.subTix?.length ? ITEM_H_SUB : ITEM_H_MAIN);
 const ITEM_GAP = 10;
 const ITEM_TOP = 46;
 const ROW_MIN = 130;
@@ -216,7 +218,11 @@ export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix, onRename
 
         {weeks.map((week) => {
           const { segments, laneCount } = layoutWeek(week, effectiveItems);
-          const rowHeight = Math.max(ROW_MIN, ITEM_TOP + laneCount * (ITEM_H + ITEM_GAP) - ITEM_GAP + ROW_BOTTOM + 1);
+          // Each lane is as tall as its tallest block this week (38px title-only / 60px with sub-tix).
+          const laneHeights = Array.from({ length: laneCount }, () => ITEM_H_MAIN);
+          segments.forEach((seg) => { laneHeights[seg.lane] = Math.max(laneHeights[seg.lane], itemHeight(seg)); });
+          const laneTop = (lane) => ITEM_TOP + laneHeights.slice(0, lane).reduce((a, h) => a + h + ITEM_GAP, 0);
+          const rowHeight = Math.max(ROW_MIN, laneTop(laneCount) - ITEM_GAP + ROW_BOTTOM + 1);
           const weekKey = toISO(week[0]);
           return (
             <div key={weekKey} className="cv-week" role="row" data-week={weekKey} style={{ minHeight: rowHeight }}>
@@ -240,7 +246,7 @@ export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix, onRename
 
               <div className="cv-items">
                 {segments.map((seg) => {
-                  const style = { left: `${(seg.startCol / 7) * 100}%`, width: `${((seg.endCol - seg.startCol + 1) / 7) * 100}%`, top: ITEM_TOP + seg.lane * (ITEM_H + ITEM_GAP) };
+                  const style = { left: `${(seg.startCol / 7) * 100}%`, width: `${((seg.endCol - seg.startCol + 1) / 7) * 100}%`, top: laneTop(seg.lane) };
                   // While resizing, the dragged edge in the row under the pointer follows the pointer
                   // pixel-for-pixel; the other edge stays on its day. Snaps on release.
                   if (drag?.mode === 'resize' && drag.id === seg.id && drag.row?.key === weekKey && drag.x !== null) {
