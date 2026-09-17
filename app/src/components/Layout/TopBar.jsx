@@ -16,11 +16,13 @@ const VIEWS = [
  * Wired: title, view switcher (Tab / Icon Group), Tix count, + Tix (create), member invite.
  * Visual only for now: Filter / Sort / Hide, overflow menus.
  */
-export function TopBar({ title, currentView, onViewChange, taskCount = 0, onCreateTix }) {
+export function TopBar({ title, members = [], currentView, onViewChange, taskCount = 0, onCreateTix }) {
   const { user, activeSpace, inviteOpen, setInviteOpen, toast, handleInvite } = useInvite();
-  const members = activeSpace?.members ?? [];
-  const shownMembers = members.slice(0, 4);
-  const overflow = members.length - shownMembers.length;
+  // members: [{ email, name, picture, online }] from App (me + backend members + invited); me is drawn as owner.
+  const me = members.find((m) => m.email === user?.email);
+  const others = members.filter((m) => m.email !== user?.email);
+  const shownMembers = others.slice(0, 4);
+  const overflow = others.length - shownMembers.length;
 
   return (
     <header className="topbar">
@@ -67,14 +69,16 @@ export function TopBar({ title, currentView, onViewChange, taskCount = 0, onCrea
                 onError={(e) => { e.currentTarget.src = avatarFor(user.name); }}
               />
               <img className="topbar-avatar-crown" src={icon('crown')} alt="" width={12} height={12} />
+              {me?.online && <img className="topbar-avatar-online" src={icon('online')} alt="" width={10} height={10} title="Online" />}
             </span>
           )}
-          {shownMembers.map((email) => (
-            <span key={email} className="topbar-avatar topbar-avatar-member" title={email}>
-              <img src={avatarFor(email.split('@')[0])} alt={email} referrerPolicy="no-referrer" />
+          {shownMembers.map((m) => (
+            <span key={m.email} className="topbar-avatar topbar-avatar-member" title={`${m.name || m.email}${m.online ? ' · online' : ''}`}>
+              <img src={m.picture || avatarFor(m.name || m.email.split('@')[0])} alt={m.email} referrerPolicy="no-referrer" />
+              {m.online && <img className="topbar-avatar-online" src={icon('online')} alt="" width={10} height={10} />}
             </span>
           ))}
-          {overflow > 0 && <span className="topbar-avatar topbar-avatar-more" title={members.slice(4).join(', ')}>{overflow > 9 ? '9+' : `+${overflow}`}</span>}
+          {overflow > 0 && <span className="topbar-avatar topbar-avatar-more" title={others.slice(4).map((m) => m.email).join(', ')}>{overflow > 9 ? '9+' : `+${overflow}`}</span>}
           <button type="button" className="topbar-avatar topbar-avatar-add" title="Invite member" onClick={() => setInviteOpen(true)} disabled={!activeSpace}>
             <img src={icon('add')} alt="" width={24} height={24} />
           </button>

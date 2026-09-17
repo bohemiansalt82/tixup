@@ -111,6 +111,8 @@
 }
 .topbar-avatar > img:first-child { width: 32px; height: 32px; border-radius: 16px; object-fit: cover; }
 .topbar-avatar-crown { position: absolute; top: -3px; right: -1px; width: 12px; height: 12px; }
+/* Avatar V2 "Online" (Figma 37705:13567): 10px #00CF7F dot with a white ring at the bottom-right */
+.topbar-avatar-online { position: absolute; right: -1px; bottom: -1px; width: 10px; height: 10px; border-radius: 0; }
 .topbar-avatar-add { padding: 0; border: 1px solid #e6e6e6; border-radius: 18px; background: #fff; }
 .topbar-avatar-add > img:first-child { width: 24px; height: 24px; border-radius: 0; }
 .topbar-avatar-add:hover { background: #f5f5f5; }

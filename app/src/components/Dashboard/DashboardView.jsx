@@ -69,11 +69,13 @@ export function DashboardView({ tasks, members = [], currentUser, onOpenTix }) {
                 <span className="dv-avatar" title={`${currentUser.name} (owner)`}>
                   <img src={currentUser.picture || avatarFor(currentUser.name)} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.src = avatarFor(currentUser.name); }} />
                   <img className="dv-avatar-crown" src={headerIcon('crown')} alt="" width={12} height={12} />
+                  {members.find((m) => m.email === currentUser.email)?.online && <img className="dv-avatar-online" src={headerIcon('online')} alt="" width={10} height={10} title="Online" />}
                 </span>
               )}
               {teamMembers.map((m) => (
-                <span key={m.email} className="dv-avatar dv-avatar-member" title={m.name || m.email}>
+                <span key={m.email} className="dv-avatar dv-avatar-member" title={`${m.name || m.email}${m.online ? ' · online' : ''}`}>
                   <img src={m.picture || avatarFor(m.name || m.email)} alt="" referrerPolicy="no-referrer" />
+                  {m.online && <img className="dv-avatar-online" src={headerIcon('online')} alt="" width={10} height={10} />}
                 </span>
               ))}
               <button type="button" className="dv-avatar dv-avatar-add" title="Invite member" onClick={() => invite.setInviteOpen(true)} disabled={!activeSpace}>

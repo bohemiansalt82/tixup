@@ -33,7 +33,7 @@ All calls are `POST <endpoint>` with a `text/plain` JSON body (no CORS preflight
 | Body | What happens |
 |---|---|
 | `{ to, space, inviter, link }` | Sends the invite email (fetches `public/email/invite.html`, fills placeholders, `MailApp.sendEmail`). |
-| `{ action: "load", space: "<id>", member?: { email } }` | Returns `{ found, space, tasks, rev, updatedAt }`; records `member.email` on the space. |
+| `{ action: "load", space: "<id>", member?: { email } }` | Returns `{ found, space, tasks, online, rev, updatedAt }`; records `member.email` on the space and as present (`online` = e-mails seen in the last 45 s, kept in CacheService). |
 | `{ action: "save", space: { id, name, visibility }, tasks, by?: { name, email } }` | Replaces the task list, bumps `rev`, remembers the first saver as owner. Last write wins. |
 | `{ action: "profile", user: { email } }` | Returns `{ found, spaces, boxes, rev, updatedAt }` for the account (file `user-<md5(email)>.json`). |
 | `{ action: "saveProfile", user: { email, name }, spaces, boxes, active? }` | Replaces the account's space list and boxes (and the last active space), bumps `rev`. Last write wins. |

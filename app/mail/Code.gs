@@ -6,6 +6,8 @@
  * Three jobs, one endpoint (text/plain POST, JSON body):
  *   1. Invite mail   { to: [emails], space: {id,name}, inviter: {name,email}, link }
  *   2. Space storage { action: 'load', space: '<id>', member?: {email} }
+ *      `load` also records the caller as present and returns `online`: e-mails seen in the
+ *      last PRESENCE_TTL_S seconds (kept in CacheService, never written to Drive).
  *                    { action: 'save', space: {id,name,visibility}, tasks: [...], by?: {name,email} }
  *   3. User profile  { action: 'profile', user: {email} }
  *                    { action: 'saveProfile', user: {email,name}, spaces: [...], boxes: {spaceId: [...]}, active?: '<spaceId>' }
@@ -19,6 +21,7 @@ var MAX_RECIPIENTS = 10;      // per request
 var RATE_LIMIT_PER_HOUR = 30; // per inviter email
 var SENDER_NAME = 'Tixup';
 var DATA_FOLDER_NAME = 'Tixup Data';
+var PRESENCE_TTL_S = 45;      // a member counts as online this long after their last load
 var MAX_DOC_BYTES = 4 * 1024 * 1024;
 
 function doPost(e) {
@@ -99,7 +102,24 @@ function loadSpace_(body) {
     doc.space.members = (doc.space.members || []).concat([email]);
     writeDoc_(id, doc);
   }
-  return { ok: true, found: true, space: doc.space, tasks: doc.tasks || [], rev: doc.rev, updatedAt: doc.updatedAt };
+  var online = touchPresence_(id, isEmail(email) ? email : null);
+  return { ok: true, found: true, space: doc.space, tasks: doc.tasks || [], online: online, rev: doc.rev, updatedAt: doc.updatedAt };
+}
+
+/** Marks `email` as present in the space and returns everyone seen within PRESENCE_TTL_S. */
+function touchPresence_(spaceId, email) {
+  var cache = CacheService.getScriptCache();
+  var key = 'presence:' + spaceId;
+  var now = Date.now();
+  var seen = {};
+  try { seen = JSON.parse(cache.get(key) || '{}') || {}; } catch (e) { seen = {}; }
+  if (email) seen[String(email).toLowerCase()] = now;
+  var online = [];
+  Object.keys(seen).forEach(function (k) {
+    if (now - seen[k] <= PRESENCE_TTL_S * 1000) online.push(k); else delete seen[k];
+  });
+  cache.put(key, JSON.stringify(seen), PRESENCE_TTL_S * 2);
+  return online;
 }
 
 /** Replaces the task list of a space (last write wins) and bumps its revision. */

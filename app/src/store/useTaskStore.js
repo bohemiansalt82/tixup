@@ -60,6 +60,7 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
   const [expandingParentIds, setExpandingParentIds] = useState(new Set());
   // Members recorded on the shared space document (owner + everyone who opened an invite).
   const [remoteMembers, setRemoteMembers] = useState([]);
+  const [onlineEmails, setOnlineEmails] = useState([]); // members the backend saw in the last ~45 s
 
   // ---- remote sync (refs so callbacks stay stable) ----
   const syncRef = useRef({ rev: null, dirty: false, pushing: false, timer: null, unmounted: false });
@@ -124,6 +125,10 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
         if (r.space.owner) list.push({ email: r.space.owner, name: r.space.ownerName || null });
         (r.space.members || []).forEach(email => { if (!list.some(m => m.email === email)) list.push({ email, name: null }); });
         setRemoteMembers(prev => (JSON.stringify(prev) === JSON.stringify(list) ? prev : list));
+      }
+      if (Array.isArray(r.online)) {
+        const online = r.online.map(e => String(e).toLowerCase()).sort();
+        setOnlineEmails(prev => (prev.join() === online.join() ? prev : online));
       }
       if (r.rev === s.rev) return;
       const remote = rebaseTasks(Array.isArray(r.tasks) ? r.tasks : []);
@@ -291,5 +296,5 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
     });
   }, [updateTasks]);
 
-  return { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, remoteMembers, addTask, addChild, removeTask, updateTask, replaceTasks, toggleCollapse, moveTask };
+  return { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, remoteMembers, onlineEmails, addTask, addChild, removeTask, updateTask, replaceTasks, toggleCollapse, moveTask };
 }

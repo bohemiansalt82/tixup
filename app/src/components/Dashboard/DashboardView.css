@@ -34,6 +34,7 @@
 .dv-avatar > img:first-child { width: 32px; height: 32px; border-radius: 16px; object-fit: cover; }
 .dv-avatar-member { background: #e0e0e0; }
 .dv-avatar-crown { position: absolute; top: -3px; right: -1px; width: 12px; height: 12px; }
+.dv-avatar-online { position: absolute; right: -1px; bottom: -1px; width: 10px; height: 10px; border-radius: 0; }
 .dv-section .dv-avatar-add { border: 1px solid #e6e6e6; border-radius: 18px; background: #fff; }
 .dv-avatar-add > img:first-child { width: 24px; height: 24px; border-radius: 0; }
 .dv-avatar-add:hover:not(:disabled) { background: #f5f5f5; }
