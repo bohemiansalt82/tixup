@@ -3040,13 +3040,20 @@ body.marquee-active, body.marquee-active * {
     width: 14px;
     height: 14px;
 }
-/* Status=Drag: white card, 2px #757575 border, radius 8, 0 0 30px 10% shadow, backdrop blur */
+/* Status=Drag (Figma 37635:4478 / 37635:4520): 20% white glass card with 10px backdrop blur,
+   2px #757575 border, radius 8, 0 0 30px 10% shadow. The row inside must stay transparent or the
+   blur is hidden behind its white background. */
 .drag-ghost {
-    background-color: var(--primitive-colors-base-white);
+    background-color: rgba(255, 255, 255, 0.2);
     border: 2px solid var(--semantic-color-colors-text-caption, #757575);
     border-radius: 8px;
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
     opacity: 1;
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
+}
+.drag-ghost .data-grid-row,
+.drag-ghost .data-grid-row.level-0 {
+    background-color: transparent !important;
+    border-bottom: 0 !important;
 }
