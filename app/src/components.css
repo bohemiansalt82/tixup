@@ -3088,7 +3088,7 @@ body.marquee-active, body.marquee-active * {
 }
 .timeline-sidebar .data-grid-row > .data-grid-cell.center {
     justify-content: flex-start;
-    padding: 0 0 0 16px;
+    padding: 0 0 0 16px !important; /* `.timeline-sidebar .data-grid-cell { padding: 0 !important }` above */
 }
 /* tix icon 18px (stat stays 20px) */
 .data-grid-cell .nav-icon.icon-tix { width: 18px !important; height: 18px !important; }
@@ -3100,7 +3100,7 @@ body.marquee-active, body.marquee-active * {
     height: 82px !important;
     border-bottom: 1px solid var(--semantic-color-colors-border-default, #eee) !important;
 }
-.timeline-sidebar .data-grid-header > .data-grid-cell.center { justify-content: flex-start; padding: 0 0 0 16px; }
+.timeline-sidebar .data-grid-header > .data-grid-cell.center { justify-content: flex-start; padding: 0 0 0 16px !important; }
 .timeline-sidebar .data-grid-header > .grid-header-tools {
     display: flex;
     align-items: center;
