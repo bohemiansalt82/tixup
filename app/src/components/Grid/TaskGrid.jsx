@@ -31,6 +31,11 @@ export function TaskGrid({ tasks, exitingIds, newIds, collapsingParentIds, expan
     return true;
   });
 
+  // Sub-tix count per parent from the FULL list, so a collapsed parent (whose children are
+  // filtered out of `visible`) still shows its expand chevron.
+  const childCount = new Map();
+  tasks.forEach(t => { if (t.type === 'child') childCount.set(t.parentId, (childCount.get(t.parentId) || 0) + 1); });
+
   // 부모+자식 그룹으로 묶기
   const groups = [];
   const parentMap = new Map();
@@ -176,6 +181,7 @@ export function TaskGrid({ tasks, exitingIds, newIds, collapsingParentIds, expan
             key={parent.id}
             parent={parent}
             children={children}
+            hasChildren={(childCount.get(parent.id) || 0) > 0}
             isCollapsing={collapsingParentIds?.has(parent.id)}
             isExpanding={expandingParentIds?.has(parent.id)}
             exitingIds={exitingIds}
@@ -256,7 +262,7 @@ function animateTo(el, targetHeight) {
   }));
 }
 
-function TaskGroup({ parent, children, isCollapsing, isExpanding, exitingIds, newIds, selectedIds, dragId, dropTarget, onSelect, onToggle, onAddChild, onRename, onStatusChange, onRowMouseDown, onOpen }) {
+function TaskGroup({ parent, children, hasChildren = children.length > 0, isCollapsing, isExpanding, exitingIds, newIds, selectedIds, dragId, dropTarget, onSelect, onToggle, onAddChild, onRename, onStatusChange, onRowMouseDown, onOpen }) {
   const groupRef = useRef(null);
   const isExiting = exitingIds.has(parent.id);
 
@@ -289,7 +295,7 @@ function TaskGroup({ parent, children, isCollapsing, isExpanding, exitingIds, ne
         isDragging={parent.id === dragId}
         isCollapsed={false}
         isDropInto={dropTarget?.id === parent.id && dropTarget?.position === 'into'}
-        hasChildren={children.length > 0}
+        hasChildren={hasChildren}
         {...sharedProps}
       />
       {children.map(child => (

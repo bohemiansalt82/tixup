@@ -2,23 +2,23 @@
 
 :root {
     /* Icon Path Definitions */
-    --icon-url-deployed: url('../images/icons/deployed_code.svg');
-    --icon-url-planet: url('../images/icons/planet.svg');
-    --icon-url-work: url('../images/icons/work_filled.svg');
-    --icon-url-add: url('../images/icons/add.svg');
-    --icon-url-check: url('../images/icons/check.svg');
-    --icon-url-minus: url('../images/icons/minus.svg');
-    --icon-url-chevron-lg-bottom: url('../images/icons/chevron_lg_bottom.svg');
-    --icon-url-chevron-lg-right: url('../images/icons/chevron_lg_right.svg');
-    --icon-url-tix: url('../images/icons/tix.svg');
-    --icon-url-stat: url('../images/icons/stat.svg');
-    --icon-url-filter: url('../images/icons/filter.svg');
-    --icon-url-sort: url('../images/icons/sort.svg');
-    --icon-url-visibility-off: url('../images/icons/visibility_off.svg');
-    --icon-url-calendar: url('../images/icons/calendar.svg');
-    --icon-url-clock: url('../images/icons/clock.svg');
-    --icon-url-list: url('../images/icons/list_left.svg');
-    --icon-url-visibility: url('../images/icons/visibility.svg');
+    --icon-url-deployed: url('/images/icons/deployed_code.svg');
+    --icon-url-planet: url('/images/icons/planet.svg');
+    --icon-url-work: url('/images/icons/work_filled.svg');
+    --icon-url-add: url('/images/icons/add.svg');
+    --icon-url-check: url('/images/icons/check.svg');
+    --icon-url-minus: url('/images/icons/minus.svg');
+    --icon-url-chevron-lg-bottom: url('/images/icons/chevron_lg_bottom.svg');
+    --icon-url-chevron-lg-right: url('/images/icons/chevron_lg_right.svg');
+    --icon-url-tix: url('/images/icons/tix.svg');
+    --icon-url-stat: url('/images/icons/stat.svg');
+    --icon-url-filter: url('/images/icons/filter.svg');
+    --icon-url-sort: url('/images/icons/sort.svg');
+    --icon-url-visibility-off: url('/images/icons/visibility_off.svg');
+    --icon-url-calendar: url('/images/icons/calendar.svg');
+    --icon-url-clock: url('/images/icons/clock.svg');
+    --icon-url-list: url('/images/icons/list_left.svg');
+    --icon-url-visibility: url('/images/icons/visibility.svg');
 }
 
 /* Class Mappings */
