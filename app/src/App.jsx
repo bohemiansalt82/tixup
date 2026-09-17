@@ -255,6 +255,7 @@ function Dashboard({ spaceId }) {
               collapsingParentIds={collapsingParentIds}
               expandingParentIds={expandingParentIds}
               onSaveBarPositions={handleSaveBarPositions}
+              onOpen={setDetailTaskId}
             />
           </div>
           {sidebarOverflow && footer}
