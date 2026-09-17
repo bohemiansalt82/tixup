@@ -7,14 +7,9 @@ import { useTimelineDrag } from '../../hooks/useTimelineDrag';
 const VIEW_PRESETS = { month: 20, week: 48, day: 80 };
 
 const SIDEBAR_WIDTH = 400;
-const CLICK_SLOP = 4;       // px: a mouse-down that travelled further is a drag, not a click
-const DBLCLICK_WAIT = 220;  // ms: give a double-click (parent auto-fit) a chance before opening the popup
 
-export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, onSaveBarPositions, onOpen }) {
+export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, onSaveBarPositions }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
-  const barDownRef = useRef(null);   // { id, x, y } of the last plain mouse-down on a bar
-  const openTimerRef = useRef(null);
-  useEffect(() => () => clearTimeout(openTimerRef.current), []);
   const viewportRef = useRef(null);
   const tbodyRef = useRef(null);
   const daysHeaderRef = useRef(null);
@@ -171,7 +166,6 @@ export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, e
 
     e.stopPropagation();
     const id = bar.parentElement.getAttribute('data-group');
-    barDownRef.current = e.button === 0 && !e.shiftKey && !e.metaKey ? { id, x: e.clientX, y: e.clientY } : null;
     const s = new Set(selectedIds);
     if (e.shiftKey || e.metaKey) {
       if (s.has(id)) s.delete(id); else s.add(id);
@@ -182,23 +176,7 @@ export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, e
     requestAnimationFrame(() => startDrag(e, id, s));
   }, [selectedIds, setSelectedIds, startDrag, startResize]);
 
-  // A plain click on a bar (no drag, no modifier, not on a resizer) opens the Tix detail popup —
-  // same rule as the sidebar and list rows. Deferred briefly so a double-click can auto-fit instead.
-  const handleTbodyClick = useCallback((e) => {
-    if (!onOpen) return;
-    if (e.target.closest('.timeline-bar-resizer')) return;
-    const bar = e.target.closest('.timeline-bar');
-    const down = barDownRef.current;
-    barDownRef.current = null;
-    if (!bar || !down) return;
-    if (bar.parentElement.getAttribute('data-group') !== down.id) return;
-    if (Math.hypot(e.clientX - down.x, e.clientY - down.y) > CLICK_SLOP) return;
-    clearTimeout(openTimerRef.current);
-    openTimerRef.current = setTimeout(() => onOpen(down.id), DBLCLICK_WAIT);
-  }, [onOpen]);
-
   const handleDblClick = useCallback((e) => {
-    clearTimeout(openTimerRef.current); // double-click auto-fits the parent bar instead of opening the popup
     const bar = e.target.closest('.timeline-bar');
     if (!bar) return;
     const row = bar.parentElement;
@@ -284,7 +262,7 @@ export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, e
               style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '2000000px', pointerEvents: 'none' }}
             />
             <div className="timeline-today-line" id="timeline-today-indicator" ref={todayRef} />
-            <div id="timeline-tbody" ref={tbodyRef} onMouseDown={handleTbodyMouseDown} onClick={handleTbodyClick} onDoubleClick={handleDblClick}>
+            <div id="timeline-tbody" ref={tbodyRef} onMouseDown={handleTbodyMouseDown} onDoubleClick={handleDblClick}>
               <div className="timeline-marquee" ref={marqueeRef} aria-hidden="true" />
               {(() => {
                 const collapsedParentIds = new Set(tasks.filter(t => t.collapsed).map(t => t.id));
