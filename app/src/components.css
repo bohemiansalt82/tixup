@@ -3024,21 +3024,38 @@ body.marquee-active, body.marquee-active * {
     background-color: var(--semantic-color-colors-primary, #18675a) !important;
 }
 /* add (sub tix) 24px #00C27B, shown on hover — colour already set above */
-/* checkbox: check_box_default 24px icon = 16px box, 1.5px #9E9E9E stroke, radius 5.5 */
+/* checkbox: the Figma icons themselves as masks — check_box_default (19px box, 1.5px #9E9E9E,
+   radius 7) and check_box_active (#18675A filled box with a cut-out check), both 24px */
 .checkbox-container {
     width: 24px;
     height: 24px;
     justify-content: center;
 }
 .checkbox-box {
-    width: 16px;
-    height: 16px;
-    border: 1.5px solid var(--primitive-colors-gray-500, #9e9e9e);
-    border-radius: 5.5px;
+    width: 24px;
+    height: 24px;
+    border: 0;
+    border-radius: 0;
+    background-color: var(--primitive-colors-gray-500, #9e9e9e);
+    -webkit-mask: url('/images/icons/check_box_default.svg') center / 24px 24px no-repeat;
+    mask: url('/images/icons/check_box_default.svg') center / 24px 24px no-repeat;
 }
-.checkbox-container input:checked+.checkbox-box::before {
-    width: 14px;
-    height: 14px;
+.checkbox-container:hover .checkbox-box {
+    background-color: var(--semantic-color-colors-primary, #18675a);
+}
+.checkbox-container input:checked+.checkbox-box {
+    background-color: var(--semantic-color-colors-primary, #18675a);
+    -webkit-mask-image: url('/images/icons/check_box_active.svg');
+    mask-image: url('/images/icons/check_box_active.svg');
+}
+.checkbox-container input:checked+.checkbox-box::before { display: none; }
+.checkbox-container input:indeterminate+.checkbox-box {
+    -webkit-mask: none;
+    mask: none;
+    width: 19px;
+    height: 19px;
+    border-radius: 7px;
+    background-color: var(--semantic-color-colors-primary, #18675a);
 }
 /* Status=Drag (Figma 37635:4478 / 37635:4520): 20% white glass card with 10px backdrop blur,
    2px #757575 border, radius 8, 0 0 30px 10% shadow. The row inside must stay transparent or the
