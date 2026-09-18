@@ -72,12 +72,14 @@ function Dashboard({ spaceId }) {
   const { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, remoteMembers, onlineEmails, addTask, addChild, removeTask, updateTask, replaceTasks, toggleCollapse, moveTask } = useTaskStore(spaceId, { space: activeSpace, user });
   // Assignee candidates: me, emails invited locally, and members recorded on the shared space.
   // `online` = the backend saw that member on the site within the last ~45 s (Figma Avatar V2 "Online" dot).
+  // The signed-in user is looking at the app right now, so they are always online.
   const members = useMemo(() => {
     const list = [];
     const online = new Set(onlineEmails);
     const add = (email, name, picture) => {
       if (!email || list.some(m => m.email === email)) return;
-      list.push({ email, name: name || email.split('@')[0], picture: picture || null, online: online.has(String(email).toLowerCase()) });
+      const isMe = !!user && String(email).toLowerCase() === String(user.email).toLowerCase();
+      list.push({ email, name: name || email.split('@')[0], picture: picture || null, online: isMe || online.has(String(email).toLowerCase()) });
     };
     if (user) add(user.email, user.name, user.picture);
     remoteMembers.forEach(m => add(m.email, m.name));
