@@ -159,10 +159,13 @@
 .dv-feed-empty { padding: 32px 0 0 16px; font-size: 14px; color: var(--primitive-colors-gray-400, #bdbdbd); }
 /* Each entry: 2px rail on the left, a 10px dot 63px down (Figma 37705:1017), content starts 56px down.
    The rail and dot are gray; the Tix of the selected day / week turn green (37705:1019 vs 37705:13426). */
-/* Archive card (Figma "Tix" 37705:1016): radius 20, 16px padding, rows 6px apart; the selected
-   day / week tints the card #E7EBE6 (the rail + dot of the old Timeline are gone). */
-.dv-entry { position: relative; display: flex; flex-direction: column; flex-shrink: 0; gap: 6px; padding: 16px; border-radius: 20px; background: var(--primitive-colors-gray-100, #f5f5f5); transition: background-color 160ms ease; }
+/* Archive card: radius 20, 16px padding, rows 6px apart.
+   Unselected (Figma 39589:12587): no card background, rows #F5F5F5.
+   Selected (Figma 37705:12623, the clicked day / week): card #E7EBE6, rows white. */
+.dv-entry { position: relative; display: flex; flex-direction: column; flex-shrink: 0; gap: 6px; padding: 16px; border-radius: 20px; background: transparent; transition: background-color 160ms ease; }
 .dv-entry-selected { background: #e7ebe6; }
+.dv-entry .dv-row { background: var(--primitive-colors-gray-100, #f5f5f5); }
+.dv-entry-selected .dv-row { background: #fff; }
 .dv-entry-head { display: flex; flex-direction: column; width: 100%; }
 .dv-entry-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; font-size: 14px; line-height: 1.5; color: var(--dv-heading); }
 .dv-entry-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
