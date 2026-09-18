@@ -14,6 +14,16 @@ export function getDateFromPx(px, cellWidth) {
 }
 
 /** Last day covered by a bar (stored px, 48 px/day) as a local 'YYYY-MM-DD' string; null when unplaced. */
+/** First day of a bar (stored px, 48 px/day) as a local 'YYYY-MM-DD' string; null when unplaced. */
+export function getBarStartDate(start) {
+  if (!Number.isFinite(start)) return null;
+  const d = new Date(BASE_EPOCH);
+  d.setDate(d.getDate() + Math.round((start - CENTER_PX) / 48));
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
 export function getBarEndDate(start, width) {
   if (!Number.isFinite(start) || !Number.isFinite(width) || width <= 0) return null;
   const days = Math.round((start + width - CENTER_PX) / 48) - 1;
@@ -81,4 +91,52 @@ export function rebaseTasks(tasks) {
     return { ...t, anchor: today, start: t.start - delta * 48 };
   });
   return changed ? out : tasks;
+}
+
+
+// ---- Tix history (Dashboard "Archive") ----
+// Every task carries `history: [{ id, at, kind: 'add' | 'change', changes }]`.
+//  - 'add'    → changes = the full snapshot { title, span: [start, end], status, assignee, tags, boxId }
+//  - 'change' → changes = only the fields that differ, each as { from, to }
+const HISTORY_MAX = 100;
+const ADD_MERGE_MS = 60_000; // edits within a minute of creation (naming the new Tix) fold into the 'add'
+
+const snapshotOf = (t) => ({
+  title: t.title || '',
+  span: [getBarStartDate(t.start), getBarEndDate(t.start, t.width)],
+  status: t.status || 'pending',
+  assignee: t.assignee ? { name: t.assignee.name || null, email: t.assignee.email || null } : null,
+  tags: Array.isArray(t.tags) ? [...t.tags] : [],
+  boxId: t.boxId ?? null,
+});
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+function diffSnapshots(a, b) {
+  const changes = {};
+  Object.keys(b).forEach((k) => { if (!same(a[k], b[k])) changes[k] = { from: a[k], to: b[k] }; });
+  return Object.keys(changes).length ? changes : null;
+}
+
+/** Returns `next` with history entries appended for tasks that are new or changed since `prev`. */
+export function recordHistory(prev, next, now = new Date()) {
+  const prevById = new Map(prev.map((t) => [t.id, t]));
+  const at = now.toISOString();
+  return next.map((t) => {
+    const before = prevById.get(t.id);
+    if (!before) {
+      if (Array.isArray(t.history) && t.history.length) return t; // e.g. undo restoring a task
+      return { ...t, history: [{ id: uid(), at, kind: 'add', changes: snapshotOf(t) }] };
+    }
+    const changes = diffSnapshots(snapshotOf(before), snapshotOf(t));
+    if (!changes) return t;
+    const history = Array.isArray(t.history) ? [...t.history] : [];
+    const last = history[history.length - 1];
+    const titleOnly = Object.keys(changes).every((k) => k === 'title');
+    if (last && last.kind === 'add' && titleOnly && now - new Date(last.at) < ADD_MERGE_MS) {
+      history[history.length - 1] = { ...last, changes: snapshotOf(t) }; // naming the new Tix: refresh the snapshot
+      return { ...t, history };
+    }
+    history.push({ id: uid(), at, kind: 'change', changes });
+    return { ...t, history: history.slice(-HISTORY_MAX) };
+  });
 }

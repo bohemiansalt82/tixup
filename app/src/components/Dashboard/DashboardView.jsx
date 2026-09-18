@@ -7,7 +7,7 @@ import { MakeModal } from '../Modals/MakeModal';
 import { InviteModal } from '../Modals/InviteModal';
 import {
   overview, keywords, byAssignee, distribution, assigneeName, assigneePicture,
-  buildDayLine, buildWeekLine, timelineEntries, entryInRange, shortDate, clock,
+  buildDayLine, buildWeekLine, archiveEntries, entryOnDay, shortDate, dateTime,
 } from './dashboardStats';
 import './DashboardView.css';
 
@@ -19,9 +19,10 @@ const headerIcon = (name) => `${import.meta.env.BASE_URL}images/header/${name}.s
  *
  * Live: header counts, New Project (creates a box), team invite, Overview (This Week / This Month),
  * Keywords (word frequency over Tix titles), Issue status by Assignee (sortable), Issue status
- * Distribution, and the Timeline: every parent Tix in date order; the day line dots show how many
- * Tix run on each day (dot size = count) and clicking a day / week scrolls the list to those Tix
- * and marks them with the green rail. Only the timeline panes scroll, not the page.
+ * Distribution, and the Archive: every add / change recorded on a Tix (`task.history`, newest
+ * first) as a card — an add shows the whole Tix, a change only the fields that changed (old › new).
+ * The day line dots show how many entries happened each day (dot size = count); clicking a day /
+ * week tints those cards and scrolls to the first. Only the archive panes scroll, not the page.
  * Visual only: "Files" count, the "Ai" badge, the ⋮ menu.
  */
 export function DashboardView({ tasks, members = [], currentUser, onOpenTix }) {
@@ -43,8 +44,8 @@ export function DashboardView({ tasks, members = [], currentUser, onOpenTix }) {
   }, [tasks, members, currentUser, issueSort]);
   const dist = useMemo(() => distribution(tasks), [tasks]);
   const line = useMemo(() => (lineMode === 'day' ? buildDayLine() : buildWeekLine()), [lineMode]);
-  const entries = useMemo(() => timelineEntries(tasks), [tasks]);
-  const boxName = (id) => boxes.find((b) => b.id === id)?.name ?? activeSpace?.name ?? '';
+  const entries = useMemo(() => archiveEntries(tasks), [tasks]);
+  const boxName = (id) => (id ? (boxes.find((b) => b.id === id)?.name ?? '') : (activeSpace?.name ?? ''));
 
   // Selecting a day / week scrolls the Tix list to the first Tix of that range; the day line keeps
   // the selected item in view too (both panes scroll on their own).
@@ -205,17 +206,17 @@ export function DashboardView({ tasks, members = [], currentUser, onOpenTix }) {
           </section>
         </div>
 
-        {/* Timeline (activity) */}
+        {/* Archive (Figma 37703:816): day line + add / change cards */}
         <div className="dv-col dv-col-right">
           <div className="dv-block-head">
-            <h2 className="dv-block-title">Timeline</h2>
+            <h2 className="dv-block-title">Archive</h2>
             <Segment value={lineMode} onChange={(m) => { setLineMode(m); setSelected({ from: 0, to: 0 }); }} options={[['day', 'Day'], ['week', 'Week']]} />
           </div>
           <div className="dv-timeline">
             <div className="dv-dayline" ref={daylineRef}>
               {line.map((it) => {
                 if (it.kind === 'label') return <div className="dv-day dv-day-label" key={it.key}>{it.text}</div>;
-                const n = entries.filter((e) => entryInRange(e, it.from, it.to)).length;
+                const n = entries.filter((e) => entryOnDay(e, it.from, it.to)).length;
                 const isSelected = selected.from === it.from && selected.to === it.to;
                 return (
                   <button
@@ -223,7 +224,7 @@ export function DashboardView({ tasks, members = [], currentUser, onOpenTix }) {
                     key={it.key}
                     className={`dv-day${isSelected ? ' dv-day-selected' : ''}${it.weekend ? ' dv-day-weekend' : ''}${it.today ? ' dv-day-today' : ''}`}
                     onClick={() => setSelected({ from: it.from, to: it.to })}
-                    title={n ? `${n} Tix` : undefined}
+                    title={n ? `${n} ${n === 1 ? 'entry' : 'entries'}` : undefined}
                   >
                     <span className="dv-day-tix">{n > 0 && <span className={`dv-day-dot dv-day-dot-${n >= 4 ? 3 : n >= 2 ? 2 : 1}`} />}</span>
                     <span className="dv-day-letter">{it.letter}</span>
@@ -233,13 +234,14 @@ export function DashboardView({ tasks, members = [], currentUser, onOpenTix }) {
               })}
             </div>
             <div className="dv-feed" ref={feedRef}>
-              {entries.length === 0 && <div className="dv-feed-empty">Your Tix will show up here in date order.</div>}
+              {entries.length === 0 && <div className="dv-feed-empty">Tix you add or change will be archived here.</div>}
               {entries.map((e) => (
-                <TixEntry
-                  key={e.task.id}
+                <ArchiveEntry
+                  key={e.key}
                   entry={e}
                   boxName={boxName(e.task.boxId)}
-                  selected={entryInRange(e, selected.from, selected.to)}
+                  boxNameOf={boxName}
+                  selected={entryOnDay(e, selected.from, selected.to)}
                   members={members}
                   currentUser={currentUser}
                   onOpen={onOpenTix ? () => onOpenTix(e.task.id) : null}
@@ -286,36 +288,51 @@ function Ring({ pct, color }) {
   );
 }
 
-/** One Tix in the Timeline (Figma 37705:1016 / 37705:12623): title + created time, box, then Change / Tix to / Status / Tags. */
-function TixEntry({ entry, boxName, selected, members, currentUser, onOpen }) {
-  const { task } = entry;
+/**
+ * One archive card (Figma "Tix" 37705:1016 / 37705:12623): title + timestamp, box, then rows.
+ * kind 'add' lists the Tix as created (Due date start › end, Tix to, Status, Tags);
+ * kind 'change' lists only the changed fields, each as old › new.
+ */
+function ArchiveEntry({ entry, boxName, boxNameOf, selected, members, currentUser, onOpen }) {
+  const { task, kind, changes } = entry;
   const title = task.title || 'Untitled';
-  const tags = Array.isArray(task.tags) ? task.tags : [];
+  const person = (a) => (a ? (
+    <span className="dv-chip dv-chip-person">
+      <img src={assigneePicture(a, members, currentUser)} alt="" referrerPolicy="no-referrer" />
+      {assigneeName(a, members, currentUser)}
+    </span>
+  ) : <span className="dv-chip dv-chip-muted">Unassigned</span>);
+  const tagChips = (tags) => (Array.isArray(tags) && tags.length
+    ? tags.map((t) => <span key={t} className={`marker lv-tag lv-tag-${String(t).toLowerCase()}`}>{t}</span>)
+    : <span className="dv-chip dv-chip-muted">No tag</span>);
+  const text = (v) => <span className="dv-chip"><span className="dv-chip-text">{v || '—'}</span></span>;
+
+  const rows = [];
+  if (kind === 'add') {
+    const c = changes;
+    if (c.span?.[0]) rows.push(<Row key="span" label="Due date"><span className="dv-chip">{shortDate(c.span[0])}</span><Arrow /><span className="dv-chip">{shortDate(c.span[1])}</span></Row>);
+    if (c.assignee) rows.push(<Row key="assignee" label="Tix to">{person(c.assignee)}</Row>);
+    rows.push(<Row key="status" label="Status"><StatusChip status={c.status} /></Row>);
+    if (c.tags?.length) rows.push(<Row key="tags" label="Tags">{tagChips(c.tags)}</Row>);
+  } else {
+    if (changes.title) rows.push(<Row key="title" label="Title">{text(changes.title.from)}<Arrow />{text(changes.title.to)}</Row>);
+    if (changes.span) rows.push(<Row key="span" label="Due date"><span className="dv-chip">{shortDate(changes.span.from?.[1])}</span><Arrow /><span className="dv-chip">{shortDate(changes.span.to?.[1])}</span></Row>);
+    if (changes.status) rows.push(<Row key="status" label="Status"><StatusChip status={changes.status.from} /><Arrow /><StatusChip status={changes.status.to} /></Row>);
+    if (changes.assignee) rows.push(<Row key="assignee" label="Tix to">{person(changes.assignee.from)}<Arrow />{person(changes.assignee.to)}</Row>);
+    if (changes.tags) rows.push(<Row key="tags" label="Tags">{tagChips(changes.tags.from)}<Arrow />{tagChips(changes.tags.to)}</Row>);
+    if (changes.boxId) rows.push(<Row key="box" label="Box">{text(boxNameOf(changes.boxId.from))}<Arrow />{text(boxNameOf(changes.boxId.to))}</Row>);
+  }
+
   return (
-    <article className={`dv-entry${selected ? ' dv-entry-selected' : ''}`} data-task-id={task.id}>
-      <span className="dv-entry-dot" />
+    <article className={`dv-entry dv-entry-${kind}${selected ? ' dv-entry-selected' : ''}`} data-task-id={task.id}>
       <div className="dv-entry-head">
         <div className="dv-entry-row">
           {onOpen ? <button type="button" className="dv-entry-title dv-entry-link" onClick={onOpen}>{title}</button> : <span className="dv-entry-title">{title}</span>}
-          {task.createdAt && <span className="dv-entry-time">{clock(task.createdAt)}</span>}
+          <span className="dv-entry-time">{dateTime(entry.at)}</span>
         </div>
-        <div className="dv-entry-sub">{boxName}</div>
+        <div className="dv-entry-sub">{kind === 'add' ? 'Added' : 'Changed'}{boxName ? ` · ${boxName}` : ''}</div>
       </div>
-      {entry.startISO && (
-        <Row label="Change"><span className="dv-chip">{shortDate(entry.startISO)}</span><Arrow /><span className="dv-chip">{shortDate(entry.endISO)}</span></Row>
-      )}
-      <Row label="Tix to">
-        {task.assignee ? (
-          <span className="dv-chip dv-chip-person">
-            <img src={assigneePicture(task.assignee, members, currentUser)} alt="" referrerPolicy="no-referrer" />
-            {assigneeName(task.assignee, members, currentUser)}
-          </span>
-        ) : <span className="dv-chip dv-chip-muted">Unassigned</span>}
-      </Row>
-      <Row label="Status"><StatusChip status={task.status} /></Row>
-      {tags.length > 0 && (
-        <Row label="Tags">{tags.map((t) => <span key={t} className={`marker lv-tag lv-tag-${String(t).toLowerCase()}`}>{t}</span>)}</Row>
-      )}
+      {rows}
     </article>
   );
 }
@@ -331,13 +348,7 @@ function Row({ label, children }) {
 
 function Arrow() { return <img className="dv-row-arrow" src={icon('arrow_right')} alt="→" width={24} height={24} />; }
 
-/** Marker V2 status chip: Drop (gray, ⊘) and Overdue (red, skull) follow the Figma entries. */
+/** Status as the Marker V3 icon badge (Figma 37705:12640 uses Marker V3 with its icon). */
 function StatusChip({ status }) {
-  return (
-    <span className={`dv-chip dv-chip-status dv-status-${status}`}>
-      {status === 'drop' && <img src={icon('drop_dot')} alt="" width={10} height={10} />}
-      {status === 'overdue' && <img src={icon('skull')} alt="" width={14} height={14} />}
-      {STATUS_LABELS[status] || status}
-    </span>
-  );
+  return <span className={`marker marker-has-icon marker-${status}`}>{STATUS_LABELS[status] || status}</span>;
 }

@@ -1,6 +1,6 @@
 import { CELL_WIDTH, CENTER_PX, BASE_EPOCH, STATUS_LABELS } from '../../constants';
 import { avatarFor } from '../../store/useAuth';
-import { addDays, diffDays, toISO, isSameDay, startOfMonth, formatMonth } from '../Calendar/calendarLayout';
+import { addDays, diffDays, toISO, isSameDay, startOfMonth } from '../Calendar/calendarLayout';
 
 /* Pure helpers behind the dashboard (Figma Tixup_Dashboard 37700:8285). */
 
@@ -133,7 +133,7 @@ export function buildDayLine(today = BASE_EPOCH) {
   const last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
   const items = [];
   for (let i = 3; i >= 1; i -= 1) items.push(dayItem(addDays(first, -i), today));
-  items.push({ kind: 'label', key: `label-${toISO(first)}`, text: formatMonth(first) });
+  items.push({ kind: 'label', key: `label-${toISO(first)}`, text: monthShort(first) });
   for (let d = 1; d <= last.getDate(); d += 1) items.push(dayItem(new Date(today.getFullYear(), today.getMonth(), d), today));
   return items;
 }
@@ -150,7 +150,7 @@ export function buildWeekLine(today = BASE_EPOCH) {
     const sunday = addDays(monday, 6);
     if (monday.getMonth() !== month) {
       month = monday.getMonth();
-      items.push({ kind: 'label', key: `label-${toISO(monday)}`, text: formatMonth(monday) });
+      items.push({ kind: 'label', key: `label-${toISO(monday)}`, text: monthShort(monday) });
     }
     const from = diffDays(today, monday);
     items.push({ kind: 'week', key: `w-${toISO(monday)}`, from, to: from + 6, letter: 'W', num: monday.getDate(), weekend: false, today: today >= monday && today <= sunday });
@@ -174,6 +174,34 @@ export function timelineEntries(tasks) {
 export const entryInRange = (entry, from, to) => entry.startOffset !== null && entry.startOffset <= to && entry.endOffset >= from;
 
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/** Month label on the day line (Figma 37705:19076): "Mar 2025". */
+export const monthShort = (date) => `${MON[date.getMonth()]} ${date.getFullYear()}`;
+
+/**
+ * Archive: every add / change recorded on the Tix (`task.history`), newest first, with the day
+ * offset of the moment it happened so the day line can count and select them.
+ */
+export function archiveEntries(tasks, today = BASE_EPOCH) {
+  const out = [];
+  tasks.forEach((task) => {
+    (task.history || []).forEach((h) => {
+      const when = new Date(h.at);
+      if (Number.isNaN(when.getTime())) return;
+      const day = new Date(when); day.setHours(0, 0, 0, 0);
+      out.push({ key: `${task.id}-${h.id}`, task, at: h.at, atMs: when.getTime(), offset: diffDays(today, day), kind: h.kind, changes: h.changes || {} });
+    });
+  });
+  return out.sort((a, b) => b.atMs - a.atMs);
+}
+/** Did the entry happen inside the day-offset range [from, to]? */
+export const entryOnDay = (entry, from, to) => entry.offset >= from && entry.offset <= to;
+/** "2025-10-29 20:31:14" */
+export function dateTime(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
 export function shortDate(iso) {
   if (!iso) return '—';
   const [, m, d] = iso.split('-').map(Number);

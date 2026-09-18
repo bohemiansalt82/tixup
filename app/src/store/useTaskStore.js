@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { CENTER_PX } from '../constants';
-import { uid, rebaseTasks } from '../utils/timeline';
+import { uid, rebaseTasks, recordHistory } from '../utils/timeline';
 import { canSync, loadRemoteSpace, saveRemoteSpace, beaconSaveRemoteSpace } from './remote';
 
 const PUSH_DEBOUNCE_MS = 700;
@@ -180,8 +180,9 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
 
   const updateTasks = useCallback((updater) => {
     setTasks(prev => {
-      // Every write stamps `anchor` = today so other days/browsers can re-anchor the px values.
-      const next = rebaseTasks(typeof updater === 'function' ? updater(prev) : updater);
+      // Every write stamps `anchor` = today so other days/browsers can re-anchor the px values,
+      // and appends add / change entries to each task's `history` (Dashboard Archive).
+      const next = recordHistory(prev, rebaseTasks(typeof updater === 'function' ? updater(prev) : updater));
       save(spaceId, next);
       return next;
     });
