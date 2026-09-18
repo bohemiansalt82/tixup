@@ -120,10 +120,14 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
   );
 }
 
-export const EditableTitle = forwardRef(function EditableTitle({ task, onRename, autoEdit, isParent }, ref) {
+const OPEN_DELAY = 220; // ms: give a double-click (rename) a chance before a single click opens the popup
+
+export const EditableTitle = forwardRef(function EditableTitle({ task, onRename, autoEdit, isParent, onOpen }, ref) {
   const [editing, setEditing] = useState(autoEdit);
   const [value, setValue] = useState(task.title);
   const inputRef = useRef(null);
+  const openTimer = useRef(null);
+  useEffect(() => () => clearTimeout(openTimer.current), []);
 
   useImperativeHandle(ref, () => ({
     startEdit: () => { setValue(task.title); setEditing(true); },
@@ -163,7 +167,11 @@ export const EditableTitle = forwardRef(function EditableTitle({ task, onRename,
   }
 
   return (
-    <span className="data-grid-text" onDoubleClick={() => setEditing(true)}>
+    <span
+      className={`data-grid-text${onOpen ? ' data-grid-text-link' : ''}`}
+      onClick={onOpen ? (e) => { e.stopPropagation(); clearTimeout(openTimer.current); openTimer.current = setTimeout(() => onOpen(task.id), OPEN_DELAY); } : undefined}
+      onDoubleClick={() => { clearTimeout(openTimer.current); setEditing(true); }}
+    >
       {task.title}
     </span>
   );

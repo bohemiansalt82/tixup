@@ -140,15 +140,8 @@ function ListRow({ task, hasChildren = false, exitingIds, newIds, selectedIds, m
     { label: '삭제하기', danger: true, onClick: () => { if (confirm(`"${task.title || 'New Tix'}"을(를) 삭제할까요?${isParent && hasChildren ? ' 서브틱스도 함께 삭제됩니다.' : ''}`)) onRename(task.id, null); } },
   ];
 
-  // Plain click anywhere on the row opens the Tix detail popup; cell controls are excluded.
-  const handleRowClick = (e) => {
-    if (!onOpen) return;
-    if (e.target.closest('button, input, label, .marker, .tree-expander, .add-child-btn, .lv-assignee, .lv-tags')) return;
-    onOpen(task.id);
-  };
-
   return (
-    <div className={cls} data-row-id={task.id} data-type={task.type} data-status={task.status} onClick={handleRowClick} onContextMenu={ctx.open} style={{ cursor: onOpen ? 'pointer' : undefined }}>
+    <div className={cls} data-row-id={task.id} data-type={task.type} data-status={task.status} onContextMenu={ctx.open}>
       <ContextMenu state={ctx} items={ctxItems} />
       <div className="data-grid-cell center">
         <label className="checkbox-container">
@@ -166,7 +159,8 @@ function ListRow({ task, hasChildren = false, exitingIds, newIds, selectedIds, m
           )}
           {isParent && !hasChildren && <span className="tree-expander tree-expander-placeholder" aria-hidden="true" />}
           <div className={`nav-icon ${isParent ? 'icon-tix' : 'icon-stat'}`} />
-          <EditableTitle ref={editRef} task={task} onRename={onRename} autoEdit={!task.title} isParent={isParent} />
+          {/* Only the Tix name opens the detail popup (single click); double-click still renames. */}
+          <EditableTitle ref={editRef} task={task} onRename={onRename} autoEdit={!task.title} isParent={isParent} onOpen={onOpen} />
           {isParent && (
             <button type="button" className="add-child-btn" title="Add sub tix" onClick={() => onAddChild(task.id)}>
               <div className="nav-icon icon-add" />
