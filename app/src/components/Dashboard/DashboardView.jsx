@@ -290,7 +290,7 @@ function Ring({ pct, color }) {
 
 /**
  * One archive card (Figma "Tix" 37705:1016 / 37705:12623): title + timestamp, box, then rows.
- * kind 'add' lists the Tix as created (Due date start › end, Tix to, Status, Tags);
+ * kind 'add' lists the Tix as created (Due date = the planned finish day, Tix to, Status, Tags);
  * kind 'change' lists only the changed fields, each as old › new.
  */
 function ArchiveEntry({ entry, boxName, boxNameOf, selected, members, currentUser, onOpen }) {
@@ -310,14 +310,14 @@ function ArchiveEntry({ entry, boxName, boxNameOf, selected, members, currentUse
   const rows = [];
   if (kind === 'add') {
     const c = changes;
-    if (c.span?.[0]) rows.push(<Row key="span" label="Due date"><span className="dv-chip">{shortDate(c.span[0])}</span><Arrow /><span className="dv-chip">{shortDate(c.span[1])}</span></Row>);
+    if (c.span?.[1]) rows.push(<Row key="span" label="Due date"><span className="dv-chip">{shortDate(c.span[1])}</span></Row>);
     if (c.assignee) rows.push(<Row key="assignee" label="Tix to">{person(c.assignee)}</Row>);
-    rows.push(<Row key="status" label="Status"><StatusChip status={c.status} /></Row>);
+    rows.push(<Row key="status" label="Status" className="dv-row-status"><StatusChip status={c.status} /></Row>);
     if (c.tags?.length) rows.push(<Row key="tags" label="Tags">{tagChips(c.tags)}</Row>);
   } else {
     if (changes.title) rows.push(<Row key="title" label="Title">{text(changes.title.from)}<Arrow />{text(changes.title.to)}</Row>);
     if (changes.span) rows.push(<Row key="span" label="Due date"><span className="dv-chip">{shortDate(changes.span.from?.[1])}</span><Arrow /><span className="dv-chip">{shortDate(changes.span.to?.[1])}</span></Row>);
-    if (changes.status) rows.push(<Row key="status" label="Status"><StatusChip status={changes.status.from} /><Arrow /><StatusChip status={changes.status.to} /></Row>);
+    if (changes.status) rows.push(<Row key="status" label="Status" className="dv-row-status"><StatusChip status={changes.status.from} /><Arrow /><StatusChip status={changes.status.to} /></Row>);
     if (changes.assignee) rows.push(<Row key="assignee" label="Tix to">{person(changes.assignee.from)}<Arrow />{person(changes.assignee.to)}</Row>);
     if (changes.tags) rows.push(<Row key="tags" label="Tags">{tagChips(changes.tags.from)}<Arrow />{tagChips(changes.tags.to)}</Row>);
     if (changes.boxId) rows.push(<Row key="box" label="Box">{text(boxNameOf(changes.boxId.from))}<Arrow />{text(boxNameOf(changes.boxId.to))}</Row>);
@@ -337,9 +337,9 @@ function ArchiveEntry({ entry, boxName, boxNameOf, selected, members, currentUse
   );
 }
 
-function Row({ label, children }) {
+function Row({ label, className = '', children }) {
   return (
-    <div className="dv-row">
+    <div className={`dv-row${className ? ` ${className}` : ''}`}>
       <span className="dv-row-label">{label}</span>
       <span className="dv-row-value">{children}</span>
     </div>

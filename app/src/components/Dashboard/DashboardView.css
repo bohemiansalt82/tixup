@@ -173,6 +173,8 @@
 .dv-entry-time { flex-shrink: 0; text-align: right; color: var(--dv-caption); font-variant-numeric: tabular-nums; }
 .dv-entry-sub { font-size: 12px; line-height: 1.5; color: var(--dv-caption); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dv-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 42px; padding: 7px 6px 7px 13px; border-radius: 9px; background: #fff; }
+/* Figma: chip rows are pl 13 / pr 6 (37705:12634), the Status row with the Marker V3 badge is px 13 (37705:12640) */
+.dv-row-status { padding-right: 13px; }
 .dv-row-label { font-size: 14px; line-height: 1.5; color: var(--dv-body); white-space: nowrap; }
 .dv-row-value { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; min-width: 0; }
 .dv-row-arrow { flex-shrink: 0; }
