@@ -1,14 +1,14 @@
-import { useRef, useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
-import { createPortal } from 'react-dom';
+import { useRef, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { StatusBadge } from '../Shared/StatusBadge';
+import { ContextMenu } from '../Shared/ContextMenu';
+import { useContextMenu } from '../../hooks/useContextMenu';
 
 export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDragging, isCollapsed, isDropInto, hasChildren = false, onSelect, onToggle, onAddChild, onRename, onStatusChange, onRowMouseDown, onOpen }) {
   const isParent = task.type === 'parent';
   const hasNoTitle = !task.title;
 
-  const [contextMenu, setContextMenu] = useState(null);
+  const menu = useContextMenu(); // shared menu: stays inside the viewport, closes on scroll / Escape
   const editRef = useRef(null);
-  const menuRef = useRef(null);
   // Where the mouse went down: a click that travelled further than this was a drag, not a click.
   const downPos = useRef(null);
   const CLICK_SLOP = 4;
@@ -25,21 +25,6 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
     isDropInto ? 'row-drop-into' : '',
   ].filter(Boolean).join(' ');
 
-  const handleContextMenu = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setContextMenu({ x: e.clientX, y: e.clientY });
-  }, []);
-
-  useEffect(() => {
-    if (!contextMenu) return;
-    const handler = (e) => {
-      if (!menuRef.current?.contains(e.target)) setContextMenu(null);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [contextMenu]);
-
   return (
     <div
       className={cls}
@@ -49,7 +34,7 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
       data-status={task.status}
       data-parent={task.parentId || undefined}
       onMouseDown={e => {
-        if (e.button !== 0) return;
+        if (e.button !== 0 || e.ctrlKey) return; // right-click / ctrl-click opens the menu, never a drag
         downPos.current = { x: e.clientX, y: e.clientY };
         if (e.target.closest('button, input, label, .marker')) return;
         onRowMouseDown(e, task);
@@ -62,7 +47,7 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
         if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > CLICK_SLOP) return;
         onOpen(task.id);
       }}
-      onContextMenu={handleContextMenu}
+      onContextMenu={menu.open}
       style={{ cursor: 'default' }} /* grabbing only while a drag is running (body.dragging-active) */
     >
       <div className="data-grid-cell center">
@@ -95,27 +80,13 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
         <StatusBadge status={task.status} onChange={status => onStatusChange(task.id, status)} />
       </div>
 
-      {contextMenu && createPortal(
-        <div
-          ref={menuRef}
-          className="ctx-menu"
-          style={{ position: 'fixed', top: contextMenu.y, left: contextMenu.x, zIndex: 99999 }}
-        >
-          <button
-            className="ctx-menu__item"
-            onClick={() => { setContextMenu(null); editRef.current?.startEdit(); }}
-          >
-            이름 변경
-          </button>
-          <button
-            className="ctx-menu__item ctx-menu__item--danger"
-            onClick={() => { setContextMenu(null); onRename(task.id, null); }}
-          >
-            삭제하기
-          </button>
-        </div>,
-        document.body
-      )}
+      <ContextMenu
+        state={menu}
+        items={[
+          { label: '이름 변경', onClick: () => editRef.current?.startEdit() },
+          { label: '삭제하기', danger: true, onClick: () => onRename(task.id, null) },
+        ]}
+      />
     </div>
   );
 }

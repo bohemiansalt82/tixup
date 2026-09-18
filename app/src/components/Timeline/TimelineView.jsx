@@ -86,6 +86,9 @@ export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, e
   }, [cellWidth, renderHeader]);
 
   const handleTbodyMouseDown = useCallback((e) => {
+    // Left button only: a right-click / ctrl-click opens the browser menu, which swallows the
+    // mouse-up — the bar drag or marquee then stayed glued to the pointer.
+    if (e.button !== 0 || e.ctrlKey) return;
     const resizer = e.target.closest('.timeline-bar-resizer');
     const bar = e.target.closest('.timeline-bar');
 
