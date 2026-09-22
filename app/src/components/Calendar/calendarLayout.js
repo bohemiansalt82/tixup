@@ -52,8 +52,26 @@ export function monthGrid(month, weeks = 6) {
   return rows;
 }
 
+/**
+ * Continuous week rows from the Sunday on/before `from` to the Saturday on/after the last day
+ * before `toExclusive` (both month starts). Used by the scrolling calendar.
+ */
+export function weeksBetween(from, toExclusive) {
+  const gridStart = addDays(from, -from.getDay());
+  const last = addDays(toExclusive, -1);
+  const gridEnd = addDays(last, 6 - last.getDay());
+  const rows = [];
+  for (let d = gridStart; d <= gridEnd; d = addDays(d, 7)) {
+    const row = [];
+    for (let i = 0; i < 7; i += 1) row.push(addDays(d, i));
+    rows.push(row);
+  }
+  return rows;
+}
+
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 export const formatMonth = (date) => `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+export const formatMonthShort = (date) => MONTHS[date.getMonth()].slice(0, 3);
 export const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 /* ---------- timeline px (48 px/day, CENTER_PX = today) ↔ calendar days ---------- */

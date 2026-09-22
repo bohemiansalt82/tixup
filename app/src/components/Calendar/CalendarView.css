@@ -27,7 +27,9 @@
   border: 1px solid var(--primitive-colors-gray-300, #e0e0e0);
   border-radius: 16px;
 }
-.cv-scroll { flex: 1; min-height: 0; overflow: auto; }
+/* positioned so week offsetTop is relative to the scroll box; overflow-anchor off because the
+   prepend compensation is done by hand (Safari has no scroll anchoring, Chrome would double it). */
+.cv-scroll { position: relative; flex: 1; min-height: 0; overflow: auto; overflow-anchor: none; }
 
 /* ---- month toolbar inside the card (Figma 39552:12445) ---- */
 .cv-toolbar {
@@ -135,7 +137,10 @@
   line-height: 1.6;
   color: var(--primitive-colors-gray-700, #616161);
 }
-.cv-other-month { color: var(--primitive-colors-gray-500, #9e9e9e); }
+/* Continuous scroll: the 1st of each month reads "Oct 1" and the week holding it gets a heavier top line. */
+.cv-month-first { width: auto; padding: 0 4px; white-space: nowrap; color: var(--primitive-colors-gray-800, #424242); font-weight: 600; }
+.cv-week-month-start .cv-cell { border-top: 1px solid var(--primitive-colors-gray-300, #e0e0e0); }
+.cv-week-month-start { margin-top: -1px; }
 .cv-today { color: var(--primitive-colors-base-white, #fff); }
 .cv-today::before {
   content: '';

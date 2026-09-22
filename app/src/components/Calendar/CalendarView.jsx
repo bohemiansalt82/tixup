@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CalendarItem } from './CalendarItem';
 import { ContextMenu } from '../Shared/ContextMenu';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import {
-  WEEKDAYS, addMonths, dateToDayOffset, formatMonth, isSameDay, layoutWeek, monthGrid, parseISO,
-  spanToPx, startOfMonth, taskSpan, toISO,
+  WEEKDAYS, addMonths, dateToDayOffset, formatMonth, formatMonthShort, isSameDay, layoutWeek, parseISO,
+  spanToPx, startOfMonth, taskSpan, toISO, weeksBetween,
 } from './calendarLayout';
 import './CalendarView.css';
 
@@ -19,6 +19,11 @@ const ITEM_TOP = 46;
 const ROW_MIN = 130;
 const ROW_BOTTOM = 16;
 const DRAG_THRESHOLD = 4;
+/** Continuous scroll: months rendered before / after today at first, and added per extension. */
+const RANGE_BEFORE = 3;
+const RANGE_AFTER = 4;
+const RANGE_STEP = 3;
+const EXTEND_MARGIN = 600; // px from either end of the scroll box that triggers an extension
 /** Resize: fraction of a day cell the dragged edge must cross before the date snaps over. */
 const SNAP_THRESHOLD = 0.7;
 
@@ -50,7 +55,17 @@ function dateAtPoint(x, y) {
  * in stored px, so one gesture = one undo step for the caller.
  */
 export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix, onRenameTix, onDeleteTix }) {
+  // Months are not paged: the weeks scroll continuously and `range` grows as the user nears an
+  // end. `month` is the month shown in the toolbar (follows the scroll position).
+  const [range, setRange] = useState(() => {
+    const now = startOfMonth(new Date());
+    return { from: addMonths(now, -RANGE_BEFORE), to: addMonths(now, RANGE_AFTER) };
+  });
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
+  const scrollRef = useRef(null);
+  const prependRef = useRef(null); // { height } while a prepend is waiting for layout
+  const extendingRef = useRef(false);
+  const pendingScrollRef = useRef(null); // ISO of a week to scroll to once it is rendered
   // Right-click on a block: rename (inline) / delete.
   const ctx = useContextMenu();
   const [ctxTixId, setCtxTixId] = useState(null);
@@ -61,7 +76,110 @@ export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix, onRename
     { label: '삭제하기', danger: true, onClick: () => { const n = tasks.filter((t) => t.parentId === ctxTask.id).length; if (confirm(`"${ctxTask.title || 'New Tix'}"을(를) 삭제할까요?${n ? ` 서브틱스 ${n}개도 함께 삭제됩니다.` : ''}`)) onDeleteTix?.(ctxTask.id); } },
   ] : [];
   const today = useMemo(() => new Date(), []);
-  const weeks = useMemo(() => monthGrid(month), [month]);
+  const weeks = useMemo(() => weeksBetween(range.from, range.to), [range]);
+
+  const weekRowOf = useCallback((date) => {
+    const sunday = new Date(date);
+    sunday.setDate(sunday.getDate() - sunday.getDay());
+    return scrollRef.current?.querySelector(`.cv-week[data-week="${toISO(sunday)}"]`) ?? null;
+  }, []);
+
+  const jumpingRef = useRef(null); // timer while a programmatic scroll is in flight
+
+  /** Smooth-scroll the box to `top`; range extension pauses until the scroll has settled. */
+  const scrollBoxTo = useCallback((top, behavior) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    clearTimeout(jumpingRef.current);
+    const done = () => { clearTimeout(jumpingRef.current); jumpingRef.current = null; el.removeEventListener('scrollend', done); };
+    el.addEventListener('scrollend', done);
+    jumpingRef.current = setTimeout(done, 1000);
+    el.scrollTo({ top, behavior });
+  }, []);
+
+  /** Scroll so the week holding the 1st of `target` sits at the top (extending the range if needed). */
+  const goToMonth = useCallback((target, behavior = 'smooth') => {
+    const first = startOfMonth(target);
+    const row = weekRowOf(first);
+    const el = scrollRef.current;
+    if (row && el) {
+      // Keep a margin of rendered weeks around the target so nothing has to be added while the
+      // smooth scroll is still moving (a prepend mid-flight would shift the destination).
+      const nearStart = row.offsetTop < EXTEND_MARGIN;
+      const nearEnd = row.offsetTop + el.clientHeight + EXTEND_MARGIN > el.scrollHeight;
+      if (!nearStart && !nearEnd) {
+        scrollBoxTo(row.offsetTop, behavior);
+        setMonth(first);
+        return;
+      }
+    }
+    // Target is outside the rendered weeks or too close to an end: grow the range first, the
+    // layout effect below scrolls once the new weeks exist.
+    const growBefore = !row ? first < range.from : row.offsetTop < EXTEND_MARGIN;
+    const growAfter = !row ? first >= range.to : row.offsetTop + el.clientHeight + EXTEND_MARGIN > el.scrollHeight;
+    pendingScrollRef.current = { iso: toISO(first), behavior };
+    if (extendingRef.current) return; // an extension is already rendering; it will pick the jump up
+    extendingRef.current = true;
+    if (growBefore) prependRef.current = { height: el?.scrollHeight ?? 0 };
+    setRange((r) => ({
+      from: growBefore ? addMonths(first < r.from ? first : r.from, -RANGE_STEP) : r.from,
+      to: growAfter ? addMonths(first >= r.to ? first : r.to, RANGE_STEP) : r.to,
+    }));
+  }, [weekRowOf, scrollBoxTo, range]);
+
+  // First paint: open on the week holding the 1st of this month.
+  useLayoutEffect(() => {
+    const row = weekRowOf(startOfMonth(today));
+    if (row && scrollRef.current) scrollRef.current.scrollTop = row.offsetTop;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // After the range grew: keep the viewport still when weeks were added above, or finish a
+  // pending jump to a month that was outside the rendered range.
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    if (prependRef.current) {
+      el.scrollTop += el.scrollHeight - prependRef.current.height;
+      prependRef.current = null;
+    }
+    extendingRef.current = false;
+    const pending = pendingScrollRef.current;
+    if (pending) {
+      pendingScrollRef.current = null;
+      const row = weekRowOf(parseISO(pending.iso));
+      if (row) { scrollBoxTo(row.offsetTop, pending.behavior); setMonth(parseISO(pending.iso)); }
+    }
+  }, [weeks, weekRowOf, scrollBoxTo]);
+
+  const onScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    // Toolbar month = the month of the Saturday of the first row still visible at the top.
+    const rows = el.querySelectorAll('.cv-week');
+    const top = el.scrollTop + 1;
+    for (const row of rows) {
+      if (row.offsetTop + row.offsetHeight > top) {
+        const iso = row.dataset.week;
+        if (iso) {
+          const sat = parseISO(iso);
+          sat.setDate(sat.getDate() + 6);
+          const m = startOfMonth(sat);
+          setMonth((prev) => (prev.getTime() === m.getTime() ? prev : m));
+        }
+        break;
+      }
+    }
+    if (extendingRef.current || jumpingRef.current) return;
+    if (el.scrollTop < EXTEND_MARGIN) {
+      extendingRef.current = true;
+      prependRef.current = { height: el.scrollHeight };
+      setRange((r) => ({ from: addMonths(r.from, -RANGE_STEP), to: r.to }));
+    } else if (el.scrollHeight - el.scrollTop - el.clientHeight < EXTEND_MARGIN) {
+      extendingRef.current = true;
+      setRange((r) => ({ from: r.from, to: addMonths(r.to, RANGE_STEP) }));
+    }
+  }, []);
 
   // Parent Tix → blocks; sub-tix titles come from the children in list order.
   const items = useMemo(() => {
@@ -201,20 +319,20 @@ export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix, onRename
         <div className="cv-toolbar">
           <span className="cv-month">{formatMonth(month)}</span>
           <div className="cv-nav">
-            <button type="button" className="cv-ghost-btn cv-arrow-btn" onClick={() => setMonth((m) => addMonths(m, -1))} aria-label="Previous month">
+            <button type="button" className="cv-ghost-btn cv-arrow-btn" onClick={() => goToMonth(addMonths(month, -1))} aria-label="Previous month">
               <span className="cv-ghost-icon" style={{ '--icon': `url(${icon('chevron_left')})` }} aria-hidden="true" />
             </button>
-            <button type="button" className="cv-ghost-btn" onClick={() => setMonth(startOfMonth(new Date()))}>This Month</button>
-            <button type="button" className="cv-ghost-btn cv-arrow-btn" onClick={() => setMonth((m) => addMonths(m, 1))} aria-label="Next month">
+            <button type="button" className="cv-ghost-btn" onClick={() => goToMonth(new Date())}>This Month</button>
+            <button type="button" className="cv-ghost-btn cv-arrow-btn" onClick={() => goToMonth(addMonths(month, 1))} aria-label="Next month">
               <span className="cv-ghost-icon" style={{ '--icon': `url(${icon('chevron_right')})` }} aria-hidden="true" />
             </button>
           </div>
         </div>
 
-        <div className="cv-scroll">
         <div className="cv-weekdays" role="row">
           {WEEKDAYS.map((d) => <div key={d} className="cv-weekday" role="columnheader">{d}</div>)}
         </div>
+        <div className="cv-scroll" ref={scrollRef} onScroll={onScroll}>
 
         {weeks.map((week) => {
           const { segments, laneCount } = layoutWeek(week, effectiveItems);
@@ -224,12 +342,14 @@ export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix, onRename
           const laneTop = (lane) => ITEM_TOP + laneHeights.slice(0, lane).reduce((a, h) => a + h + ITEM_GAP, 0);
           const rowHeight = Math.max(ROW_MIN, laneTop(laneCount) - ITEM_GAP + ROW_BOTTOM + 1);
           const weekKey = toISO(week[0]);
+          const startsMonth = week.some((d) => d.getDate() === 1);
           return (
-            <div key={weekKey} className="cv-week" role="row" data-week={weekKey} style={{ minHeight: rowHeight }}>
+            <div key={weekKey} className={`cv-week${startsMonth ? ' cv-week-month-start' : ''}`} role="row" data-week={weekKey} style={{ minHeight: rowHeight }}>
               {week.map((day, col) => {
                 const iso = toISO(day);
                 const cls = ['cv-cell', col === 0 || col === 6 ? 'cv-weekend' : '', moving && drag.hoverDate === iso ? 'cv-drop-target' : ''].filter(Boolean).join(' ');
-                const dateCls = ['cv-date', day.getMonth() !== month.getMonth() ? 'cv-other-month' : '', isSameDay(day, today) ? 'cv-today' : ''].filter(Boolean).join(' ');
+                const firstOfMonth = day.getDate() === 1;
+                const dateCls = ['cv-date', firstOfMonth ? 'cv-month-first' : '', isSameDay(day, today) ? 'cv-today' : ''].filter(Boolean).join(' ');
                 return (
                   <div key={iso} className={cls} data-date={iso} role="gridcell">
                     <div className="cv-date-row">
@@ -238,7 +358,7 @@ export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix, onRename
                           <img src={addIcon} alt="" width={24} height={24} />
                         </button>
                       )}
-                      <span className={dateCls}>{day.getDate()}</span>
+                      <span className={dateCls}>{firstOfMonth && !isSameDay(day, today) ? `${formatMonthShort(day)} 1` : day.getDate()}</span>
                     </div>
                   </div>
                 );
