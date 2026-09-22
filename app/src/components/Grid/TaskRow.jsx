@@ -70,7 +70,7 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
           <div className={`nav-icon ${isParent ? 'icon-tix' : 'icon-stat'}`} />
           <EditableTitle ref={editRef} task={task} onRename={onRename} autoEdit={hasNoTitle} isParent={isParent} />
           {isParent && (
-            <button className="add-child-btn" onMouseDown={e => e.preventDefault()} /* keep the focus on a title still being typed */ onClick={() => onAddChild(task.id)}>
+            <button className="add-child-btn" onClick={() => onAddChild(task.id)}>
               <div className="nav-icon icon-add" />
             </button>
           )}
@@ -94,37 +94,41 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
 const OPEN_DELAY = 220; // ms: give a double-click (rename) a chance before a single click opens the popup
 
 export const EditableTitle = forwardRef(function EditableTitle({ task, onRename, autoEdit, isParent, onOpen }, ref) {
-  const [editing, setEditing] = useState(autoEdit);
+  // 'auto' = a brand-new row waiting for its first name, 'manual' = rename, null = plain text.
+  // The timeline and list views are both mounted (the inactive one is display:none), so an
+  // 'auto' edit only shows its input while the title is still empty — once the visible copy
+  // named the Tix, the hidden copy falls back to text instead of keeping a stale empty input.
+  const [editing, setEditing] = useState(autoEdit ? 'auto' : null);
   const [value, setValue] = useState(task.title);
+  const showInput = editing === 'manual' || (editing === 'auto' && !task.title);
   const inputRef = useRef(null);
   const openTimer = useRef(null);
   useEffect(() => () => clearTimeout(openTimer.current), []);
 
   useImperativeHandle(ref, () => ({
-    startEdit: () => { setValue(task.title); setEditing(true); },
+    startEdit: () => { setValue(task.title); setEditing('manual'); },
   }));
 
   useEffect(() => {
-    if (editing) inputRef.current?.focus({ preventScroll: true });
-  }, [editing]);
+    if (showInput) inputRef.current?.focus({ preventScroll: true });
+  }, [showInput]);
 
   const finish = (cancel = false) => {
     const name = value.trim();
     if (!cancel && name) {
       onRename(task.id, name);
     } else if (autoEdit) {
-      // Left without a name: keep it under the default name (the + button refuses a second
-      // unnamed row while this one is still being edited, see App.handleAddChild).
+      // Left without a name: keep it under the default name.
       const defaultName = isParent ? 'New Tix' : 'New Sub Tix';
       onRename(task.id, defaultName);
       setValue(defaultName);
     } else {
       setValue(task.title);
     }
-    setEditing(false);
+    setEditing(null);
   };
 
-  if (editing) {
+  if (showInput) {
     return (
       <input
         ref={inputRef}
@@ -143,7 +147,7 @@ export const EditableTitle = forwardRef(function EditableTitle({ task, onRename,
     <span
       className={`data-grid-text${onOpen ? ' data-grid-text-link' : ''}`}
       onClick={onOpen ? (e) => { e.stopPropagation(); clearTimeout(openTimer.current); openTimer.current = setTimeout(() => onOpen(task.id), OPEN_DELAY); } : undefined}
-      onDoubleClick={() => { clearTimeout(openTimer.current); setEditing(true); }}
+      onDoubleClick={() => { clearTimeout(openTimer.current); setValue(task.title); setEditing('manual'); }}
     >
       {task.title}
     </span>

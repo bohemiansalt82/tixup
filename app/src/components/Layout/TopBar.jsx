@@ -90,7 +90,7 @@ export function TopBar({ title, members = [], currentView, onViewChange, taskCou
         </div>
 
         {onCreateTix && (
-          <button type="button" className="topbar-create" onMouseDown={e => e.preventDefault()} /* keep the focus on a title still being typed */ onClick={onCreateTix} title="Create Tix">
+          <button type="button" className="topbar-create" onClick={onCreateTix} title="Create Tix">
             <img src={icon('add_white')} alt="" width={22} height={22} />
             <span>Tix</span>
           </button>
