@@ -20,7 +20,7 @@ import { canSync, loadRemoteProfile, saveRemoteProfile, beaconSaveRemoteProfile 
  * capped at READY_TIMEOUT_MS so a slow backend never blanks the app.
  */
 
-// localStorage keys shared with the vanilla app (dist/assets/js/tixup-auth.js)
+// localStorage keys (names kept from the original vanilla app so existing data survives)
 const ACTIVE_SPACE_KEY = 'tixup-active-space';
 const ACTIVE_BOX_KEY = 'tixup-active-box';
 const spacesKey = (userId) => `tixup-spaces-${userId}`;

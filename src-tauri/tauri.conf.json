@@ -3,10 +3,10 @@
     "version": "0.1.0",
     "identifier": "com.tixup.app",
     "build": {
-        "frontendDist": "../dist",
-        "devUrl": null,
-        "beforeDevCommand": "",
-        "beforeBuildCommand": ""
+        "frontendDist": "../app/dist",
+        "devUrl": "http://localhost:3000/tixup/",
+        "beforeDevCommand": "npm --prefix app run dev -- --port 3000",
+        "beforeBuildCommand": "npm --prefix app run build"
     },
     "app": {
         "windows": [

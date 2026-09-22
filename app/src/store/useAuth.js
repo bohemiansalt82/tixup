@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 
-// Same localStorage key as the vanilla app (dist/assets/js/tixup-auth.js)
+// localStorage key `tixup-user` (kept from the original vanilla app so existing logins survive)
 const USER_KEY = 'tixup-user';
 const listeners = new Set();
 
