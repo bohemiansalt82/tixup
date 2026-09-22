@@ -33,5 +33,5 @@ export const GOOGLE_CLIENT_ID =
 export const API_ENDPOINT =
   import.meta.env.VITE_API_ENDPOINT ||
   import.meta.env.VITE_INVITE_MAIL_ENDPOINT ||
-  'https://script.google.com/macros/s/AKfycbymujAE3REANZnfk8RmlSF6cBp2eArl2py-W7mtc3Bv90fDzAmWVyzMz3wmKPo13Ogi/exec';
+  'https://script.google.com/macros/s/AKfycbxp68e6Rkw52SDbmwpgCoyp0-WIPKRMYk_n6qUI-pPxfIFicuw0-N5WUcW-5hjayTxu/exec';
 export const INVITE_MAIL_ENDPOINT = API_ENDPOINT;
