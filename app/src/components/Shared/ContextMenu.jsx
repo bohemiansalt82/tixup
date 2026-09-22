@@ -9,7 +9,9 @@ import { createPortal } from 'react-dom';
  *   <ContextMenu state={menu} items={[{ label: '이름 변경', onClick }, { label: '삭제하기', danger: true, onClick }]} />
  *
  * Renders into document.body with the existing `.ctx-menu` styles (components.css); closes on
- * outside mouse-down, Escape, scroll, or after an item is chosen.
+ * outside mouse-down, Escape, scroll, or after an item is chosen. While it is open every wheel
+ * event is swallowed: a Magic Mouse / trackpad right-click leaks tiny wheel deltas (plus their
+ * momentum), which used to scroll the list under the menu and close it straight away.
  */
 export function ContextMenu({ state, items }) {
   const ref = useRef(null);
@@ -19,13 +21,16 @@ export function ContextMenu({ state, items }) {
     if (!pos) return undefined;
     const onDown = (e) => { if (!ref.current?.contains(e.target)) close(); };
     const onKey = (e) => { if (e.key === 'Escape') close(); };
+    const onWheel = (e) => { e.preventDefault(); e.stopPropagation(); };
     document.addEventListener('mousedown', onDown);
     document.addEventListener('keydown', onKey);
     window.addEventListener('scroll', close, true);
+    window.addEventListener('wheel', onWheel, { capture: true, passive: false });
     return () => {
       document.removeEventListener('mousedown', onDown);
       document.removeEventListener('keydown', onKey);
       window.removeEventListener('scroll', close, true);
+      window.removeEventListener('wheel', onWheel, { capture: true });
     };
   }, [pos, close]);
 
