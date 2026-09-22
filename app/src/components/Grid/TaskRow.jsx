@@ -113,9 +113,8 @@ export const EditableTitle = forwardRef(function EditableTitle({ task, onRename,
     if (!cancel && name) {
       onRename(task.id, name);
     } else if (autoEdit) {
-      const defaultName = isParent ? 'New Tix' : 'New Sub Tix';
-      onRename(task.id, defaultName);
-      setValue(defaultName);
+      // A brand-new Tix / sub-tix left without a name is discarded (no "New Sub Tix" placeholder).
+      onRename(task.id, null);
     } else {
       setValue(task.title);
     }

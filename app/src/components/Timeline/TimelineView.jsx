@@ -110,6 +110,9 @@ export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, e
     if (!bar) {
       // Empty area: rubber-band (marquee) selection. Shift/Cmd adds to the current selection.
       e.stopPropagation();
+      // preventDefault keeps the browser from moving focus, so blur a title being edited ourselves
+      // (an unnamed new sub-tix is discarded on blur).
+      if (document.activeElement?.tagName === 'INPUT') document.activeElement.blur();
       e.preventDefault();
       const tbody = tbodyRef.current;
       const marquee = marqueeRef.current;
