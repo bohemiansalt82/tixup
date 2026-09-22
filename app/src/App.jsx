@@ -114,16 +114,29 @@ function Dashboard({ spaceId }) {
     setSelectedIds(new Set(ids));
   }, []);
 
+  // Focus the title input of a row that is still unnamed; returns false when there is none.
+  const focusUnnamed = useCallback((id) => {
+    const scope = currentView === 'list' ? '#full-data-grid ' : '#sidebar-container ';
+    const input = document.querySelector(`${scope}[data-row-id="${id}"] input.grid-create-input`);
+    if (!input) return false;
+    input.focus();
+    input.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    return true;
+  }, [currentView]);
+
   const handleAddChild = useCallback((parentId) => {
     const parent = tasks.find(t => t.id === parentId);
     if (parent?.collapsed) toggleCollapse(parentId);
+    // One unnamed sub-tix at a time: pressing + again goes back to the one still waiting for a name.
+    const pending = tasks.find(t => t.parentId === parentId && !t.title);
+    if (pending && focusUnnamed(pending.id)) return;
     const newId = addChild(parentId);
     setTimeout(() => {
       const scope = currentView === 'list' ? '#full-data-grid ' : '#sidebar-container ';
       const el = document.querySelector(`${scope}[data-row-id="${newId}"]`);
       if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }, 50);
-  }, [tasks, addChild, toggleCollapse, currentView]);
+  }, [tasks, addChild, toggleCollapse, currentView, focusUnnamed]);
 
   const handleRename = useCallback((id, name) => {
     if (name === null) removeTask(id);
@@ -190,17 +203,20 @@ function Dashboard({ spaceId }) {
   }, [selectedIds, updateTask]);
 
   const handleCreateTix = useCallback(() => {
+    // Same rule as sub-tix: an unnamed Tix gets the focus back instead of a second empty row.
+    const pending = tasks.find(t => t.type === 'parent' && !t.title && (activeBox ? t.boxId === activeBox.id : true));
+    if (pending && focusUnnamed(pending.id)) return;
     addTask('', activeBox?.id ?? null);
     setTimeout(() => {
       const el = document.getElementById(currentView === 'list' ? 'full-grid-tbody' : 'sidebar-container');
       if (el) el.scrollTop = el.scrollHeight;
     }, 50);
-  }, [addTask, activeBox, currentView]);
+  }, [tasks, addTask, activeBox, currentView, focusUnnamed]);
 
   const footer = (
     <div className="timeline-footer-row">
       <div className="timeline-footer-cell">
-        <button className="grid-create-btn" onClick={handleCreateTix}>
+        <button className="grid-create-btn" onMouseDown={e => e.preventDefault()} /* keep the focus on a title still being typed */ onClick={handleCreateTix}>
           <div className="nav-icon icon-add" />
           <span className="data-grid-text">Create Tix</span>
         </button>

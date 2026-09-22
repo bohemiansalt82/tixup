@@ -70,7 +70,7 @@ export function TaskRow({ task, isExiting, isCollapsing, isNew, isSelected, isDr
           <div className={`nav-icon ${isParent ? 'icon-tix' : 'icon-stat'}`} />
           <EditableTitle ref={editRef} task={task} onRename={onRename} autoEdit={hasNoTitle} isParent={isParent} />
           {isParent && (
-            <button className="add-child-btn" onClick={() => onAddChild(task.id)}>
+            <button className="add-child-btn" onMouseDown={e => e.preventDefault()} /* keep the focus on a title still being typed */ onClick={() => onAddChild(task.id)}>
               <div className="nav-icon icon-add" />
             </button>
           )}
@@ -113,8 +113,11 @@ export const EditableTitle = forwardRef(function EditableTitle({ task, onRename,
     if (!cancel && name) {
       onRename(task.id, name);
     } else if (autoEdit) {
-      // A brand-new Tix / sub-tix left without a name is discarded (no "New Sub Tix" placeholder).
-      onRename(task.id, null);
+      // Left without a name: keep it under the default name (the + button refuses a second
+      // unnamed row while this one is still being edited, see App.handleAddChild).
+      const defaultName = isParent ? 'New Tix' : 'New Sub Tix';
+      onRename(task.id, defaultName);
+      setValue(defaultName);
     } else {
       setValue(task.title);
     }

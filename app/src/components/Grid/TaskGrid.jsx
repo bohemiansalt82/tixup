@@ -241,7 +241,7 @@ export function TaskGrid({ tasks, exitingIds, newIds, collapsingParentIds, expan
       {onCreateTix && (
         <div className="timeline-footer-row">
           <div className="timeline-footer-cell">
-            <button className="grid-create-btn" onClick={onCreateTix}>
+            <button className="grid-create-btn" onMouseDown={e => e.preventDefault()} /* keep the focus on a title still being typed */ onClick={onCreateTix}>
               <div className="nav-icon icon-add" />
               <span className="data-grid-text">Create Tix</span>
             </button>

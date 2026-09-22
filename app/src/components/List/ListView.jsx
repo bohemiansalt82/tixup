@@ -97,7 +97,7 @@ export function ListView({ tasks, exitingIds, newIds, selectedIds, members, curr
       </div>
 
       <div className="lv-footer">
-        <button type="button" className="grid-create-btn" onClick={onCreateTix}>
+        <button type="button" className="grid-create-btn" onMouseDown={e => e.preventDefault()} /* keep the focus on a title still being typed */ onClick={onCreateTix}>
           <div className="nav-icon icon-add" />
           <span className="data-grid-text">Create Tix</span>
         </button>
@@ -162,7 +162,7 @@ function ListRow({ task, hasChildren = false, exitingIds, newIds, selectedIds, m
           {/* Only the Tix name opens the detail popup (single click); double-click still renames. */}
           <EditableTitle ref={editRef} task={task} onRename={onRename} autoEdit={!task.title} isParent={isParent} onOpen={onOpen} />
           {isParent && (
-            <button type="button" className="add-child-btn" title="Add sub tix" onClick={() => onAddChild(task.id)}>
+            <button type="button" className="add-child-btn" title="Add sub tix" onMouseDown={e => e.preventDefault()} /* keep the focus on a title still being typed */ onClick={() => onAddChild(task.id)}>
               <div className="nav-icon icon-add" />
             </button>
           )}
