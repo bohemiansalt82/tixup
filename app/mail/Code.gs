@@ -23,11 +23,13 @@ var SENDER_NAME = 'Tixup';
 var DATA_FOLDER_NAME = 'Tixup Data';
 var PRESENCE_TTL_S = 45;      // a member counts as online this long after their last load
 var MAX_DOC_BYTES = 4 * 1024 * 1024;
+var BACKEND_VERSION = 3;      // bump on every change; `?action=ping` / { action: 'ping' } report it
 
 function doPost(e) {
   try {
     var body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     var action = body.action || 'invite';
+    if (action === 'ping') return json_({ ok: true, service: 'tixup-backend', version: BACKEND_VERSION });
     if (action === 'load') return json_(loadSpace_(body));
     if (action === 'save') return json_(saveSpace_(body));
     if (action === 'profile') return json_(loadProfile_(body));
@@ -42,7 +44,7 @@ function doPost(e) {
 function doGet(e) {
   var p = (e && e.parameter) || {};
   if (p.action === 'load') return json_(loadSpace_({ space: p.space }));
-  return json_({ ok: true, service: 'tixup-backend' });
+  return json_({ ok: true, service: 'tixup-backend', version: BACKEND_VERSION });
 }
 
 // ---------------------------------------------------------------- invites

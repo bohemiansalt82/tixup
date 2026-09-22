@@ -26,12 +26,29 @@ Free, no domain needed.
 6. Open the app once as the space owner: the first visit publishes the existing local Tix list
    to the backend. From then on invitees see it.
 
+## Deploying a change to `Code.gs`
+
+Preferred: from a machine where the owner has run `npx @google/clasp login` once,
+
+```
+app/mail/deploy.sh            # push + new version of the existing deployment + ping check
+```
+
+`.clasp.json` (git-ignored) must contain the project's Script ID: `{ "scriptId": "<Apps Script → Project settings → Script ID>", "rootDir": "." }`.
+`clasp deployments` lists the web-app deployment; `deploy.sh` picks the last one (override with `DEPLOYMENT_ID=...`).
+
+By hand: paste `Code.gs` into the editor → **Deploy → Manage deployments → ✎ → Version: New version → Deploy**.
+Never use **New deployment** for an update: that creates a second `/exec` URL and the app keeps talking to the old one.
+
+Check what is live: `curl -sL '<endpoint>?action=ping'` → `{ ok, service, version }` must show `BACKEND_VERSION` from `Code.gs`.
+
 ## How it works
 
 All calls are `POST <endpoint>` with a `text/plain` JSON body (no CORS preflight, which Apps Script requires).
 
 | Body | What happens |
 |---|---|
+| `{ action: "ping" }` (or `GET ?action=ping`) | `{ ok, service, version }` — the deployed `BACKEND_VERSION`. |
 | `{ to, space, inviter, link }` | Sends the invite email (fetches `public/email/invite.html`, fills placeholders, `MailApp.sendEmail`). |
 | `{ action: "load", space: "<id>", member?: { email } }` | Returns `{ found, space, tasks, online, rev, updatedAt }`; records `member.email` on the space and as present (`online` = e-mails seen in the last 45 s, kept in CacheService). |
 | `{ action: "save", space: { id, name, visibility }, tasks, by?: { name, email } }` | Replaces the task list, bumps `rev`, remembers the first saver as owner. Last write wins. |

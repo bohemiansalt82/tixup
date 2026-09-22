@@ -19,3 +19,7 @@ test_rust_proj/target/
 .claude/settings.local.json
 .claude/launch.json
 app/.claude/
+
+# Apps Script (clasp) local credentials / project link
+app/mail/.clasp.json
+.clasprc.json
