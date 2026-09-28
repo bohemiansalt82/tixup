@@ -127,26 +127,30 @@ function dayItem(date, today) {
   return { kind: 'day', key: toISO(date), from: offset, to: offset, letter: LETTERS[date.getDay()], num: date.getDate(), weekend: date.getDay() === 0 || date.getDay() === 6, today: isSameDay(date, today) };
 }
 
-/** Day mode: 3 days of the previous month, the month label, then every day of this month. `from`/`to` are day offsets. */
+/**
+ * Day mode, newest first (same order as the archive feed): this month's label, today down to the
+ * 1st, then the previous month's label and its last 3 days. Days after today are left out — the
+ * archive cannot hold entries for them. `from`/`to` are day offsets.
+ */
 export function buildDayLine(today = BASE_EPOCH) {
   const first = startOfMonth(today);
-  const last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-  const items = [];
-  for (let i = 3; i >= 1; i -= 1) items.push(dayItem(addDays(first, -i), today));
-  items.push({ kind: 'label', key: `label-${toISO(first)}`, text: monthShort(first) });
-  for (let d = 1; d <= last.getDate(); d += 1) items.push(dayItem(new Date(today.getFullYear(), today.getMonth(), d), today));
+  const items = [{ kind: 'label', key: `label-${toISO(first)}`, text: monthShort(first) }];
+  for (let d = today.getDate(); d >= 1; d -= 1) items.push(dayItem(new Date(today.getFullYear(), today.getMonth(), d), today));
+  const prev = addDays(first, -1);
+  items.push({ kind: 'label', key: `label-${toISO(startOfMonth(prev))}`, text: monthShort(prev) });
+  for (let i = 1; i <= 3; i += 1) items.push(dayItem(addDays(first, -i), today));
   return items;
 }
 
-/** Week mode: Monday-based weeks covering the same range; a month label where the month changes. */
+/** Week mode, newest first: Monday-based weeks from this week back over the same range; a month label above each month's weeks. */
 export function buildWeekLine(today = BASE_EPOCH) {
   const first = startOfMonth(today);
-  const last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
   const rangeStart = addDays(first, -3);
-  let monday = addDays(rangeStart, -((rangeStart.getDay() + 6) % 7));
+  const mondayOf = (d) => addDays(d, -((d.getDay() + 6) % 7));
+  const oldest = mondayOf(rangeStart);
   const items = [];
   let month = -1;
-  while (monday <= last) {
+  for (let monday = mondayOf(today); monday >= oldest; monday = addDays(monday, -7)) {
     const sunday = addDays(monday, 6);
     if (monday.getMonth() !== month) {
       month = monday.getMonth();
@@ -154,7 +158,6 @@ export function buildWeekLine(today = BASE_EPOCH) {
     }
     const from = diffDays(today, monday);
     items.push({ kind: 'week', key: `w-${toISO(monday)}`, from, to: from + 6, letter: 'W', num: monday.getDate(), weekend: false, today: today >= monday && today <= sunday });
-    monday = addDays(monday, 7);
   }
   return items;
 }
