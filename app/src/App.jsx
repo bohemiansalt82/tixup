@@ -11,6 +11,7 @@ import { CalendarView } from './components/Calendar/CalendarView';
 import { DashboardView } from './components/Dashboard/DashboardView';
 import { TixDetailModal } from './components/Detail/TixDetailModal';
 import { dateToDayOffset, dayOffsetToPx, parseISO } from './components/Calendar/calendarLayout';
+import { KanbanView } from './components/Kanban/KanbanView';
 import { SelectionBar } from './components/Shared/SelectionBar';
 import { useTaskStore } from './store/useTaskStore';
 import { useUndoHistory } from './hooks/useUndoHistory';
@@ -135,11 +136,20 @@ function Dashboard({ spaceId }) {
   }, [updateTask]);
 
   // Calendar view: every gesture (move / resize / create) is one undo step, up to 30 back.
-  const { record } = useUndoHistory(tasks, replaceTasks, { limit: 30, enabled: currentView === 'calendar' });
+  const { record } = useUndoHistory(tasks, replaceTasks, { limit: 30, enabled: currentView === 'calendar' || currentView === 'kanban' });
   const handleCalendarCommit = useCallback((updates) => {
     record();
     updates.forEach(({ id, start, width }) => updateTask(id, { start, width }));
   }, [record, updateTask]);
+  // Kanban: dropping cards on a column changes their status (one undo step per drop).
+  const handleKanbanMove = useCallback((ids, status) => {
+    record();
+    ids.forEach(id => updateTask(id, { status }));
+  }, [record, updateTask]);
+  const handleKanbanCreate = useCallback((title, status) => {
+    record();
+    addTask(title, activeBox?.id ?? null, { status });
+  }, [record, addTask, activeBox]);
   const handleCalendarCreate = useCallback((iso) => {
     record();
     const id = addTask('', activeBox?.id ?? null);
@@ -318,6 +328,22 @@ function Dashboard({ spaceId }) {
             onOpen={setDetailTaskId}
           />
         </section>
+
+        {currentView === 'kanban' && (
+          <KanbanView
+            tasks={visibleTasks}
+            exitingIds={exitingIds}
+            newIds={newIds}
+            selectedIds={selectedIds}
+            members={members}
+            currentUser={user}
+            onSelect={handleSelect}
+            onMove={handleKanbanMove}
+            onCreate={handleKanbanCreate}
+            onRename={handleRename}
+            onOpen={setDetailTaskId}
+          />
+        )}
 
         {currentView === 'calendar' && (
           <CalendarView

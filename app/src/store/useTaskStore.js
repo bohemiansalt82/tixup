@@ -189,8 +189,8 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
     schedulePush();
   }, [spaceId, schedulePush]);
 
-  const addTask = useCallback((title, boxId = null) => {
-    const task = { id: uid(), title, status: 'pending', type: 'parent', boxId, start: CENTER_PX, width: 96, createdAt: new Date().toISOString() };
+  const addTask = useCallback((title, boxId = null, fields = {}) => {
+    const task = { id: uid(), title, status: 'pending', type: 'parent', boxId, start: CENTER_PX, width: 96, createdAt: new Date().toISOString(), ...fields };
     updateTasks(prev => [...prev, task]);
     setNewIds(prev => new Set([...prev, task.id]));
     setTimeout(() => setNewIds(prev => { const s = new Set(prev); s.delete(task.id); return s; }), 500);
