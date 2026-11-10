@@ -189,6 +189,11 @@ function Dashboard({ spaceId }) {
     setSelectedIds(new Set());
   }, [selectedIds, updateTask]);
 
+  const handleAssignSelected = useCallback((assignee) => {
+    selectedIds.forEach(id => updateTask(id, { assignee }));
+    setSelectedIds(new Set());
+  }, [selectedIds, updateTask]);
+
   const handleCreateTix = useCallback(() => {
     addTask('', activeBox?.id ?? null);
     setTimeout(() => {
@@ -316,6 +321,9 @@ function Dashboard({ spaceId }) {
         selectedIds={selectedIds}
         onDelete={handleDeleteSelected}
         onChangeStatus={handleChangeStatus}
+        members={members}
+        currentUser={user}
+        onAssign={handleAssignSelected}
       />
     </div>
   );
