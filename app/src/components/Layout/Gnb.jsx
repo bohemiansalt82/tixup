@@ -4,7 +4,7 @@ import { useSpaces } from '../../store/useSpaces';
 import { MakeModal } from '../Modals/MakeModal';
 import { ContextMenu, InlineName } from '../Shared/ContextMenu';
 import { useContextMenu } from '../../hooks/useContextMenu';
-import { exportBoxToExcel } from '../../utils/exportBox';
+import { exportBoxToExcel, exportBoxTimelineToExcel } from '../../utils/exportBox';
 import './Gnb.css';
 
 const icon = (name) => `${import.meta.env.BASE_URL}images/gnb/${name}.svg`;
@@ -70,7 +70,10 @@ export function Gnb({ tasks = [], view = 'timeline', onViewChange }) {
     { label: '이름 변경', onClick: () => setEditing({ kind: ctxTarget.kind, id: ctxTarget.id }) },
     { label: '삭제하기', danger: true, onClick: () => (ctxTarget.kind === 'space' ? removeSpace(ctxTarget) : removeBox(ctxTarget)) },
     // Box only: every Tix / sub-tix in the box as an .xlsx file.
-    ...(ctxTarget.kind === 'box' ? [{ label: 'Export', onClick: () => exportBoxToExcel({ tasks, box: ctxTarget, spaceName: activeSpace?.name }) }] : []),
+    ...(ctxTarget.kind === 'box' ? [
+      { label: 'Export table', onClick: () => exportBoxToExcel({ tasks, box: ctxTarget, spaceName: activeSpace?.name }) },
+      { label: 'Export timeline', onClick: () => exportBoxTimelineToExcel({ tasks, box: ctxTarget, spaceName: activeSpace?.name }) },
+    ] : []),
   ] : [];
   const isEditing = (kind, id) => editing?.kind === kind && editing?.id === id;
   const commitName = (kind, id) => (name) => { if (kind === 'space') renameSpace(id, name); else renameBox(id, name); setEditing(null); };
