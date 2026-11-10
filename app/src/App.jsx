@@ -194,6 +194,31 @@ function Dashboard({ spaceId }) {
     setSelectedIds(new Set());
   }, [selectedIds, updateTask]);
 
+  // Bulk tags: the selection stays so several tags can be toggled in a row.
+  const selectedTagCounts = useMemo(() => {
+    const counts = {};
+    tasks.forEach(t => {
+      if (!selectedIds.has(t.id)) return;
+      (t.tags || []).forEach(tag => { counts[tag] = (counts[tag] || 0) + 1; });
+    });
+    return counts;
+  }, [tasks, selectedIds]);
+
+  const handleToggleTagSelected = useCallback((tag, add) => {
+    tasks.forEach(t => {
+      if (!selectedIds.has(t.id)) return;
+      const tags = t.tags || [];
+      if (add && !tags.includes(tag)) updateTask(t.id, { tags: [...tags, tag] });
+      if (!add && tags.includes(tag)) updateTask(t.id, { tags: tags.filter(x => x !== tag) });
+    });
+  }, [tasks, selectedIds, updateTask]);
+
+  const handleClearTagsSelected = useCallback(() => {
+    tasks.forEach(t => {
+      if (selectedIds.has(t.id) && (t.tags || []).length) updateTask(t.id, { tags: [] });
+    });
+  }, [tasks, selectedIds, updateTask]);
+
   const handleCreateTix = useCallback(() => {
     addTask('', activeBox?.id ?? null);
     setTimeout(() => {
@@ -324,6 +349,9 @@ function Dashboard({ spaceId }) {
         members={members}
         currentUser={user}
         onAssign={handleAssignSelected}
+        tagCounts={selectedTagCounts}
+        onToggleTag={handleToggleTagSelected}
+        onClearTags={handleClearTagsSelected}
       />
     </div>
   );

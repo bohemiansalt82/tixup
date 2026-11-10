@@ -1,31 +1,38 @@
 import { useState, useRef, useEffect } from 'react';
-import { STATUS_LABELS } from '../../constants';
+import { STATUS_LABELS, TAGS } from '../../constants';
 import { avatarFor } from '../../store/useAuth';
 
 const STATUSES = Object.entries(STATUS_LABELS);
 
-export function SelectionBar({ selectedIds, members = [], currentUser, onDelete, onChangeStatus, onAssign }) {
+/**
+ * tagCounts: { [tag]: number of selected Tix carrying it } — a tag on every selected Tix shows ✓,
+ * on some of them shows –. Clicking a tag adds it to all, or removes it when all already have it.
+ */
+export function SelectionBar({ selectedIds, members = [], currentUser, tagCounts = {}, onDelete, onChangeStatus, onAssign, onToggleTag, onClearTags }) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
+  const [tagsOpen, setTagsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const assignRef = useRef(null);
+  const tagsRef = useRef(null);
   const count = selectedIds.size;
 
   useEffect(() => {
-    if (!statusOpen && !assignOpen) return;
+    if (!statusOpen && !assignOpen && !tagsOpen) return;
     const handler = (e) => {
       if (!dropdownRef.current?.contains(e.target)) setStatusOpen(false);
       if (!assignRef.current?.contains(e.target)) setAssignOpen(false);
+      if (!tagsRef.current?.contains(e.target)) setTagsOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [statusOpen, assignOpen]);
+  }, [statusOpen, assignOpen, tagsOpen]);
 
   // 선택 해제되면 드롭다운도 닫기 (render 중 상태 조정 — effect 안 setState 대신)
   const [prevCount, setPrevCount] = useState(count);
   if (count !== prevCount) {
     setPrevCount(count);
-    if (count === 0) { setStatusOpen(false); setAssignOpen(false); }
+    if (count === 0) { setStatusOpen(false); setAssignOpen(false); setTagsOpen(false); }
   }
 
   return (
@@ -45,7 +52,7 @@ export function SelectionBar({ selectedIds, members = [], currentUser, onDelete,
       <div className="floating-selection-bar__divider" />
 
       <div style={{ position: 'relative' }} ref={dropdownRef}>
-        <button className="action-btn" onClick={() => { setStatusOpen(v => !v); setAssignOpen(false); }}>
+        <button className="action-btn" onClick={() => { setStatusOpen(v => !v); setAssignOpen(false); setTagsOpen(false); }}>
           <span className="material-symbols-outlined" style={{ fontSize: 18 }}>swap_horiz</span>
           Change Status
           <span className="material-symbols-outlined" style={{ fontSize: 16, opacity: 0.6 }}>
@@ -76,7 +83,7 @@ export function SelectionBar({ selectedIds, members = [], currentUser, onDelete,
           <div className="floating-selection-bar__divider" />
 
           <div style={{ position: 'relative' }} ref={assignRef}>
-            <button className="action-btn" onClick={() => { setAssignOpen(v => !v); setStatusOpen(false); }}>
+            <button className="action-btn" onClick={() => { setAssignOpen(v => !v); setStatusOpen(false); setTagsOpen(false); }}>
               <span className="material-symbols-outlined" style={{ fontSize: 18 }}>person_add</span>
               Assign
               <span className="material-symbols-outlined" style={{ fontSize: 16, opacity: 0.6 }}>
@@ -108,6 +115,47 @@ export function SelectionBar({ selectedIds, members = [], currentUser, onDelete,
                   }}
                 >
                   Unassigned
+                </button>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {onToggleTag && (
+        <>
+          <div className="floating-selection-bar__divider" />
+
+          <div style={{ position: 'relative' }} ref={tagsRef}>
+            <button className="action-btn" onClick={() => { setTagsOpen(v => !v); setStatusOpen(false); setAssignOpen(false); }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>sell</span>
+              Tags
+              <span className="material-symbols-outlined" style={{ fontSize: 16, opacity: 0.6 }}>
+                {tagsOpen ? 'expand_less' : 'expand_more'}
+              </span>
+            </button>
+
+            {tagsOpen && (
+              <div className="status-dropdown assign-dropdown tags-dropdown">
+                {TAGS.map(t => {
+                  const n = tagCounts[t] || 0;
+                  const state = n === 0 ? 'none' : n >= count ? 'all' : 'some';
+                  return (
+                    <button
+                      key={t}
+                      className={`status-dropdown__item assign-dropdown__item${state === 'all' ? ' active' : ''}`}
+                      onClick={() => onToggleTag(t, state !== 'all')}
+                    >
+                      <span className={`marker lv-tag lv-tag-${t.toLowerCase()}`}>{t}</span>
+                      <span className="tags-dropdown__state">{state === 'all' ? '✓' : state === 'some' ? '–' : ''}</span>
+                    </button>
+                  );
+                })}
+                <button
+                  className="status-dropdown__item assign-dropdown__item assign-dropdown__clear"
+                  onClick={() => onClearTags?.()}
+                >
+                  Clear tags
                 </button>
               </div>
             )}
