@@ -13,6 +13,11 @@
  *                    { action: 'saveProfile', user: {email,name}, spaces: [...], boxes: {spaceId: [...]}, active?: '<spaceId>' }
  *      The profile is the account's list of spaces (and their boxes), keyed by e-mail, so the same
  *      account sees the same spaces in every browser / device.
+ *   Box permissions (v4): the owner's `save` may carry space.boxes [{id,name}] and space.access
+ *      { boxId: { default: 'edit'|'view'|'hidden', members: { email: level } } }. Only the owner
+ *      (the first saver) can change them. A member's `load` leaves out Tix in boxes hidden from
+ *      them and lists only the boxes they can see (each with its `level`); a member's `save`
+ *      keeps every Tix they cannot edit exactly as it was (see mergeMemberTasks_).
  * Documents are JSON files in the "Tixup Data" folder of the deploying account's Drive.
  * Last write wins.
  */
@@ -23,7 +28,7 @@ var SENDER_NAME = 'Tixup';
 var DATA_FOLDER_NAME = 'Tixup Data';
 var PRESENCE_TTL_S = 45;      // a member counts as online this long after their last load
 var MAX_DOC_BYTES = 4 * 1024 * 1024;
-var BACKEND_VERSION = 3;      // bump on every change; `?action=ping` / { action: 'ping' } report it
+var BACKEND_VERSION = 4;      // bump on every change; `?action=ping` / { action: 'ping' } report it
 
 function doPost(e) {
   try {
@@ -105,7 +110,100 @@ function loadSpace_(body) {
     writeDoc_(id, doc);
   }
   var online = touchPresence_(id, isEmail(email) ? email : null);
-  return { ok: true, found: true, space: doc.space, tasks: doc.tasks || [], online: online, rev: doc.rev, updatedAt: doc.updatedAt };
+  var base = { ok: true, found: true, online: online, rev: doc.rev, updatedAt: doc.updatedAt, version: BACKEND_VERSION };
+  if (isOwner_(doc, email)) {
+    base.space = doc.space;
+    base.tasks = doc.tasks || [];
+    return base;
+  }
+  // Member (or anonymous GET): only the boxes / Tix they may see, never the rule table itself.
+  var access = doc.space.access || {};
+  var space = {};
+  Object.keys(doc.space).forEach(function (k) { if (k !== 'access' && k !== 'boxes') space[k] = doc.space[k]; });
+  space.boxes = (doc.space.boxes || [])
+    .map(function (b) { return { id: b.id, name: b.name, level: levelFor_(access, b.id, email) }; })
+    .filter(function (b) { return b.level !== 'hidden'; });
+  base.space = space;
+  base.tasks = (doc.tasks || []).filter(function (t) { return levelFor_(access, t && t.boxId, email) !== 'hidden'; });
+  return base;
+}
+
+// ---------------------------------------------------------------- box permissions
+
+var LEVELS_ = ['edit', 'view', 'hidden'];
+
+function isOwner_(doc, email) {
+  var owner = doc && doc.space && doc.space.owner;
+  return !owner || (isEmail(email) && String(owner).toLowerCase() === String(email).toLowerCase());
+}
+
+/** Same rule as app/src/utils/access.js levelFor(). */
+function levelFor_(access, boxId, email) {
+  if (!boxId || !access || !access[boxId]) return 'edit';
+  var rule = access[boxId];
+  var m = rule.members && email ? rule.members[String(email).toLowerCase()] : null;
+  if (LEVELS_.indexOf(m) !== -1) return m;
+  return LEVELS_.indexOf(rule.default) !== -1 ? rule.default : 'edit';
+}
+
+function cleanBoxes_(boxes) {
+  if (!Array.isArray(boxes)) return null;
+  return boxes.filter(function (b) { return b && cleanId_(b.id); }).slice(0, 500)
+    .map(function (b) { return { id: b.id, name: String(b.name || 'Box').slice(0, 200) }; });
+}
+
+function cleanAccess_(access) {
+  if (!access || typeof access !== 'object') return null;
+  var out = {};
+  Object.keys(access).forEach(function (boxId) {
+    var rule = access[boxId];
+    if (!cleanId_(boxId) || !rule) return;
+    var members = {};
+    Object.keys(rule.members || {}).forEach(function (e) {
+      if (isEmail(e) && LEVELS_.indexOf(rule.members[e]) !== -1) members[String(e).toLowerCase()] = rule.members[e];
+    });
+    out[boxId] = { default: LEVELS_.indexOf(rule.default) !== -1 ? rule.default : 'edit', members: members };
+  });
+  return out;
+}
+
+/**
+ * A member's save: their list wins for Tix they can edit (order included); every Tix they cannot
+ * edit (hidden from them or view-only) stays exactly as before, slotted back after the Tix that
+ * preceded it. A member can neither create a Tix in, nor move one into, a box they cannot edit.
+ */
+function mergeMemberTasks_(prev, mine, access, email) {
+  var can = function (t) { return levelFor_(access, t && t.boxId, email) === 'edit'; };
+  var prevById = {};
+  prev.forEach(function (t) { if (t && t.id) prevById[t.id] = t; });
+  var out = [];
+  var seen = {};
+  mine.forEach(function (t) {
+    if (!t || !t.id || seen[t.id]) return;
+    var p = prevById[t.id];
+    if (p && !can(p)) return;           // protected: re-inserted below from prev
+    if (!can(t)) { if (p) { out.push(p); seen[p.id] = true; } return; } // moved / created into a locked box
+    out.push(t);
+    seen[t.id] = true;
+  });
+  prev.forEach(function (p, i) {
+    if (!p || !p.id || seen[p.id] || can(p)) return; // editable ones the member dropped were deleted
+    var at = 0;
+    for (var j = i - 1; j >= 0; j--) {
+      var k = out.indexOf(prev[j]);
+      if (k === -1) k = indexById_(out, prev[j] && prev[j].id);
+      if (k !== -1) { at = k + 1; break; }
+    }
+    out.splice(at, 0, p);
+    seen[p.id] = true;
+  });
+  return out;
+}
+
+function indexById_(list, id) {
+  if (!id) return -1;
+  for (var i = 0; i < list.length; i++) if (list[i] && list[i].id === id) return i;
+  return -1;
 }
 
 /** Marks `email` as present in the space and returns everyone seen within PRESENCE_TTL_S. */
@@ -138,16 +236,23 @@ function saveSpace_(body) {
   lock.waitLock(10000);
   try {
     var prev = readDoc_(id);
+    var owner = !prev || isOwner_(prev, by);
+    var prevAccess = (prev && prev.space.access) || {};
+    var space = {
+      id: id,
+      name: String((owner ? meta.name : null) || (prev && prev.space.name) || meta.name || 'Space').slice(0, 200),
+      visibility: owner && meta.visibility === 'public' ? 'public' : ((prev && prev.space.visibility) || 'private'),
+      owner: (prev && prev.space.owner) || by,
+      ownerName: (prev && prev.space.ownerName) || byName,
+      members: (prev && prev.space.members) || [],
+    };
+    var boxes = owner ? cleanBoxes_(meta.boxes) : null;
+    var access = owner ? cleanAccess_(meta.access) : null;
+    space.boxes = boxes || (prev && prev.space.boxes) || [];
+    space.access = access || prevAccess;
     var doc = {
-      space: {
-        id: id,
-        name: String(meta.name || (prev && prev.space.name) || 'Space').slice(0, 200),
-        visibility: meta.visibility === 'public' ? 'public' : ((prev && prev.space.visibility) || 'private'),
-        owner: (prev && prev.space.owner) || by,
-        ownerName: (prev && prev.space.ownerName) || byName,
-        members: (prev && prev.space.members) || [],
-      },
-      tasks: body.tasks,
+      space: space,
+      tasks: owner || !prev ? body.tasks : mergeMemberTasks_(prev.tasks || [], body.tasks, prevAccess, by),
       rev: ((prev && prev.rev) || 0) + 1,
       updatedAt: Date.now(),
       updatedBy: by,
@@ -155,7 +260,7 @@ function saveSpace_(body) {
     var json = JSON.stringify(doc);
     if (json.length > MAX_DOC_BYTES) return { ok: false, error: 'Space is too large' };
     writeDoc_(id, doc, json);
-    return { ok: true, rev: doc.rev, updatedAt: doc.updatedAt };
+    return { ok: true, rev: doc.rev, updatedAt: doc.updatedAt, version: BACKEND_VERSION };
   } finally {
     lock.releaseLock();
   }

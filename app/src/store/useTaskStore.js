@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { CENTER_PX } from '../constants';
 import { uid, rebaseTasks, recordHistory } from '../utils/timeline';
 import { canSync, loadRemoteSpace, saveRemoteSpace, beaconSaveRemoteSpace } from './remote';
+import { cleanAccess, sameEmail } from '../utils/access';
 
 const PUSH_DEBOUNCE_MS = 700;
 const POLL_MS = 15000;
@@ -50,9 +51,13 @@ function mergeMissing(remote, missing) {
  * also mirrored to the shared space document (see store/remote.js) so invitees see it:
  *  - mount / focus / every POLL_MS: pull the remote list if its revision changed
  *  - every local change: debounced push (last write wins)
- * `space` / `user` are only used to label the remote document.
+ * `space` / `user` label the remote document. Box permissions (utils/access.js): the owner's
+ * pushes also carry `boxes` (their box list) and `space.access`; a member's pull returns only
+ * the boxes / Tix they may see, exposed as `shared` ({ version, owner, boxes: [{id,name,level}] }).
  */
-export function useTaskStore(spaceId, { space = null, user = null } = {}) {
+const shareSig = (boxes, access) => JSON.stringify([(boxes || []).map(b => [b.id, b.name]), cleanAccess(access)]);
+
+export function useTaskStore(spaceId, { space = null, user = null, boxes = null } = {}) {
   const [tasks, setTasks] = useState(() => load(spaceId));
   const [exitingIds, setExitingIds] = useState(new Set());
   const [newIds, setNewIds] = useState(new Set());
@@ -63,13 +68,22 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
   const [onlineEmails, setOnlineEmails] = useState([]); // members the backend saw in the last ~45 s
 
   // ---- remote sync (refs so callbacks stay stable) ----
-  const syncRef = useRef({ rev: null, dirty: false, pushing: false, timer: null, unmounted: false });
-  const metaRef = useRef({ space, user });
-  useEffect(() => { metaRef.current = { space, user }; }, [space, user]);
+  const syncRef = useRef({ rev: null, dirty: false, pushing: false, timer: null, unmounted: false, version: 0 });
+  // Shared space as the backend reports it (owner, visible boxes with my level). null until pulled.
+  const [shared, setShared] = useState(null);
+  // Owner = the backend's recorded owner; before the first pull, a space I did not join via invite.
+  const isOwner = shared?.owner ? sameEmail(shared.owner, user?.email) : !space?.invitedBy;
+  const metaRef = useRef({ space, user, boxes, isOwner });
+  useEffect(() => { metaRef.current = { space, user, boxes, isOwner }; }, [space, user, boxes, isOwner]);
   const pushRef = useRef(() => {}); // latest push(), for retries scheduled from inside push()
   const spaceMeta = useCallback(() => {
-    const m = metaRef.current.space;
-    return { id: spaceId, name: m?.name, visibility: m?.visibility };
+    const { space: m, boxes: b, isOwner: owner } = metaRef.current;
+    const meta = { id: spaceId, name: m?.name, visibility: m?.visibility };
+    if (owner && Array.isArray(b)) {
+      meta.boxes = b.map(x => ({ id: x.id, name: x.name }));
+      meta.access = cleanAccess(m?.access);
+    }
+    return meta;
   }, [spaceId]);
 
   const push = useCallback(async () => {
@@ -82,6 +96,10 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
       // localStorage always holds the latest list (save() runs inside every update).
       const r = await saveRemoteSpace(spaceMeta(), load(spaceId), metaRef.current.user);
       s.rev = r.rev;
+      if (r.version) s.version = r.version;
+      // A member's save is merged on the server (edits to Tix they cannot change are dropped):
+      // re-read the merged list on the next pull instead of trusting the local copy.
+      if (s.version >= 4 && !metaRef.current.isOwner) s.rev = -1;
       if (!s.dirty) setPendingPush(spaceId, false);
     } catch (err) {
       console.warn('Tixup sync: push failed', err);
@@ -104,6 +122,17 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
     clearTimeout(s.timer);
     s.timer = setTimeout(push, PUSH_DEBOUNCE_MS);
   }, [spaceId, push]);
+  const schedulePushRef = useRef(schedulePush);
+  useEffect(() => { schedulePushRef.current = schedulePush; }, [schedulePush]);
+
+  // Owner changed a box or a permission: publish it (once the backend is known to support it).
+  const sig = isOwner && Array.isArray(boxes) ? shareSig(boxes, space?.access) : null;
+  const lastSigRef = useRef(sig);
+  useEffect(() => {
+    if (sig === lastSigRef.current) return;
+    lastSigRef.current = sig;
+    if (sig && syncRef.current.version >= 4) schedulePush();
+  }, [sig, schedulePush]);
 
   const pull = useCallback(async () => {
     const s = syncRef.current;
@@ -126,6 +155,22 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
         (r.space.members || []).forEach(email => { if (!list.some(m => m.email === email)) list.push({ email, name: null }); });
         setRemoteMembers(prev => (JSON.stringify(prev) === JSON.stringify(list) ? prev : list));
       }
+      if (r.version) s.version = r.version;
+      if (r.space && r.version >= 4) {
+        const next = {
+          version: r.version,
+          owner: r.space.owner || null,
+          boxes: Array.isArray(r.space.boxes) ? r.space.boxes.map(b => ({ id: b.id, name: b.name, level: b.level || 'edit' })) : [],
+        };
+        setShared(prev => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
+        // Owner: publish the box list / rules when the server's copy differs from ours.
+        const { boxes: b, space: m } = metaRef.current;
+        const ownerNow = next.owner ? sameEmail(next.owner, metaRef.current.user?.email) : metaRef.current.isOwner;
+        if (ownerNow && Array.isArray(b) && shareSig(r.space.boxes, r.space.access) !== shareSig(b, m?.access)) {
+          metaRef.current = { ...metaRef.current, isOwner: true };
+          setTimeout(() => schedulePushRef.current(), 0);
+        }
+      }
       if (Array.isArray(r.online)) {
         const online = r.online.map(e => String(e).toLowerCase()).sort();
         setOnlineEmails(prev => (prev.join() === online.join() ? prev : online));
@@ -137,7 +182,13 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
       // First contact with the server for this space: never drop local Tix the server
       // does not know about — merge them in and publish the union.
       const local = firstSync ? load(spaceId) : [];
-      const missing = local.filter(t => !remote.some(x => x.id === t.id));
+      // A member's cache may still hold Tix of boxes that are now hidden from them: only keep
+      // local-only Tix that have no box, sit in one of my own boxes, or in a box I can edit.
+      const memberLimited = r.version >= 4 && !metaRef.current.isOwner;
+      const okBox = (boxId) => !boxId
+        || (metaRef.current.boxes || []).some(b => b.id === boxId)
+        || (r.space?.boxes || []).some(b => b.id === boxId && b.level === 'edit');
+      const missing = local.filter(t => !remote.some(x => x.id === t.id) && (!memberLimited || okBox(t.boxId)));
       const next = missing.length ? mergeMissing(remote, missing) : remote;
       save(spaceId, next);
       setTasks(next);
@@ -297,5 +348,5 @@ export function useTaskStore(spaceId, { space = null, user = null } = {}) {
     });
   }, [updateTasks]);
 
-  return { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, remoteMembers, onlineEmails, addTask, addChild, removeTask, updateTask, replaceTasks, toggleCollapse, moveTask };
+  return { tasks, shared, isOwner, exitingIds, newIds, collapsingParentIds, expandingParentIds, remoteMembers, onlineEmails, addTask, addChild, removeTask, updateTask, replaceTasks, toggleCollapse, moveTask };
 }

@@ -45,9 +45,15 @@ function useOutsideClose(open, onClose) {
   return ref;
 }
 
-export function Gnb({ tasks = [], view = 'timeline', onViewChange }) {
+/**
+ * `boxes` / `activeBox` come from App: the owner's own boxes, or for an invitee the owner's boxes
+ * they may see (`shared`, with their `level`) plus their own. Shared boxes can only be exported.
+ */
+export function Gnb({ tasks = [], view = 'timeline', onViewChange, boxes: boxesProp, activeBox: activeBoxProp }) {
   const user = useAuth();
-  const { spaces, activeSpace, boxes, activeBox, createSpace, switchSpace, renameSpace, deleteSpace, createBox, renameBox, deleteBox, selectBox } = useSpaces();
+  const { spaces, activeSpace, boxes: ownBoxes, activeBox: ownActiveBox, createSpace, switchSpace, renameSpace, deleteSpace, createBox, renameBox, deleteBox, selectBox } = useSpaces();
+  const boxes = boxesProp ?? ownBoxes;
+  const activeBox = boxesProp ? activeBoxProp : ownActiveBox;
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [modal, setModal] = useState(null); // 'space' | 'box' | null
   const countInBox = (boxId) => tasks.filter((t) => t.boxId === boxId).length;
@@ -57,7 +63,7 @@ export function Gnb({ tasks = [], view = 'timeline', onViewChange }) {
   const ctx = useContextMenu();
   const [ctxTarget, setCtxTarget] = useState(null); // { kind: 'space'|'box', id, name }
   const [editing, setEditing] = useState(null);
-  const openCtx = (kind, item) => (e) => { setCtxTarget({ kind, id: item.id, name: item.name }); ctx.open(e); };
+  const openCtx = (kind, item) => (e) => { setCtxTarget({ kind, id: item.id, name: item.name, shared: !!item.shared }); ctx.open(e); };
   const removeSpace = (space) => {
     if (spaces.length <= 1) { alert('마지막 스페이스는 삭제할 수 없어요.'); return; }
     if (confirm(`"${space.name}" 스페이스를 삭제할까요? 박스 목록도 함께 삭제됩니다.`)) deleteSpace(space.id);
@@ -67,8 +73,11 @@ export function Gnb({ tasks = [], view = 'timeline', onViewChange }) {
     if (confirm(`"${box.name}" 박스를 삭제할까요?${n ? ` 안의 Tix ${n}개는 My Task에 남습니다.` : ''}`)) deleteBox(box.id);
   };
   const ctxItems = ctxTarget ? [
-    { label: '이름 변경', onClick: () => setEditing({ kind: ctxTarget.kind, id: ctxTarget.id }) },
-    { label: '삭제하기', danger: true, onClick: () => (ctxTarget.kind === 'space' ? removeSpace(ctxTarget) : removeBox(ctxTarget)) },
+    // A box shared by the space owner is theirs to rename / delete.
+    ...(ctxTarget.shared ? [] : [
+      { label: '이름 변경', onClick: () => setEditing({ kind: ctxTarget.kind, id: ctxTarget.id }) },
+      { label: '삭제하기', danger: true, onClick: () => (ctxTarget.kind === 'space' ? removeSpace(ctxTarget) : removeBox(ctxTarget)) },
+    ]),
     // Box only: every Tix / sub-tix in the box as an .xlsx file.
     ...(ctxTarget.kind === 'box' ? [
       { label: 'Export table', onClick: () => exportBoxToExcel({ tasks, box: ctxTarget, spaceName: activeSpace?.name }) },
@@ -180,6 +189,9 @@ export function Gnb({ tasks = [], view = 'timeline', onViewChange }) {
                 className="gnb-item-label"
                 inputClassName="gnb-item-label gnb-inline-input"
               />
+              {b.level === 'view' && (
+                <span className="gnb-box-level material-symbols-outlined" title="보기 권한만 있어요" aria-label="보기 전용">visibility</span>
+              )}
               {countInBox(b.id) > 0 && <CountBadge value={countInBox(b.id)} />}
             </button>
           </div>

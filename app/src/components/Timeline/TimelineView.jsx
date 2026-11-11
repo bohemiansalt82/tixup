@@ -8,7 +8,8 @@ const VIEW_PRESETS = { month: 20, week: 48, day: 80 };
 
 const SIDEBAR_WIDTH = 459; // Figma 37635:4541: 40px select column + 419px
 
-export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, onSaveBarPositions }) {
+// isLocked(id): a Tix in a box I may only view (Box permissions) — its bar cannot be dragged.
+export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, onSaveBarPositions, isLocked }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const viewportRef = useRef(null);
   const tbodyRef = useRef(null);
@@ -96,6 +97,7 @@ export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, e
       e.stopPropagation();
       const side = resizer.classList.contains('resizer-left') ? 'left' : 'right';
       const id = bar.parentElement.getAttribute('data-group');
+      if (isLocked?.(id)) return;
       let nextSelected = selectedIds;
       if (!selectedIds.has(id)) {
         const s = e.shiftKey || e.metaKey ? new Set(selectedIds) : new Set();
@@ -154,7 +156,7 @@ export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, e
           const bt = row.offsetTop;
           const bh = row.offsetHeight;
           const overlap = bl < left + width && bl + bw > left && bt < top + height && bt + bh > top;
-          if (overlap) hits.add(row.getAttribute('data-group'));
+          if (overlap && !isLocked?.(row.getAttribute('data-group'))) hits.add(row.getAttribute('data-group'));
         });
         setSelectedIds(hits);
       };
@@ -172,6 +174,7 @@ export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, e
 
     e.stopPropagation();
     const id = bar.parentElement.getAttribute('data-group');
+    if (isLocked?.(id)) return;
     const s = new Set(selectedIds);
     if (e.shiftKey || e.metaKey) {
       if (s.has(id)) s.delete(id); else s.add(id);
@@ -180,7 +183,7 @@ export function TimelineView({ tasks, exitingIds, newIds, collapsingParentIds, e
     }
     setSelectedIds(s);
     requestAnimationFrame(() => startDrag(e, id, s));
-  }, [selectedIds, setSelectedIds, startDrag, startResize]);
+  }, [selectedIds, setSelectedIds, startDrag, startResize, isLocked]);
 
   const handleDblClick = useCallback((e) => {
     const bar = e.target.closest('.timeline-bar');

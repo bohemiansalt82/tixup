@@ -13,6 +13,7 @@ import { TixDetailModal } from './components/Detail/TixDetailModal';
 import { dateToDayOffset, dayOffsetToPx, parseISO } from './components/Calendar/calendarLayout';
 import { KanbanView } from './components/Kanban/KanbanView';
 import { SelectionBar } from './components/Shared/SelectionBar';
+import { BoxAccessModal } from './components/Modals/BoxAccessModal';
 import { useTaskStore } from './store/useTaskStore';
 import { useUndoHistory } from './hooks/useUndoHistory';
 import { CELL_WIDTH } from './constants';
@@ -69,8 +70,59 @@ function SyncSplash() {
 
 function Dashboard({ spaceId }) {
   const user = useAuth();
-  const { activeSpace, activeBox } = useSpaces();
-  const { tasks, exitingIds, newIds, collapsingParentIds, expandingParentIds, remoteMembers, onlineEmails, addTask, addChild, removeTask, updateTask, replaceTasks, toggleCollapse, moveTask } = useTaskStore(spaceId, { space: activeSpace, user });
+  const { activeSpace, boxes: ownBoxes, activeBoxId, setSpaceAccess } = useSpaces();
+  const {
+    tasks, shared, isOwner, exitingIds, newIds, collapsingParentIds, expandingParentIds, remoteMembers, onlineEmails,
+    addTask: rawAddTask, addChild: rawAddChild, removeTask: rawRemoveTask, updateTask: rawUpdateTask, replaceTasks, toggleCollapse, moveTask: rawMoveTask,
+  } = useTaskStore(spaceId, { space: activeSpace, user, boxes: ownBoxes });
+
+  // ---- Box permissions (utils/access.js) ----
+  // GNB boxes: the owner's own boxes; a member sees the owner's boxes they may see (each with
+  // their level, from the backend) followed by any boxes of their own.
+  const boxes = useMemo(() => {
+    const mine = ownBoxes.map(b => ({ ...b, level: 'edit', shared: false }));
+    if (isOwner) return mine;
+    const fromOwner = (shared?.boxes || []).map(b => ({ ...b, shared: true }));
+    return [...fromOwner, ...mine.filter(b => !fromOwner.some(x => x.id === b.id))];
+  }, [ownBoxes, shared, isOwner]);
+  const activeBox = boxes.find(b => b.id === activeBoxId) ?? null;
+  const levelOfBox = useCallback((boxId) => {
+    if (isOwner || !boxId) return 'edit';
+    return boxes.find(b => b.id === boxId)?.level ?? 'edit';
+  }, [isOwner, boxes]);
+  const taskById = useMemo(() => new Map(tasks.map(t => [t.id, t])), [tasks]);
+  const isLocked = useCallback((id) => levelOfBox(taskById.get(id)?.boxId) !== 'edit', [levelOfBox, taskById]);
+  const readOnlyBox = !!activeBox && activeBox.level === 'view';
+  const [notice, setNotice] = useState(null);
+  useEffect(() => {
+    if (!notice) return undefined;
+    const t = setTimeout(() => setNotice(null), 2400);
+    return () => clearTimeout(t);
+  }, [notice]);
+  const deny = useCallback(() => setNotice({ text: '보기 권한만 있는 Box예요. 수정할 수 없어요.', key: Date.now() }), []);
+  // Every write goes through these: a Tix in a view-only box (or a move into one) is refused.
+  // The backend enforces the same rule; this keeps the UI from showing edits that would vanish.
+  const updateTask = useCallback((id, patch) => {
+    if (isLocked(id) || (patch && 'boxId' in patch && levelOfBox(patch.boxId) !== 'edit')) { deny(); return; }
+    rawUpdateTask(id, patch);
+  }, [isLocked, levelOfBox, deny, rawUpdateTask]);
+  const removeTask = useCallback((id) => {
+    if (isLocked(id)) { deny(); return; }
+    rawRemoveTask(id);
+  }, [isLocked, deny, rawRemoveTask]);
+  const addChild = useCallback((parentId) => {
+    if (isLocked(parentId)) { deny(); return null; }
+    return rawAddChild(parentId);
+  }, [isLocked, deny, rawAddChild]);
+  const addTask = useCallback((title, boxId = null, fields) => {
+    if (levelOfBox(boxId) !== 'edit') { deny(); return null; }
+    return rawAddTask(title, boxId, fields);
+  }, [levelOfBox, deny, rawAddTask]);
+  const moveTask = useCallback((dragId, targetId, position) => {
+    if (isLocked(dragId) || isLocked(targetId)) { deny(); return; }
+    rawMoveTask(dragId, targetId, position);
+  }, [isLocked, deny, rawMoveTask]);
+  const [accessOpen, setAccessOpen] = useState(false);
   // Assignee candidates: me, emails invited locally, and members recorded on the shared space.
   // `online` = the backend saw that member on the site within the last ~45 s (Figma Avatar V2 "Online" dot).
   // The signed-in user is looking at the app right now, so they are always online.
@@ -89,6 +141,8 @@ function Dashboard({ spaceId }) {
   }, [user, remoteMembers, activeSpace, onlineEmails]);
   // My Tasks shows every task in the space; a selected box narrows it down.
   const visibleTasks = activeBox ? tasks.filter(t => t.boxId === activeBox.id) : tasks;
+  // Invitees listed in the permissions popup: everyone but the owner (me, when I own the space).
+  const accessMembers = useMemo(() => members.filter(m => !shared?.owner || m.email.toLowerCase() !== String(shared.owner).toLowerCase()).filter(m => m.email.toLowerCase() !== String(user?.email || '').toLowerCase()), [members, shared, user]);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [currentView, setCurrentView] = useState('timeline');
   const [sidebarOverflow, setSidebarOverflow] = useState(false);
@@ -152,9 +206,8 @@ function Dashboard({ spaceId }) {
   }, [record, addTask, activeBox]);
   const handleCalendarCreate = useCallback((iso) => {
     record();
-    const id = addTask('', activeBox?.id ?? null);
-    updateTask(id, { start: dayOffsetToPx(dateToDayOffset(parseISO(iso))), width: CELL_WIDTH });
-  }, [record, addTask, updateTask, activeBox]);
+    addTask('', activeBox?.id ?? null, { start: dayOffsetToPx(dateToDayOffset(parseISO(iso))), width: CELL_WIDTH });
+  }, [record, addTask, activeBox]);
 
   // 스크롤 동기화
   useEffect(() => {
@@ -250,7 +303,7 @@ function Dashboard({ spaceId }) {
 
   return (
     <div className="tixup-root" style={{ display: 'flex', width: '100%', height: '100vh', overflow: 'hidden' }}>
-      <Gnb tasks={tasks} view={currentView} onViewChange={setCurrentView} />
+      <Gnb tasks={tasks} view={currentView} onViewChange={setCurrentView} boxes={boxes} activeBox={activeBox} />
       <main className="guide-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
         {currentView === 'dashboard' ? (
           <DashboardView
@@ -266,7 +319,10 @@ function Dashboard({ spaceId }) {
           currentView={currentView}
           onViewChange={setCurrentView}
           taskCount={visibleTasks.length}
-          onCreateTix={handleCreateTix}
+          onCreateTix={readOnlyBox ? undefined : handleCreateTix}
+          readOnly={readOnlyBox}
+          isOwner={isOwner}
+          onOpenAccess={() => setAccessOpen(true)}
         />
         )}
 
@@ -300,6 +356,7 @@ function Dashboard({ spaceId }) {
               collapsingParentIds={collapsingParentIds}
               expandingParentIds={expandingParentIds}
               onSaveBarPositions={handleSaveBarPositions}
+              isLocked={isLocked}
             />
           </div>
           {sidebarOverflow && footer}
@@ -342,6 +399,8 @@ function Dashboard({ spaceId }) {
             onCreate={handleKanbanCreate}
             onRename={handleRename}
             onOpen={setDetailTaskId}
+            isLocked={isLocked}
+            readOnly={readOnlyBox}
           />
         )}
 
@@ -353,6 +412,7 @@ function Dashboard({ spaceId }) {
             onOpenTix={setDetailTaskId}
             onRenameTix={(id, name) => handleRename(id, name)}
             onDeleteTix={(id) => handleRename(id, null)}
+            isLocked={isLocked}
           />
         )}
       </main>
@@ -367,6 +427,21 @@ function Dashboard({ spaceId }) {
           onOpenTask={setDetailTaskId}
         />
       )}
+
+      {accessOpen && (
+        <BoxAccessModal
+          spaceName={activeSpace?.name ?? 'My Space'}
+          boxes={boxes.filter(b => isOwner || b.shared)}
+          members={accessMembers}
+          access={activeSpace?.access}
+          isOwner={isOwner}
+          backendReady={(shared?.version || 0) >= 4}
+          onSave={(access) => setSpaceAccess(activeSpace.id, access)}
+          onClose={() => setAccessOpen(false)}
+        />
+      )}
+
+      {notice && <div key={notice.key} className="topbar-toast error app-notice" role="status">{notice.text}</div>}
 
       <SelectionBar
         selectedIds={selectedIds}

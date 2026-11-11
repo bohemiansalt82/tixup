@@ -24,7 +24,7 @@ const shortDate = (iso) => { const [, m, d] = iso.split('-'); return `${MONTHS[N
  * rename / delete, "+ Create Tix" at a column's foot adds a Tix with that status.
  * Toolbar: search, assignee avatar filter, sub-tix toggle.
  */
-export function KanbanView({ tasks, newIds, exitingIds, selectedIds, members = [], currentUser, onSelect, onMove, onCreate, onRename, onOpen }) {
+export function KanbanView({ tasks, newIds, exitingIds, selectedIds, members = [], currentUser, onSelect, onMove, onCreate, onRename, onOpen, isLocked, readOnly = false }) {
   const [query, setQuery] = useState('');
   const [who, setWho] = useState(() => new Set()); // assignee e-mails ('' = unassigned)
   const [showSub, setShowSub] = useState(true);
@@ -67,7 +67,7 @@ export function KanbanView({ tasks, newIds, exitingIds, selectedIds, members = [
   });
 
   const onDragStart = (e, task) => {
-    const ids = selectedIds.has(task.id) ? [...selectedIds] : [task.id];
+    const ids = (selectedIds.has(task.id) ? [...selectedIds] : [task.id]).filter(id => !isLocked?.(id));
     setDragIds(ids);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', task.id);
@@ -148,6 +148,7 @@ export function KanbanView({ tasks, newIds, exitingIds, selectedIds, members = [
                     sub={subStats.get(task.id)}
                     selected={selectedIds.has(task.id)}
                     dragging={!!dragIds?.includes(task.id)}
+                    locked={!!isLocked?.(task.id)}
                     anim={exitingIds.has(task.id) ? 'tix-anim-exit' : newIds.has(task.id) ? 'tix-anim-enter' : ''}
                     currentUser={currentUser}
                     onSelect={onSelect}
@@ -166,7 +167,7 @@ export function KanbanView({ tasks, newIds, exitingIds, selectedIds, members = [
                 {cards.length === 0 && creatingIn !== status && <div className="kb-empty">No Tix</div>}
               </div>
 
-              {creatingIn !== status && (
+              {creatingIn !== status && !readOnly && (
                 <button type="button" className="kb-col-create" onClick={() => setCreatingIn(status)}>
                   <div className="nav-icon icon-add" />
                   <span>Create Tix</span>
@@ -180,7 +181,7 @@ export function KanbanView({ tasks, newIds, exitingIds, selectedIds, members = [
   );
 }
 
-function KanbanCard({ task, parent, sub, selected, dragging, anim, currentUser, onSelect, onOpen, onRename, onDragStart, onDragEnd }) {
+function KanbanCard({ task, parent, sub, selected, dragging, locked, anim, currentUser, onSelect, onOpen, onRename, onDragStart, onDragEnd }) {
   const [editing, setEditing] = useState(false);
   const ctx = useContextMenu();
   const isParent = task.type === 'parent';
@@ -197,12 +198,12 @@ function KanbanCard({ task, parent, sub, selected, dragging, anim, currentUser, 
     { label: '삭제하기', danger: true, onClick: () => { if (confirm(`"${task.title || 'New Tix'}"을(를) 삭제할까요?${isParent && sub ? ' 서브틱스도 함께 삭제됩니다.' : ''}`)) onRename(task.id, null); } },
   ];
 
-  const cls = ['kb-card', selected ? 'selected' : '', dragging ? 'dragging' : '', anim].filter(Boolean).join(' ');
+  const cls = ['kb-card', selected ? 'selected' : '', dragging ? 'dragging' : '', locked ? 'locked' : '', anim].filter(Boolean).join(' ');
   return (
     <article
       className={cls}
       data-row-id={task.id}
-      draggable={!editing}
+      draggable={!editing && !locked}
       onDragStart={e => onDragStart(e, task)}
       onDragEnd={onDragEnd}
       onClick={() => { if (!editing) onOpen(task.id); }}
@@ -258,6 +259,7 @@ function KanbanCard({ task, parent, sub, selected, dragging, anim, currentUser, 
           </span>
         )}
         <span className="kb-card-spacer" />
+        {locked && <span className="material-symbols-outlined kb-lock" title="보기 권한만 있어요">lock</span>}
         {a ? (
           <img className="kb-avatar" src={aPic} alt={aName} title={aName} referrerPolicy="no-referrer" />
         ) : (

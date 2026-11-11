@@ -85,6 +85,14 @@ export function renameSpace(userId, spaceId, name) {
   writeJson(spacesKey(userId), getSpaces(userId).map((s) => (s.id === spaceId ? { ...s, name } : s)));
   schedulePush();
 }
+/**
+ * Box permissions for the space's invitees (owner only; see utils/access.js). Stored on the space
+ * in the owner's profile, and published to the shared space document by useTaskStore.
+ */
+export function setSpaceAccess(userId, spaceId, access) {
+  writeJson(spacesKey(userId), getSpaces(userId).map((s) => (s.id === spaceId ? { ...s, access } : s)));
+  schedulePush();
+}
 /** Adds invited emails to a space (membership shown in the UI; the backend records real members on load). */
 export function addMembers(userId, spaceId, emails) {
   writeJson(spacesKey(userId), getSpaces(userId).map((s) => {
@@ -378,6 +386,8 @@ export function useSpaces() {
     activeSpace: spaces.find((s) => s.id === activeSpaceId) ?? null,
     boxes,
     activeBox: boxes.find((b) => b.id === activeBoxId) ?? null,
+    activeBoxId, // may point at a box shared by the space owner (not in `boxes`)
+    setSpaceAccess: (spaceId, access) => setSpaceAccess(userId, spaceId, access),
     createSpace: (data) => createSpace(userId, data),
     renameSpace: (id, name) => renameSpace(userId, id, name),
     deleteSpace: (id) => deleteSpace(userId, id),

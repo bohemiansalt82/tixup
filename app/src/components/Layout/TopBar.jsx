@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { avatarFor } from '../../store/useAuth';
 import { InviteModal } from '../Modals/InviteModal';
 import { useInvite } from '../../hooks/useInvite';
@@ -17,8 +18,19 @@ const VIEWS = [
  * Wired: title, view switcher (Tab / Icon Group), Tix count, + Tix (create), member invite.
  * Visual only for now: Filter / Sort / Hide, overflow menus.
  */
-export function TopBar({ title, members = [], currentView, onViewChange, taskCount = 0, onCreateTix }) {
+export function TopBar({ title, members = [], currentView, onViewChange, taskCount = 0, onCreateTix, readOnly = false, isOwner = true, onOpenAccess }) {
   const { user, activeSpace, inviteOpen, setInviteOpen, toast, handleInvite } = useInvite();
+  // ⋮ (top right): permissions menu → Box 권한 popup (App renders it).
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef(null);
+  useEffect(() => {
+    if (!moreOpen) return undefined;
+    const onDown = (e) => { if (!moreRef.current?.contains(e.target)) setMoreOpen(false); };
+    const onKey = (e) => { if (e.key === 'Escape') setMoreOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [moreOpen]);
   // members: [{ email, name, picture, online }] from App (me + backend members + invited); me is drawn as owner.
   const me = members.find((m) => m.email === user?.email);
   const others = members.filter((m) => m.email !== user?.email);
@@ -29,6 +41,12 @@ export function TopBar({ title, members = [], currentView, onViewChange, taskCou
     <header className="topbar">
       <div className="topbar-left">
         <h1 className="topbar-title" title={title}>{title}</h1>
+        {readOnly && (
+          <span className="topbar-readonly" title="이 Box는 보기 권한만 있어요">
+            <span className="material-symbols-outlined" aria-hidden="true">visibility</span>
+            보기 전용
+          </span>
+        )}
 
         <div className="topbar-views">
           {VIEWS.map((v) => (
@@ -97,9 +115,23 @@ export function TopBar({ title, members = [], currentView, onViewChange, taskCou
           </button>
         )}
 
-        <button type="button" className="topbar-more" title="More (coming soon)">
-          <img src={icon('more_vert_32')} alt="" width={32} height={32} />
-        </button>
+        <div className="topbar-more-wrap" ref={moreRef}>
+          <button type="button" className={`topbar-more${moreOpen ? ' open' : ''}`} title="More" aria-haspopup="menu" aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)}>
+            <img src={icon('more_vert_32')} alt="" width={32} height={32} />
+          </button>
+          {moreOpen && (
+            <div className="topbar-menu" role="menu">
+              <div className="topbar-menu-label">권한</div>
+              <button type="button" role="menuitem" className="topbar-menu-item" onClick={() => { setMoreOpen(false); onOpenAccess?.(); }}>
+                <span className="material-symbols-outlined" aria-hidden="true">{isOwner ? 'admin_panel_settings' : 'badge'}</span>
+                <span className="topbar-menu-text">
+                  <span>{isOwner ? 'Box 권한 설정' : '내 Box 권한 보기'}</span>
+                  <small>{isOwner ? '초대된 멤버의 보기 · 수정 권한' : '소유자가 정한 권한'}</small>
+                </span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {toast && <div className={`topbar-toast ${toast.kind}`} role="status">{toast.text}</div>}

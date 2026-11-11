@@ -19,16 +19,24 @@ async function call(payload) {
   return data;
 }
 
-/** → { found, space?, tasks?, rev?, updatedAt? } */
+/** → { found, space?, tasks?, rev?, updatedAt?, online?, version? } (members get only the boxes / Tix they may see) */
 export function loadRemoteSpace(spaceId, member) {
   return call({ action: 'load', space: spaceId, member: member ? { email: member.email } : null });
 }
 
-/** → { rev, updatedAt } */
+/** Space fields sent with a save; boxes / access only from the owner (the backend ignores them otherwise). */
+const spacePayload = (space) => {
+  const out = { id: space.id, name: space.name, visibility: space.visibility };
+  if (Array.isArray(space.boxes)) out.boxes = space.boxes;
+  if (space.access && typeof space.access === 'object') out.access = space.access;
+  return out;
+};
+
+/** → { rev, updatedAt, version? } */
 export function saveRemoteSpace(space, tasks, by) {
   return call({
     action: 'save',
-    space: { id: space.id, name: space.name, visibility: space.visibility },
+    space: spacePayload(space),
     tasks,
     by: by ? { name: by.name, email: by.email } : null,
   });
@@ -39,7 +47,7 @@ export function beaconSaveRemoteSpace(space, tasks, by) {
   if (!API_ENDPOINT || typeof navigator.sendBeacon !== 'function') return false;
   const body = JSON.stringify({
     action: 'save',
-    space: { id: space.id, name: space.name, visibility: space.visibility },
+    space: spacePayload(space),
     tasks,
     by: by ? { name: by.name, email: by.email } : null,
   });

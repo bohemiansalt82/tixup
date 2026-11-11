@@ -175,3 +175,6 @@
   outline: none;
 }
 .gnb-inline-input:focus { border-color: var(--semantic-color-colors-primary, #18675a); }
+
+/* view-only box (Box permissions): small eye before the count */
+.gnb-box-level { flex: none; font-size: 16px; color: var(--primitive-colors-gray-500, #9e9e9e); }

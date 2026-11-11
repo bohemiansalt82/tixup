@@ -1,0 +1,158 @@
+/* Box permissions popup — Invite modal shell (#f4f4f4 panel, radius 20) widened to two panes:
+   box list (white rows, selected = #E7EBE6 like dashboard cards) | rules for the selected box. */
+.ba-panel { width: 760px; max-height: calc(100vh - 32px); }
+.ba-sub { margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: var(--primitive-colors-gray-700, #616161); }
+.ba-sub b { color: var(--semantic-color-colors-text-heading, #212121); font-weight: 600; }
+
+.ba-body {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 20px;
+  min-height: 300px;
+  max-height: 460px;
+}
+.ba-boxes, .ba-members, .ba-mine { list-style: none; margin: 0; padding: 0; }
+.ba-boxes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: #fff;
+  border-radius: 16px;
+  overflow-y: auto;
+}
+.ba-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--semantic-color-colors-text-heading, #212121);
+  text-align: left;
+  cursor: pointer;
+}
+.ba-box:hover { background: var(--primitive-colors-gray-100, #f5f5f5); }
+.ba-box.active { background: #e7ebe6; }
+.ba-box img, .ba-mine img { flex: none; opacity: 0.8; }
+.ba-box-name { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ba-box-more { font-size: 11px; color: var(--primitive-colors-gray-600, #757575); }
+
+.ba-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  overflow-y: auto;
+}
+.ba-label { margin-top: 12px; font-size: 14px; font-weight: 600; color: var(--semantic-color-colors-text-heading, #212121); }
+.ba-members { display: flex; flex-direction: column; gap: 6px; }
+.ba-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 12px;
+  background: #fff;
+  border-radius: 12px;
+}
+.ba-row-all { border: 1px solid #e7ebe6; }
+.ba-who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ba-who-text { min-width: 0; }
+.ba-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex: none; }
+.ba-all-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e7ebe6;
+  color: var(--semantic-color-colors-primary, #18675a);
+  font-size: 20px;
+  flex: none;
+}
+.ba-name { font-size: 14px; font-weight: 500; color: var(--semantic-color-colors-text-heading, #212121); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ba-hint { font-size: 12px; color: var(--primitive-colors-gray-600, #757575); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* segment: #f3f3f3 track with white active pill (same as the All/Done/Overdue tabs) */
+.ba-seg {
+  display: inline-flex;
+  flex: none;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: #f3f3f3;
+}
+.ba-seg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--primitive-colors-gray-700, #616161);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ba-seg-btn .material-symbols-outlined { font-size: 16px; }
+.ba-seg-btn:hover:not(.active) { color: var(--semantic-color-colors-text-heading, #212121); }
+.ba-seg-btn.active { background: #fff; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.12); color: var(--semantic-color-colors-text-heading, #212121); }
+.ba-seg-btn.active.ba-seg-edit { color: var(--semantic-color-colors-primary, #18675a); }
+.ba-seg-btn.active.ba-seg-view { color: #1d4ed8; }
+.ba-seg-btn.active.ba-seg-hidden { color: #b91c1c; }
+.ba-seg-default { color: var(--primitive-colors-gray-500, #9e9e9e); }
+
+.ba-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex: none;
+}
+.ba-chip .material-symbols-outlined { font-size: 14px; }
+.ba-chip.small { height: 22px; padding: 0 6px; font-size: 11px; }
+.ba-chip-edit { background: #dcfce7; color: #166534; }
+.ba-chip-view { background: #dbeafe; color: #1e40af; }
+.ba-chip-hidden { background: #fee2e2; color: #b91c1c; }
+
+.ba-mine { display: flex; flex-direction: column; gap: 6px; margin-top: 20px; max-height: 360px; overflow-y: auto; }
+.ba-mine li { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; background: #fff; border-radius: 12px; font-size: 14px; }
+
+.ba-empty {
+  margin-top: 20px;
+  padding: 32px 16px;
+  border-radius: 16px;
+  background: #fff;
+  font-size: 14px;
+  color: var(--primitive-colors-gray-600, #757575);
+  text-align: center;
+}
+.ba-empty-sm { margin-top: 0; padding: 20px 16px; font-size: 13px; }
+
+.ba-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 24px; }
+.ba-note { margin: 0; font-size: 12px; color: #b45309; }
+
+@media (max-width: 720px) {
+  .ba-body { grid-template-columns: 1fr; max-height: none; }
+  .ba-boxes { flex-direction: row; overflow-x: auto; }
+  .ba-box { width: auto; }
+  .ba-row { flex-wrap: wrap; }
+}

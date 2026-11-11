@@ -54,7 +54,7 @@ function dateAtPoint(x, y) {
  * Every gesture reports once through `onCommit(updates)` where updates = [{ id, start, width }]
  * in stored px, so one gesture = one undo step for the caller.
  */
-export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix, onRenameTix, onDeleteTix }) {
+export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix, onRenameTix, onDeleteTix, isLocked }) {
   // Months are not paged: the weeks scroll continuously and `range` grows as the user nears an
   // end. `month` is the month shown in the toolbar (follows the scroll position).
   const [range, setRange] = useState(() => {
@@ -228,7 +228,7 @@ export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix, onRename
   };
 
   const startResize = (seg, edge, e) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0 || isLocked?.(seg.id)) return;
     e.stopPropagation();
     // `x` / `row` let the dragged edge follow the pointer live; the span itself snaps per day.
     setDrag({ mode: 'resize', id: seg.id, edge, x: null, row: null });
@@ -242,6 +242,7 @@ export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix, onRename
       if (!current) return;
       const date = dateAtPoint(e.clientX, e.clientY);
       if (current.mode === 'move') {
+        if (isLocked?.(current.id)) return; // view-only box: a press only opens the Tix
         const moved = current.moved || Math.hypot(e.clientX - current.pointer.x, e.clientY - current.pointer.y) > DRAG_THRESHOLD;
         setDrag({ ...current, moved, pointer: moved ? { x: e.clientX, y: e.clientY } : current.pointer, hoverDate: date });
         return;
@@ -307,7 +308,7 @@ export function CalendarView({ tasks, onCommit, onCreateTix, onOpenTix, onRename
       window.removeEventListener('pointerup', onUp);
       window.removeEventListener('pointercancel', onUp);
     };
-  }, [drag, itemById, tasks, onCommit, onOpenTix]);
+  }, [drag, itemById, tasks, onCommit, onOpenTix, isLocked]);
 
   const moving = drag?.mode === 'move' && drag.moved ? itemById.get(drag.id) : undefined;
 

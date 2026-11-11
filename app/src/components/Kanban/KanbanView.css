@@ -280,3 +280,7 @@
 }
 .kb-card .kb-title-input { border: 1px solid var(--semantic-color-colors-primary, #18675a); border-radius: 6px; background: #fff; }
 .kb-card-create .kb-title-input { border: 0; }
+
+/* view-only (Box permissions): not draggable, lock glyph in the footer */
+.kb-card.locked { cursor: default; }
+.kb-lock { font-size: 16px; color: var(--primitive-colors-gray-500, #9e9e9e); }
