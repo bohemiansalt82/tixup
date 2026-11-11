@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { avatarFor } from '../../store/useAuth';
+import { rankMembers } from '../../utils/access';
 import { InviteModal } from '../Modals/InviteModal';
 import { useInvite } from '../../hooks/useInvite';
 import './TopBar.css';
@@ -18,7 +19,7 @@ const VIEWS = [
  * Wired: title, view switcher (Tab / Icon Group), Tix count, + Tix (create), member invite.
  * Visual only for now: Filter / Sort / Hide, overflow menus.
  */
-export function TopBar({ title, members = [], currentView, onViewChange, taskCount = 0, onCreateTix, readOnly = false, isOwner = true, onOpenAccess }) {
+export function TopBar({ title, members = [], ownerEmail = null, currentView, onViewChange, taskCount = 0, onCreateTix, readOnly = false, isOwner = true, onOpenAccess }) {
   const { user, activeSpace, inviteOpen, setInviteOpen, toast, handleInvite } = useInvite();
   // ⋮ (top right): permissions menu → Box 권한 popup (App renders it).
   const [moreOpen, setMoreOpen] = useState(false);
@@ -31,11 +32,12 @@ export function TopBar({ title, members = [], currentView, onViewChange, taskCou
     document.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
   }, [moreOpen]);
-  // members: [{ email, name, picture, online }] from App (me + backend members + invited); me is drawn as owner.
-  const me = members.find((m) => m.email === user?.email);
-  const others = members.filter((m) => m.email !== user?.email);
-  const shownMembers = others.slice(0, 4);
-  const overflow = others.length - shownMembers.length;
+  // members: [{ email, name, picture, online }] from App (me + backend members + invited).
+  // The crown goes on the space owner (from the backend), not on whoever is signed in.
+  const ranked = rankMembers(members, user?.email, ownerEmail);
+  const shownMembers = ranked.slice(0, 5);
+  const overflowList = ranked.slice(5);
+  const overflow = overflowList.length;
 
   return (
     <header className="topbar">
@@ -79,25 +81,22 @@ export function TopBar({ title, members = [], currentView, onViewChange, taskCou
 
       <div className="topbar-right">
         <div className="topbar-members">
-          {user && (
-            <span className="topbar-avatar" title={`${user.name} (owner)`}>
-              <img
-                src={user.picture || avatarFor(user.name)}
-                alt={user.name}
-                referrerPolicy="no-referrer"
-                onError={(e) => { e.currentTarget.src = avatarFor(user.name); }}
-              />
-              <img className="topbar-avatar-crown" src={icon('crown')} alt="" width={12} height={12} />
-              {me?.online && <img className="topbar-avatar-online" src={icon('online')} alt="" width={10} height={10} title="Online" />}
-            </span>
-          )}
-          {shownMembers.map((m) => (
-            <span key={m.email} className="topbar-avatar topbar-avatar-member" title={`${m.name || m.email}${m.online ? ' · online' : ''}`}>
-              <img src={m.picture || avatarFor(m.name || m.email.split('@')[0])} alt={m.email} referrerPolicy="no-referrer" />
-              {m.online && <img className="topbar-avatar-online" src={icon('online')} alt="" width={10} height={10} />}
-            </span>
-          ))}
-          {overflow > 0 && <span className="topbar-avatar topbar-avatar-more" title={others.slice(4).map((m) => m.email).join(', ')}>{overflow > 9 ? '9+' : `+${overflow}`}</span>}
+          {shownMembers.map((m, i) => {
+            const name = m.isMe ? (user?.name || m.name) : (m.name || m.email.split('@')[0]);
+            const picture = (m.isMe ? user?.picture : m.picture) || avatarFor(name);
+            return (
+              <span
+                key={m.email}
+                className={`topbar-avatar${i ? ' topbar-avatar-member' : ''}`}
+                title={`${name}${m.isOwner ? ' (owner)' : ''}${m.isMe ? ' (나)' : ''}${m.online ? ' · online' : ''}`}
+              >
+                <img src={picture} alt={name} referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.src = avatarFor(name); }} />
+                {m.isOwner && <img className="topbar-avatar-crown" src={icon('crown')} alt="" width={12} height={12} />}
+                {m.online && <img className="topbar-avatar-online" src={icon('online')} alt="" width={10} height={10} title="Online" />}
+              </span>
+            );
+          })}
+          {overflow > 0 && <span className="topbar-avatar topbar-avatar-more" title={overflowList.map((m) => m.email).join(', ')}>{overflow > 9 ? '9+' : `+${overflow}`}</span>}
           <button type="button" className="topbar-avatar topbar-avatar-add" title="Invite member" onClick={() => setInviteOpen(true)} disabled={!activeSpace}>
             <img src={icon('add')} alt="" width={24} height={24} />
           </button>

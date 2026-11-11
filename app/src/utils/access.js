@@ -49,3 +49,15 @@ export function cleanAccess(access) {
 }
 
 export const sameEmail = (a, b) => !!a && !!b && norm(a) === norm(b);
+
+/**
+ * Avatar order for the TopBar / Dashboard team row: the space owner first (crown), then me, then
+ * everyone else. `ownerEmail` is the backend's recorded owner (null when unknown → no crown).
+ */
+export function rankMembers(members, myEmail, ownerEmail) {
+  const list = members.map(m => ({ ...m, isMe: sameEmail(m.email, myEmail), isOwner: sameEmail(m.email, ownerEmail) }));
+  if (ownerEmail && !list.some(m => m.isOwner)) {
+    list.push({ email: ownerEmail, name: String(ownerEmail).split('@')[0], picture: null, online: false, isMe: false, isOwner: true });
+  }
+  return list.sort((a, b) => (Number(b.isOwner) - Number(a.isOwner)) || (Number(b.isMe) - Number(a.isMe)));
+}

@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useSpaces } from '../../store/useSpaces';
+import { rankMembers } from '../../utils/access';
 import { avatarFor } from '../../store/useAuth';
 import { useInvite } from '../../hooks/useInvite';
 import { STATUS_LABELS } from '../../constants';
@@ -25,7 +26,7 @@ const headerIcon = (name) => `${import.meta.env.BASE_URL}images/header/${name}.s
  * week tints those cards and scrolls to the first. Only the archive panes scroll, not the page.
  * Visual only: "Files" count, the "Ai" badge, the ⋮ menu.
  */
-export function DashboardView({ tasks, members = [], currentUser, onOpenTix }) {
+export function DashboardView({ tasks, members = [], ownerEmail = null, currentUser, onOpenTix }) {
   const { activeSpace, boxes, createBox } = useSpaces();
   const [period, setPeriod] = useState('week');
   const [issueSort, setIssueSort] = useState('desc');
@@ -56,7 +57,8 @@ export function DashboardView({ tasks, members = [], currentUser, onOpenTix }) {
     daylineRef.current?.querySelector('.dv-day-selected')?.scrollIntoView({ block: 'nearest' });
   }, [selected, lineMode, entries]);
 
-  const teamMembers = members.filter((m) => m.email !== currentUser?.email).slice(0, 3);
+  // Space owner first (crown), then me, then the rest — the crown is never just "whoever is signed in".
+  const teamMembers = rankMembers(members, currentUser?.email, ownerEmail).slice(0, 4);
 
   return (
     <section className="dv-section" id="dashboard-view">
@@ -66,19 +68,17 @@ export function DashboardView({ tasks, members = [], currentUser, onOpenTix }) {
           <div className="dv-team">
             <span className="dv-team-label">My Team</span>
             <div className="dv-avatars">
-              {currentUser && (
-                <span className="dv-avatar" title={`${currentUser.name} (owner)`}>
-                  <img src={currentUser.picture || avatarFor(currentUser.name)} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.src = avatarFor(currentUser.name); }} />
-                  <img className="dv-avatar-crown" src={headerIcon('crown')} alt="" width={12} height={12} />
-                  {members.find((m) => m.email === currentUser.email)?.online && <img className="dv-avatar-online" src={headerIcon('online')} alt="" width={10} height={10} title="Online" />}
-                </span>
-              )}
-              {teamMembers.map((m) => (
-                <span key={m.email} className="dv-avatar dv-avatar-member" title={`${m.name || m.email}${m.online ? ' · online' : ''}`}>
-                  <img src={m.picture || avatarFor(m.name || m.email)} alt="" referrerPolicy="no-referrer" />
-                  {m.online && <img className="dv-avatar-online" src={headerIcon('online')} alt="" width={10} height={10} />}
-                </span>
-              ))}
+              {teamMembers.map((m, i) => {
+                const name = m.isMe ? (currentUser?.name || m.name) : (m.name || m.email.split('@')[0]);
+                const picture = (m.isMe ? currentUser?.picture : m.picture) || avatarFor(name);
+                return (
+                  <span key={m.email} className={`dv-avatar${i ? ' dv-avatar-member' : ''}`} title={`${name}${m.isOwner ? ' (owner)' : ''}${m.isMe ? ' (나)' : ''}${m.online ? ' · online' : ''}`}>
+                    <img src={picture} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.src = avatarFor(name); }} />
+                    {m.isOwner && <img className="dv-avatar-crown" src={headerIcon('crown')} alt="" width={12} height={12} />}
+                    {m.online && <img className="dv-avatar-online" src={headerIcon('online')} alt="" width={10} height={10} title="Online" />}
+                  </span>
+                );
+              })}
               <button type="button" className="dv-avatar dv-avatar-add" title="Invite member" onClick={() => invite.setInviteOpen(true)} disabled={!activeSpace}>
                 <img src={headerIcon('add')} alt="" width={24} height={24} />
               </button>

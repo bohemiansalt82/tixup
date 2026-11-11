@@ -123,6 +123,8 @@ function Dashboard({ spaceId }) {
     rawMoveTask(dragId, targetId, position);
   }, [isLocked, deny, rawMoveTask]);
   const [accessOpen, setAccessOpen] = useState(false);
+  // Crown on the team avatars: the owner the backend recorded; before that, me only if I made the space.
+  const ownerEmail = shared?.owner ?? (isOwner ? user?.email ?? null : null);
   // Assignee candidates: me, emails invited locally, and members recorded on the shared space.
   // `online` = the backend saw that member on the site within the last ~45 s (Figma Avatar V2 "Online" dot).
   // The signed-in user is looking at the app right now, so they are always online.
@@ -309,6 +311,7 @@ function Dashboard({ spaceId }) {
           <DashboardView
             tasks={tasks}
             members={members}
+            ownerEmail={ownerEmail}
             currentUser={user}
             onOpenTix={setDetailTaskId}
           />
@@ -316,6 +319,7 @@ function Dashboard({ spaceId }) {
         <TopBar
           title={activeBox?.name ?? activeSpace?.name ?? 'My Space'}
           members={members}
+          ownerEmail={ownerEmail}
           currentView={currentView}
           onViewChange={setCurrentView}
           taskCount={visibleTasks.length}
